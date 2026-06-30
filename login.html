@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>قسم علوم ابتدائي | تسجيل الدخول</title>
+<style>
+  :root{
+    --blue-deep:#0a2e5c; --blue-main:#1565d8; --blue-bright:#2f9bf0;
+    --white:#ffffff; --ice:#eaf4ff; --glass: rgba(255,255,255,0.65);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Tahoma,Arial,sans-serif;}
+  body{min-height:100vh;background:linear-gradient(160deg,var(--white) 0%,var(--ice) 45%,#dceeff 100%);overflow-x:hidden;position:relative;}
+  .lab-bg{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none;}
+  .bubble{position:absolute;bottom:-50px;border-radius:50%;background:radial-gradient(circle at 30% 30%, rgba(255,255,255,0.9), rgba(47,155,240,0.25));border:1px solid rgba(47,155,240,0.4);animation:rise linear infinite;}
+  @keyframes rise{0%{transform:translateY(0) translateX(0) scale(1);opacity:0;}10%{opacity:0.8;}100%{transform:translateY(-110vh) translateX(20px) scale(1.2);opacity:0;}}
+  .flask{position:absolute;opacity:0.18;animation:float 8s ease-in-out infinite;}
+  @keyframes float{0%,100%{transform:translateY(0) rotate(0deg);}50%{transform:translateY(-25px) rotate(4deg);}}
+  .wrapper{position:relative;z-index:2;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;}
+  .card{width:100%;max-width:420px;background:var(--glass);backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,0.7);border-radius:26px;box-shadow:0 20px 60px rgba(10,46,92,0.18);padding:36px 30px;animation:appear 0.8s ease;}
+  @keyframes appear{from{opacity:0;transform:translateY(30px) scale(0.96);}to{opacity:1;transform:translateY(0) scale(1);}}
+  .logo{display:flex;flex-direction:column;align-items:center;margin-bottom:18px;}
+  .logo-icon{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--blue-bright),var(--blue-deep));display:flex;align-items:center;justify-content:center;box-shadow:0 8px 24px rgba(21,101,216,0.4);margin-bottom:10px;animation:pulse 2.4s ease-in-out infinite;}
+  @keyframes pulse{0%,100%{box-shadow:0 8px 24px rgba(21,101,216,0.4);}50%{box-shadow:0 8px 36px rgba(21,101,216,0.7);}}
+  .logo-icon svg{width:32px;height:32px;fill:#fff;}
+  .logo h1{font-size:19px;color:var(--blue-deep);font-weight:800;text-align:center;}
+  .logo p{font-size:12.5px;color:#5c7a9c;margin-top:4px;text-align:center;}
+  .tabs{display:flex;background:rgba(255,255,255,0.6);border-radius:14px;padding:4px;margin-bottom:22px;}
+  .tabs button{flex:1;padding:10px;border:none;background:transparent;border-radius:11px;font-size:14.5px;font-weight:700;color:#5c7a9c;cursor:pointer;transition:0.25s;}
+  .tabs button.active{background:linear-gradient(135deg,var(--blue-main),var(--blue-bright));color:#fff;box-shadow:0 6px 16px rgba(21,101,216,0.35);}
+  form{display:none;flex-direction:column;gap:14px;}
+  form.active{display:flex;}
+  .field label{display:block;font-size:12.5px;color:var(--blue-deep);font-weight:700;margin-bottom:5px;}
+  .field input, .field select{width:100%;padding:12px 14px;border-radius:12px;border:1.5px solid #cfe2f7;background:#fff;font-size:14.5px;color:#0a2e5c;outline:none;transition:0.2s;}
+  .field input:focus, .field select:focus{border-color:var(--blue-main);box-shadow:0 0 0 4px rgba(21,101,216,0.12);}
+  .hint{font-size:11.5px;color:#7a93ad;margin-top:3px;}
+  .submit-btn{margin-top:6px;padding:13px;border:none;border-radius:14px;background:linear-gradient(135deg,var(--blue-main),var(--blue-deep));color:#fff;font-size:15.5px;font-weight:800;cursor:pointer;box-shadow:0 10px 24px rgba(21,101,216,0.35);transition:0.2s;}
+  .submit-btn:hover{transform:translateY(-2px);box-shadow:0 14px 30px rgba(21,101,216,0.45);}
+  .submit-btn:disabled{opacity:0.6;cursor:not-allowed;transform:none;}
+  .msg{margin-top:14px;padding:10px 12px;border-radius:10px;font-size:13px;text-align:center;display:none;}
+  .msg.error{background:#ffe5e5;color:#b00020;display:block;}
+  .msg.success{background:#e3f7e8;color:#147a35;display:block;}
+  .msg.info{background:#e8f1fc;color:#0a2e5c;display:block;}
+  .switch-line{text-align:center;margin-top:16px;font-size:13.5px;color:#5c7a9c;}
+  .switch-line a{color:var(--blue-main);font-weight:700;text-decoration:none;cursor:pointer;}
+  .footer-credit{position:relative;z-index:2;text-align:center;font-size:11.5px;color:#9bb3cb;padding-bottom:14px;}
+  @media (prefers-reduced-motion: reduce){.bubble,.flask,.logo-icon{animation:none !important;}}
+</style>
+</head>
+<body>
+
+<div class="lab-bg" id="labBg"></div>
+
+<div class="wrapper">
+  <div class="card">
+    <div class="logo">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24"><path d="M9 2v6.3L4.3 17a2 2 0 0 0 1.8 3h11.8a2 2 0 0 0 1.8-3L15 8.3V2H9zm2 2h2v5l4.3 7.5H7.7L12 9V4z"/></svg>
+      </div>
+      <h1>قسم علوم — ابتدائي</h1>
+      <p>منصة القسم الإلكترونية لمحاضرات، ملخصات، وكتب الطلاب</p>
+    </div>
+
+    <div class="tabs">
+      <button id="tabLogin" class="active" onclick="switchTab('login')">تسجيل الدخول</button>
+      <button id="tabSignup" onclick="switchTab('signup')">إنشاء حساب</button>
+    </div>
+
+    <form id="loginForm" class="active">
+      <div class="field"><label>رقم الموبايل</label><input type="tel" id="loginPhone" placeholder="01xxxxxxxxx" required></div>
+      <div class="field"><label>كلمة المرور</label><input type="password" id="loginPass" placeholder="••••••••" required></div>
+      <button type="submit" class="submit-btn" id="loginBtn">دخول</button>
+      <div class="msg" id="loginMsg"></div>
+      <div class="switch-line">ليس لدي حساب؟ <a onclick="switchTab('signup')">إنشاء حساب</a></div>
+    </form>
+
+    <form id="signupForm">
+      <div class="field"><label>الاسم بالكامل</label><input type="text" id="suName" placeholder="الاسم الثلاثي" required></div>
+      <div class="field"><label>رقم الموبايل</label><input type="tel" id="suPhone" placeholder="01xxxxxxxxx" required></div>
+      <div class="field">
+        <label>الفرقة الدراسية</label>
+        <select id="suYear" required>
+          <option value="">اختر الفرقة</option>
+          <option value="الأولى">الفرقة الأولى</option>
+          <option value="الثانية">الفرقة الثانية</option>
+          <option value="الثالثة">الفرقة الثالثة</option>
+          <option value="الرابعة">الفرقة الرابعة</option>
+        </select>
+      </div>
+      <div class="field"><label>كلمة المرور</label><input type="password" id="suPass" placeholder="••••••••" required></div>
+      <div class="field">
+        <label>تأكيد كلمة المرور</label>
+        <input type="password" id="suPass2" placeholder="••••••••" required>
+        <div class="hint">سيتم مراجعة طلبك من قِبل الأدمن قبل تفعيل الدخول.</div>
+      </div>
+      <button type="submit" class="submit-btn" id="signupBtn">إنشاء الحساب</button>
+      <div class="msg" id="signupMsg"></div>
+      <div class="switch-line">لدي حساب بالفعل؟ <a onclick="switchTab('login')">تسجيل الدخول</a></div>
+    </form>
+  </div>
+</div>
+
+<div class="footer-credit">تم إنشاء هذا الموقع بواسطة MF.mo.fayyad</div>
+
+<!-- Firebase compat SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+  // منع الريفرش فورًا بغض النظر عن أي حاجة تانية
+  document.getElementById('loginForm').addEventListener('submit', e => e.preventDefault());
+  document.getElementById('signupForm').addEventListener('submit', e => e.preventDefault());
+
+  // تأكيد إن مكتبة Firebase اتحملت فعلاً من الإنترنت
+  if(typeof firebase === 'undefined'){
+    document.querySelectorAll('.submit-btn').forEach(b=>{
+      b.addEventListener('click', ()=> alert('تعذّر تحميل مكتبة Firebase. تأكد إن جهازك متصل بالإنترنت وحاول تاني.'));
+    });
+  }
+</script>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyBgI8VcLOdQAMgmcpxCzaMS1UCX1vyzSjw",
+    authDomain: "science-e2b52.firebaseapp.com",
+    projectId: "science-e2b52",
+    storageBucket: "science-e2b52.firebasestorage.app",
+    messagingSenderId: "1031434005860",
+    appId: "1:1031434005860:web:e68fccdd746017a5639e71",
+    measurementId: "G-JZ1SFVMM7P"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+  const ADMIN_PHONE = "01229914072";
+  const ADMIN_PASS  = "197197";
+
+  async function ensureAdmin(){
+    const ref = db.collection('users').doc(ADMIN_PHONE);
+    const snap = await ref.get();
+    if(!snap.exists){
+      await ref.set({
+        name: "المسؤول العام", phone: ADMIN_PHONE, password: ADMIN_PASS,
+        year: "—", role: "admin", approved: true, activeSession: false,
+        points: 0, createdAt: Date.now()
+      });
+    }
+  }
+  ensureAdmin();
+</script>
+
+<script>
+  function switchTab(tab){
+    document.getElementById('tabLogin').classList.toggle('active', tab==='login');
+    document.getElementById('tabSignup').classList.toggle('active', tab==='signup');
+    document.getElementById('loginForm').classList.toggle('active', tab==='login');
+    document.getElementById('signupForm').classList.toggle('active', tab==='signup');
+    document.getElementById('loginMsg').style.display='none';
+    document.getElementById('signupMsg').style.display='none';
+  }
+
+  function showMsg(el, text, type){
+    el.textContent = text; el.className = 'msg ' + type; el.style.display='block';
+  }
+
+  document.getElementById('loginForm').addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const phone = document.getElementById('loginPhone').value.trim();
+    const pass = document.getElementById('loginPass').value;
+    const btn = document.getElementById('loginBtn');
+    const msg = document.getElementById('loginMsg');
+
+    if(!/^01[0-9]{9}$/.test(phone)){ showMsg(msg,'رقم الموبايل غير صحيح','error'); return; }
+    btn.disabled = true; btn.textContent='جاري التحقق...';
+
+    try{
+      const ref = db.collection('users').doc(phone);
+      const snap = await ref.get();
+      if(!snap.exists){
+        showMsg(msg,'لا يوجد حساب بهذا الرقم','error');
+      } else {
+        const data = snap.data();
+        if(data.password !== pass){
+          showMsg(msg,'كلمة المرور غير صحيحة','error');
+        } else if(!data.approved){
+          showMsg(msg,'حسابك لسه في انتظار موافقة الأدمن','info');
+        } else if(data.activeSession && data.role !== 'admin' && (Date.now() - (data.lastLogin||0) < 1000*60*60*6)){
+          showMsg(msg,'الحساب مسجل دخول بالفعل من جهاز آخر','error');
+        } else {
+          await ref.update({activeSession:true, lastLogin:Date.now()});
+          const userObj = {phone, name:data.name, role:data.role||'student', year:data.year};
+          localStorage.setItem('currentUser', JSON.stringify(userObj));
+          const params = new URLSearchParams(userObj).toString();
+          const targetUrl = 'home.html?' + params;
+          msg.innerHTML = 'تم تسجيل الدخول بنجاح. <a href="'+targetUrl+'" style="color:#0a2e5c;font-weight:800;text-decoration:underline;">اضغط هنا للمتابعة</a> لو ملحولكش تلقائيًا';
+          msg.className = 'msg success';
+          msg.style.display = 'block';
+          setTimeout(()=>{ window.location.href = targetUrl; }, 700);
+        }
+      }
+    }catch(err){
+      console.error(err);
+      showMsg(msg,'حدث خطأ في الاتصال: '+err.message,'error');
+    }
+    btn.disabled=false; btn.textContent='دخول';
+  });
+
+  document.getElementById('signupForm').addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const name = document.getElementById('suName').value.trim();
+    const phone = document.getElementById('suPhone').value.trim();
+    const year = document.getElementById('suYear').value;
+    const pass = document.getElementById('suPass').value;
+    const pass2 = document.getElementById('suPass2').value;
+    const btn = document.getElementById('signupBtn');
+    const msg = document.getElementById('signupMsg');
+
+    if(name.length < 3){ showMsg(msg,'من فضلك أدخل الاسم بالكامل','error'); return; }
+    if(!/^01[0-9]{9}$/.test(phone)){ showMsg(msg,'رقم الموبايل غير صحيح','error'); return; }
+    if(!year){ showMsg(msg,'من فضلك اختر الفرقة الدراسية','error'); return; }
+    if(pass.length < 6){ showMsg(msg,'كلمة المرور يجب ألا تقل عن 6 أحرف','error'); return; }
+    if(pass !== pass2){ showMsg(msg,'كلمتا المرور غير متطابقتين','error'); return; }
+
+    btn.disabled = true; btn.textContent='جاري الإنشاء...';
+    try{
+      const ref = db.collection('users').doc(phone);
+      const existing = await ref.get();
+      if(existing.exists){
+        showMsg(msg,'يوجد حساب بالفعل بهذا الرقم','error');
+      } else {
+        await ref.set({
+          name, phone, password: pass, year,
+          role:'student', approved:false, activeSession:false,
+          points:0, createdAt: Date.now()
+        });
+        showMsg(msg,'تم إرسال طلبك بنجاح، انتظر موافقة الأدمن لتفعيل الدخول','success');
+        document.getElementById('signupForm').reset();
+      }
+    }catch(err){
+      console.error(err);
+      showMsg(msg,'حدث خطأ: '+err.message,'error');
+    }
+    btn.disabled=false; btn.textContent='إنشاء الحساب';
+  });
+
+  document.addEventListener('DOMContentLoaded', function(){
+    const bg = document.getElementById('labBg');
+    for(let i=0;i<22;i++){
+      const b = document.createElement('div');
+      b.className='bubble';
+      const size = 8 + Math.random()*26;
+      b.style.width = size+'px'; b.style.height = size+'px';
+      b.style.left = Math.random()*100+'%';
+      b.style.animationDuration = (6+Math.random()*8)+'s';
+      b.style.animationDelay = (Math.random()*8)+'s';
+      bg.appendChild(b);
+    }
+    const flaskSVG = '<svg width="90" height="120" viewBox="0 0 90 120"><path d="M35 5h20v30l20 60a8 8 0 0 1-7 12H22a8 8 0 0 1-7-12l20-60V5z" fill="none" stroke="#1565d8" stroke-width="3"/><path d="M20 75h50" stroke="#1565d8" stroke-width="3"/></svg>';
+    [['5%','10%'],['85%','15%'],['8%','70%'],['88%','65%']].forEach(function(p,i){
+      const d = document.createElement('div');
+      d.className='flask'; d.style.left = p[0]; d.style.top = p[1];
+      d.style.animationDelay = (i*1.3)+'s'; d.innerHTML = flaskSVG;
+      bg.appendChild(d);
+    });
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>لوحة الأدمن</title>
+<style>
+  :root{--blue-deep:#0a2e5c;--blue-main:#1565d8;--ice:#eaf4ff;}
+  *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Tahoma,Arial,sans-serif;}
+  body{background:var(--ice);color:#0a2e5c;}
+  .topbar{background:linear-gradient(135deg,var(--blue-main),var(--blue-deep));color:#fff;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;}
+  .topbar a{color:#fff;text-decoration:none;font-size:13px;background:rgba(255,255,255,0.15);padding:8px 14px;border-radius:10px;}
+  .wrap{max-width:980px;margin:24px auto;padding:0 16px;}
+  .tabs{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;}
+  .tabs button{padding:9px 16px;border:none;border-radius:12px;background:#fff;color:#4a6585;font-weight:700;font-size:13.5px;cursor:pointer;}
+  .tabs button.active{background:var(--blue-main);color:#fff;}
+  .section{display:none;}
+  .section.active{display:block;}
+  .card-box{background:#fff;border-radius:14px;padding:14px;margin-bottom:10px;box-shadow:0 4px 14px rgba(10,46,92,0.06);}
+  .row{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;}
+  .row .meta b{display:block;font-size:14.5px;}
+  .row .meta span{font-size:12px;color:#7a93ad;}
+  .btn{border:none;border-radius:10px;padding:8px 14px;font-size:12.5px;font-weight:700;cursor:pointer;}
+  .btn-approve{background:#147a35;color:#fff;}
+  .btn-reject{background:#b00020;color:#fff;}
+  .btn-blue{background:var(--blue-main);color:#fff;}
+  .form-line{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
+  .form-line input, .form-line select{padding:10px;border-radius:10px;border:1.5px solid #cfe2f7;flex:1;min-width:140px;}
+  .lock-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;}
+  .lock-box{background:#fff;padding:30px;border-radius:18px;text-align:center;width:300px;}
+  .lock-box input{width:100%;padding:12px;border-radius:10px;border:1.5px solid #cfe2f7;margin:14px 0;text-align:center;font-size:16px;}
+  .lock-box button{width:100%;padding:12px;border:none;border-radius:10px;background:var(--blue-main);color:#fff;font-weight:800;cursor:pointer;}
+  .chip{display:inline-block;background:var(--ice);color:var(--blue-main);font-size:11.5px;padding:3px 8px;border-radius:8px;margin:2px;}
+</style>
+</head>
+<body>
+
+<div class="lock-screen" id="lockScreen">
+  <div class="lock-box">
+    <h2 style="margin-bottom:6px">🔒 لوحة الأدمن</h2>
+    <p style="font-size:12.5px;color:#7a93ad">أدخل كلمة مرور الأدمن</p>
+    <input type="password" id="adminPassInput" placeholder="••••••">
+    <button onclick="checkAdminPass()">دخول</button>
+    <p id="lockMsg" style="color:#b00020;font-size:12px;margin-top:8px"></p>
+  </div>
+</div>
+
+<div id="adminPanel" style="display:none">
+  <div class="topbar">
+    <b>⚙️ لوحة تحكم الأدمن</b>
+    <a href="home.html">رجوع للرئيسية</a>
+  </div>
+  <div class="wrap">
+    <div class="tabs">
+      <button class="active" onclick="showTab('pending', this)">طلبات التسجيل</button>
+      <button onclick="showTab('users', this)">كل الأعضاء</button>
+      <button onclick="showTab('groups', this)">الجروبات</button>
+      <button onclick="showTab('schedule', this)">جدول المحاضرات</button>
+      <button onclick="showTab('books', this)">الكتب المقفولة</button>
+    </div>
+
+    <!-- طلبات التسجيل -->
+    <div class="section active" id="tab-pending">
+      <div id="pendingList"></div>
+    </div>
+
+    <!-- كل الأعضاء -->
+    <div class="section" id="tab-users">
+      <div id="usersList"></div>
+    </div>
+
+    <!-- الجروبات -->
+    <div class="section" id="tab-groups">
+      <div class="card-box">
+        <div class="form-line">
+          <input type="text" id="newGroupName" placeholder="اسم الجروب الجديد">
+          <button class="btn btn-blue" onclick="createGroup()">إنشاء جروب</button>
+        </div>
+      </div>
+      <div id="groupsList"></div>
+    </div>
+
+    <!-- جدول المحاضرات -->
+    <div class="section" id="tab-schedule">
+      <div class="card-box">
+        <div class="form-line">
+          <input type="text" id="schDay" placeholder="اليوم (مثلاً: السبت)">
+          <input type="text" id="schSubject" placeholder="المادة">
+          <input type="text" id="schTime" placeholder="الموعد (مثلاً 9:00 ص)">
+          <input type="text" id="schPlace" placeholder="المكان">
+          <button class="btn btn-blue" onclick="addScheduleItem()">إضافة محاضرة</button>
+        </div>
+      </div>
+      <div id="scheduleAdminList"></div>
+    </div>
+
+    <!-- الكتب -->
+    <div class="section" id="tab-books">
+      <div class="card-box">
+        <div class="form-line">
+          <input type="text" id="bookTitle" placeholder="عنوان الكتاب">
+          <input type="file" id="bookFile" accept="application/pdf" style="flex:1;min-width:160px;">
+          <select id="bookLocked"><option value="no">متاح للجميع</option><option value="yes">مقفول (تحديد أسماء)</option></select>
+          <button class="btn btn-blue" id="addBookBtn" onclick="addBook()">إضافة كتاب</button>
+        </div>
+        <p id="uploadProgress" style="font-size:12px;color:#7a93ad"></p>
+      </div>
+      <div id="booksAdminList"></div>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyBgI8VcLOdQAMgmcpxCzaMS1UCX1vyzSjw",
+    authDomain: "science-e2b52.firebaseapp.com",
+    projectId: "science-e2b52",
+    storageBucket: "science-e2b52.firebasestorage.app",
+    messagingSenderId: "1031434005860",
+    appId: "1:1031434005860:web:e68fccdd746017a5639e71",
+    measurementId: "G-JZ1SFVMM7P"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+  const storage = firebase.storage();
+  const ADMIN_PHONE = "01229914072";
+  const ADMIN_PASS  = "197197";
+</script>
+<script>
+  function checkAdminPass(){
+    const val = document.getElementById('adminPassInput').value;
+    if(val === ADMIN_PASS){
+      document.getElementById('lockScreen').style.display='none';
+      document.getElementById('adminPanel').style.display='block';
+      loadAll();
+    } else {
+      document.getElementById('lockMsg').textContent='كلمة المرور غير صحيحة';
+    }
+  }
+
+  function showTab(id, btn){
+    document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+    document.getElementById('tab-'+id).classList.add('active');
+    document.querySelectorAll('.tabs button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+
+  function loadAll(){
+    loadPending(); loadUsers(); loadGroups(); loadSchedule(); loadBooks();
+  }
+
+  // ===== طلبات التسجيل =====
+  async function loadPending(){
+    const box = document.getElementById('pendingList');
+    box.innerHTML='جاري التحميل...';
+    const snap = await db.collection('users').where('approved','==',false).get();
+    if(snap.empty){ box.innerHTML='<p style="color:#9bb3cb;font-size:13px">لا توجد طلبات جديدة</p>'; return; }
+    box.innerHTML='';
+    snap.forEach(doc=>{
+      const u = doc.data();
+      const el = document.createElement('div');
+      el.className='card-box row';
+      el.innerHTML = `<div class="meta"><b>${u.name}</b><span>${u.phone} — الفرقة ${u.year}</span></div>
+        <div><button class="btn btn-approve" onclick="approveUser('${doc.id}')">موافقة</button>
+        <button class="btn btn-reject" onclick="rejectUser('${doc.id}')">رفض</button></div>`;
+      box.appendChild(el);
+    });
+  }
+  async function approveUser(phone){
+    await db.collection('users').doc(phone).update({approved:true});
+    loadPending(); loadUsers();
+  }
+  async function rejectUser(phone){
+    if(!confirm('هل تريد حذف هذا الطلب نهائيًا؟')) return;
+    await db.collection('users').doc(phone).delete();
+    loadPending();
+  }
+
+  // ===== كل الأعضاء =====
+  async function loadUsers(){
+    const box = document.getElementById('usersList');
+    box.innerHTML='جاري التحميل...';
+    const snap = await db.collection('users').where('approved','==',true).get();
+    box.innerHTML='';
+    snap.forEach(doc=>{
+      const u = doc.data();
+      const el = document.createElement('div');
+      el.className='card-box row';
+      el.innerHTML = `<div class="meta"><b>${u.name} ${u.role==='admin'?'👑':''}</b><span>${u.phone} — الفرقة ${u.year} — ${u.points||0} نقطة ${u.activeSession?'— 🟢 متصل':''}</span></div>
+        <div>
+        ${u.activeSession ? `<button class="btn btn-blue" onclick="forceLogout('${doc.id}')">إنهاء الجلسة</button>` : ''}
+        ${u.role!=='admin' ? `<button class="btn btn-reject" onclick="removeUser('${doc.id}')">حذف العضوية</button>` : ''}
+        </div>`;
+      box.appendChild(el);
+    });
+  }
+  async function removeUser(phone){
+    if(!confirm('هل تريد حذف هذا العضو نهائيًا؟')) return;
+    await db.collection('users').doc(phone).delete();
+    loadUsers();
+  }
+  async function forceLogout(phone){
+    await db.collection('users').doc(phone).update({activeSession:false});
+    loadUsers();
+  }
+
+  // ===== الجروبات =====
+  async function createGroup(){
+    const name = document.getElementById('newGroupName').value.trim();
+    if(!name) return;
+    await db.collection('groups').add({name, members:[ADMIN_PHONE], createdAt:Date.now()});
+    document.getElementById('newGroupName').value='';
+    loadGroups();
+  }
+  async function loadGroups(){
+    const box = document.getElementById('groupsList');
+    box.innerHTML='جاري التحميل...';
+    const usersSnap = await db.collection('users').where('approved','==',true).get();
+    const allUsers = []; usersSnap.forEach(d=>allUsers.push(d.data()));
+    const snap = await db.collection('groups').get();
+    box.innerHTML='';
+    snap.forEach(doc=>{
+      const g = doc.data();
+      const el = document.createElement('div');
+      el.className='card-box';
+      el.innerHTML = `<div class="row"><div class="meta"><b>${g.name}</b><span>${(g.members||[]).length} عضو</span></div></div>
+        <div style="margin-top:8px">${allUsers.map(u=>`
+          <label style="display:inline-flex;align-items:center;gap:4px;margin:3px 8px 3px 0;font-size:12.5px;">
+            <input type="checkbox" ${ (g.members||[]).includes(u.phone) ? 'checked':'' } onchange="toggleMember('${doc.id}','${u.phone}',this.checked)">
+            ${u.name}
+          </label>`).join('')}</div>`;
+      box.appendChild(el);
+    });
+  }
+  async function toggleMember(groupId, phone, checked){
+    const ref = db.collection('groups').doc(groupId);
+    if(checked){ await ref.update({members: firebase.firestore.FieldValue.arrayUnion(phone)}); }
+    else{ await ref.update({members: firebase.firestore.FieldValue.arrayRemove(phone)}); }
+  }
+
+  // ===== جدول المحاضرات =====
+  async function addScheduleItem(){
+    const day = document.getElementById('schDay').value.trim();
+    const subject = document.getElementById('schSubject').value.trim();
+    const time = document.getElementById('schTime').value.trim();
+    const place = document.getElementById('schPlace').value.trim();
+    if(!day||!subject||!time||!place) return alert('من فضلك املأ كل الحقول');
+    const ref = db.collection('settings').doc('schedule');
+    const snap = await ref.get();
+    const items = snap.exists ? (snap.data().items||[]) : [];
+    items.push({day,subject,time,place});
+    await ref.set({items});
+    document.getElementById('schDay').value='';
+    document.getElementById('schSubject').value='';
+    document.getElementById('schTime').value='';
+    document.getElementById('schPlace').value='';
+    loadSchedule();
+  }
+  async function loadSchedule(){
+    const box = document.getElementById('scheduleAdminList');
+    box.innerHTML='جاري التحميل...';
+    const snap = await db.collection('settings').doc('schedule').get();
+    const items = snap.exists ? (snap.data().items||[]) : [];
+    box.innerHTML = items.length ? items.map((s,i)=>`
+      <div class="card-box row"><div class="meta"><b>${s.subject}</b><span>${s.day} — ${s.time} — ${s.place}</span></div>
+      <button class="btn btn-reject" onclick="removeScheduleItem(${i})">حذف</button></div>`).join('') : '<p style="color:#9bb3cb;font-size:13px">لا توجد محاضرات بعد</p>';
+  }
+  async function removeScheduleItem(i){
+    const ref = db.collection('settings').doc('schedule');
+    const snap = await ref.get();
+    const items = snap.data().items||[];
+    items.splice(i,1);
+    await ref.set({items});
+    loadSchedule();
+  }
+
+  // ===== الكتب =====
+  async function addBook(){
+    const title = document.getElementById('bookTitle').value.trim();
+    const file = document.getElementById('bookFile').files[0];
+    const locked = document.getElementById('bookLocked').value === 'yes';
+    const btn = document.getElementById('addBookBtn');
+    const progress = document.getElementById('uploadProgress');
+    if(!title || !file) return alert('من فضلك أدخل العنوان واختر ملف PDF');
+
+    btn.disabled = true; btn.textContent='جاري الرفع...';
+    try{
+      const path = 'books/' + Date.now() + '_' + file.name;
+      const ref = storage.ref().child(path);
+      const task = ref.put(file);
+      task.on('state_changed', snap=>{
+        const pct = Math.round((snap.bytesTransferred/snap.totalBytes)*100);
+        progress.textContent = 'جاري الرفع: '+pct+'%';
+      });
+      await task;
+      const url = await ref.getDownloadURL();
+      await db.collection('books').add({title, link:url, storagePath:path, locked, allowedPhones:[], time:Date.now()});
+      document.getElementById('bookTitle').value='';
+      document.getElementById('bookFile').value='';
+      progress.textContent='تم رفع الكتاب بنجاح';
+      loadBooks();
+    }catch(err){
+      console.error(err);
+      progress.textContent='حدث خطأ أثناء الرفع: '+err.message;
+    }
+    btn.disabled=false; btn.textContent='إضافة كتاب';
+  }
+  async function loadBooks(){
+    const box = document.getElementById('booksAdminList');
+    box.innerHTML='جاري التحميل...';
+    const usersSnap = await db.collection('users').where('approved','==',true).get();
+    const allUsers = []; usersSnap.forEach(d=>allUsers.push(d.data()));
+    const snap = await db.collection('books').get();
+    box.innerHTML='';
+    snap.forEach(doc=>{
+      const b = doc.data();
+      const el = document.createElement('div');
+      el.className='card-box';
+      el.innerHTML = `<div class="row"><div class="meta"><b>${b.title}</b><span>${b.locked?'🔒 مقفول':'متاح للجميع'}</span></div>
+        <button class="btn btn-reject" onclick="deleteBook('${doc.id}')">حذف</button></div>
+        ${b.locked ? `<div style="margin-top:8px">${allUsers.map(u=>`
+          <label style="display:inline-flex;align-items:center;gap:4px;margin:3px 8px 3px 0;font-size:12.5px;">
+            <input type="checkbox" ${(b.allowedPhones||[]).includes(u.phone)?'checked':''} onchange="toggleBookAccess('${doc.id}','${u.phone}',this.checked)">
+            ${u.name}
+          </label>`).join('')}</div>` : ''}`;
+      box.appendChild(el);
+    });
+  }
+  async function toggleBookAccess(bookId, phone, checked){
+    const ref = db.collection('books').doc(bookId);
+    if(checked){ await ref.update({allowedPhones: firebase.firestore.FieldValue.arrayUnion(phone)}); }
+    else{ await ref.update({allowedPhones: firebase.firestore.FieldValue.arrayRemove(phone)}); }
+  }
+  async function deleteBook(id){
+    if(!confirm('حذف هذا الكتاب؟')) return;
+    const snap = await db.collection('books').doc(id).get();
+    const b = snap.data();
+    if(b && b.storagePath){
+      try{ await storage.ref().child(b.storagePath).delete(); }catch(e){}
+    }
+    await db.collection('books').doc(id).delete();
+    loadBooks();
+  }
+</script>
+</body>
+</html>
