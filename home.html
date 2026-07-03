@@ -8,67 +8,42 @@
   :root{--blue-deep:#0a2e5c;--blue-main:#1565d8;--blue-bright:#2f9bf0;--ice:#eaf4ff;--gold:#f5a623;}
   *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Tahoma,Arial,sans-serif;}
   body{background:var(--ice);color:#0a2e5c;min-height:100vh;}
-  .topbar{
-    position:sticky;top:0;z-index:30;
-    background:linear-gradient(135deg,var(--blue-main),var(--blue-deep));
-    color:#fff;display:flex;align-items:center;justify-content:space-between;
-    padding:12px 18px;box-shadow:0 4px 14px rgba(10,46,92,0.25);
-  }
+  .topbar{position:sticky;top:0;z-index:30;background:linear-gradient(135deg,var(--blue-main),var(--blue-deep));color:#fff;display:flex;align-items:center;justify-content:space-between;padding:12px 18px;box-shadow:0 4px 14px rgba(10,46,92,0.25);}
   .topbar .brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:16px;}
   .topbar .brand svg{width:26px;height:26px;fill:#fff;}
   .menu-btn{background:rgba(255,255,255,0.15);border:none;color:#fff;width:38px;height:38px;border-radius:10px;font-size:18px;cursor:pointer;}
-
   .layout{display:flex;min-height:calc(100vh - 58px);}
-
-  /* الشريط الجانبي */
-  .sidebar{
-    width:230px;background:#fff;border-left:1px solid #e1ecf8;
-    padding:16px 12px;display:flex;flex-direction:column;gap:6px;
-    position:sticky;top:58px;height:calc(100vh - 58px);overflow-y:auto;
-    transition:0.3s;
-  }
-  .sidebar button{
-    display:flex;align-items:center;gap:10px;
-    background:transparent;border:none;text-align:right;
-    padding:11px 12px;border-radius:12px;cursor:pointer;
-    font-size:14.5px;font-weight:700;color:#4a6585;
-  }
-  .sidebar button.active, .sidebar button:hover{background:var(--ice);color:var(--blue-main);}
+  .sidebar{width:230px;background:#fff;border-left:1px solid #e1ecf8;padding:16px 12px;display:flex;flex-direction:column;gap:6px;position:sticky;top:58px;height:calc(100vh - 58px);overflow-y:auto;transition:0.3s;}
+  .sidebar button{display:flex;align-items:center;gap:10px;background:transparent;border:none;text-align:right;padding:11px 12px;border-radius:12px;cursor:pointer;font-size:14.5px;font-weight:700;color:#4a6585;}
+  .sidebar button.active,.sidebar button:hover{background:var(--ice);color:var(--blue-main);}
   .sidebar .divider{height:1px;background:#eef3fa;margin:8px 4px;}
   .sidebar .small-link{font-size:12.5px;color:#8aa3bf;font-weight:600;}
-
   .content{flex:1;padding:22px;max-width:1000px;}
   .section{display:none;animation:fadein 0.35s ease;}
   .section.active{display:block;}
   @keyframes fadein{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
-
   h2.section-title{font-size:21px;color:var(--blue-deep);margin-bottom:16px;}
-
-  /* بطاقات عامة */
   .card-box{background:#fff;border-radius:16px;padding:16px;box-shadow:0 6px 18px rgba(10,46,92,0.06);margin-bottom:14px;}
-
-  /* جدول المحاضرات */
   .lecture-card{display:flex;justify-content:space-between;align-items:center;border-right:4px solid var(--blue-main);}
   .lecture-card .info b{display:block;font-size:15px;color:var(--blue-deep);}
   .lecture-card .info span{font-size:12.5px;color:#7a93ad;}
   .lecture-card .time{background:var(--ice);color:var(--blue-main);font-weight:800;padding:6px 12px;border-radius:10px;font-size:13px;}
-
-  /* الشات */
   .chat-wrap{display:flex;gap:14px;height:70vh;}
   .group-list{width:220px;background:#fff;border-radius:16px;overflow-y:auto;padding:8px;}
   .group-item{padding:10px;border-radius:10px;cursor:pointer;font-size:13.5px;font-weight:700;color:#4a6585;}
-  .group-item.active, .group-item:hover{background:var(--ice);color:var(--blue-main);}
+  .group-item.active,.group-item:hover{background:var(--ice);color:var(--blue-main);}
   .chat-area{flex:1;background:#fff;border-radius:16px;display:flex;flex-direction:column;}
   .messages{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;}
-  .msg-bubble{max-width:70%;padding:9px 13px;border-radius:14px;font-size:13.5px;background:var(--ice);align-self:flex-start;}
-  .msg-bubble.me{background:var(--blue-main);color:#fff;align-self:flex-end;}
+  .msg-bubble{max-width:75%;padding:9px 13px;border-radius:14px;font-size:13.5px;background:var(--ice);align-self:flex-start;display:flex;gap:8px;align-items:flex-start;}
+  .msg-bubble.me{background:var(--blue-main);color:#fff;align-self:flex-end;flex-direction:row-reverse;}
+  .msg-bubble .avatar{width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid #fff;}
+  .msg-bubble .avatar-ph{width:32px;height:32px;border-radius:50%;background:var(--blue-bright);display:flex;align-items:center;justify-content:center;font-size:13px;color:#fff;font-weight:800;flex-shrink:0;}
+  .msg-bubble .bubble-body{}
   .msg-bubble small{display:block;font-size:10.5px;opacity:0.7;margin-bottom:3px;}
-  .msg-bubble img{max-width:160px;border-radius:10px;margin-top:5px;display:block;}
+  .msg-bubble img.chat-img{max-width:160px;border-radius:10px;margin-top:5px;display:block;}
   .chat-input{display:flex;gap:8px;padding:10px;border-top:1px solid #eef3fa;}
   .chat-input input[type=text]{flex:1;padding:10px 12px;border-radius:12px;border:1.5px solid #cfe2f7;font-size:13.5px;}
-  .chat-input button, .chat-input label{background:var(--blue-main);color:#fff;border:none;border-radius:12px;padding:0 14px;cursor:pointer;display:flex;align-items:center;font-size:13px;font-weight:700;}
-
-  /* ملخصات وكتبي */
+  .chat-input button,.chat-input label{background:var(--blue-main);color:#fff;border:none;border-radius:12px;padding:0 14px;cursor:pointer;display:flex;align-items:center;font-size:13px;font-weight:700;}
   .search-bar{display:flex;gap:8px;margin-bottom:14px;}
   .search-bar input{flex:1;padding:11px 14px;border-radius:12px;border:1.5px solid #cfe2f7;font-size:14px;}
   .file-card{display:flex;justify-content:space-between;align-items:center;}
@@ -79,20 +54,18 @@
   .upload-box{display:flex;gap:10px;flex-wrap:wrap;}
   .upload-box input[type=text]{flex:1;min-width:160px;padding:10px;border-radius:10px;border:1.5px solid #cfe2f7;}
   .upload-box button{background:var(--blue-deep);color:#fff;border:none;padding:10px 16px;border-radius:10px;cursor:pointer;font-weight:700;}
-
-  /* حسابي */
   .account-field{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f0f4fa;font-size:14px;}
   .account-field b{color:#7a93ad;font-weight:600;}
-
-  /* فوتر */
+  .avatar-upload{display:flex;flex-direction:column;align-items:center;margin-bottom:16px;}
+  .avatar-upload .av-img{width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid var(--blue-main);}
+  .avatar-upload .av-ph{width:80px;height:80px;border-radius:50%;background:var(--blue-bright);display:flex;align-items:center;justify-content:center;font-size:28px;color:#fff;font-weight:800;border:3px solid var(--blue-main);}
+  .avatar-upload label{margin-top:8px;background:var(--ice);color:var(--blue-main);border:1.5px solid var(--blue-main);border-radius:10px;padding:6px 14px;font-size:12.5px;font-weight:700;cursor:pointer;}
   .ad-slot{background:#f4f8fd;border:1px dashed #c7d9ee;border-radius:12px;padding:18px;text-align:center;color:#9bb3cb;font-size:12.5px;margin:18px 0;}
   .footer-credit{text-align:center;font-size:11.5px;color:#9bb3cb;padding:18px 0;}
-
   .overlay{display:none;position:fixed;inset:0;background:rgba(10,46,92,0.45);z-index:50;align-items:center;justify-content:center;padding:20px;}
   .overlay.active{display:flex;}
-  .modal{background:#fff;border-radius:18px;max-width:420px;width:100%;padding:24px;position:relative;}
+  .modal{background:#fff;border-radius:18px;max-width:420px;width:100%;padding:24px;position:relative;max-height:90vh;overflow-y:auto;}
   .modal .close-x{position:absolute;left:14px;top:14px;background:none;border:none;font-size:18px;cursor:pointer;color:#7a93ad;}
-
   @media(max-width:760px){
     .sidebar{position:fixed;right:-240px;top:58px;z-index:40;box-shadow:0 0 30px rgba(0,0,0,0.15);}
     .sidebar.open{right:0;}
@@ -114,33 +87,30 @@
 
 <div class="layout">
   <div class="sidebar" id="sidebar">
-    <button class="active" onclick="showSection('schedule', this)">📅 جدول المحاضرات</button>
-    <button onclick="showSection('chat', this)">💬 الشات</button>
-    <button onclick="showSection('summaries', this)">📝 ملخصاتي</button>
-    <button onclick="showSection('books', this)">📚 كتبي</button>
+    <button class="active" onclick="showSection('schedule',this)">📅 جدول المحاضرات</button>
+    <button onclick="showSection('chat',this)">💬 الشات</button>
+    <button onclick="showSection('summaries',this)">📝 ملخصاتي</button>
+    <button onclick="showSection('books',this)">📚 كتبي</button>
     <div class="divider"></div>
     <button onclick="openAccount()">👤 حسابي</button>
-    <button class="small-link" onclick="showSection('summaries', this)">↳ ملخصاتي</button>
-    <button class="small-link" onclick="showSection('books', this)">↳ كتبي</button>
+    <button class="small-link" onclick="showSection('summaries',this)">↳ ملخصاتي</button>
+    <button class="small-link" onclick="showSection('books',this)">↳ كتبي</button>
     <div class="divider"></div>
-    <button onclick="showSection('about', this)">ℹ️ من نحن</button>
-    <button onclick="showSection('privacy', this)">🔒 سياسة الخصوصية</button>
+    <button onclick="showSection('about',this)">ℹ️ من نحن</button>
+    <button onclick="showSection('privacy',this)">🔒 سياسة الخصوصية</button>
     <div class="divider" id="adminDividerSidebar" style="display:none"></div>
-    <button id="adminLinkBtn" style="display:none" onclick="window.location.href='admin.html'">⚙️ لوحة الأدمن</button>
+    <a id="adminLinkBtn" href="admin.html" style="display:none;text-decoration:none;padding:11px 12px;border-radius:12px;font-size:14.5px;font-weight:700;color:#4a6585;">⚙️ لوحة الأدمن</a>
     <div class="divider"></div>
     <button onclick="logoutUser()" style="color:#c0392b">🚪 تسجيل الخروج</button>
   </div>
 
   <div class="content">
-
-    <!-- جدول المحاضرات -->
     <div class="section active" id="sec-schedule">
       <h2 class="section-title">📅 جدول المحاضرات</h2>
       <div id="scheduleList"></div>
-      <p style="font-size:12px;color:#9bb3cb;margin-top:10px">الجدول يُحفظ على جهازك ويظهر حتى بدون اتصال بالإنترنت بعد أول تحميل.</p>
+      <p style="font-size:12px;color:#9bb3cb;margin-top:10px">الجدول يُحفظ على جهازك ويظهر حتى بدون اتصال.</p>
     </div>
 
-    <!-- الشات -->
     <div class="section" id="sec-chat">
       <h2 class="section-title">💬 الشات</h2>
       <div class="chat-wrap">
@@ -156,7 +126,6 @@
       </div>
     </div>
 
-    <!-- ملخصاتي -->
     <div class="section" id="sec-summaries">
       <h2 class="section-title">📝 ملخصاتي</h2>
       <div class="search-bar"><input type="text" id="summarySearch" placeholder="ابحث عن ملخص..." oninput="renderSummaries()"></div>
@@ -168,7 +137,6 @@
       <div id="summariesList"></div>
     </div>
 
-    <!-- كتبي -->
     <div class="section" id="sec-books">
       <h2 class="section-title">📚 كتبي</h2>
       <div class="search-bar"><input type="text" id="bookSearch" placeholder="ابحث عن كتاب..." oninput="renderBooks()"></div>
@@ -176,7 +144,6 @@
       <p style="font-size:12px;color:#9bb3cb;margin-top:6px">الكتب المقفولة تظهر فقط للأسماء التي يحددها الأدمن.</p>
     </div>
 
-    <!-- من نحن -->
     <div class="section" id="sec-about">
       <h2 class="section-title">ℹ️ من نحن</h2>
       <div class="card-box" style="text-align:center;padding:40px 20px;">
@@ -185,18 +152,14 @@
       </div>
     </div>
 
-    <!-- سياسة الخصوصية -->
     <div class="section" id="sec-privacy">
       <h2 class="section-title">🔒 سياسة الخصوصية</h2>
       <div class="card-box" style="font-size:13.5px;line-height:2;color:#3c5675">
-        نحرص على خصوصية بيانات الطلاب المسجلين بالموقع. بيانات التسجيل (الاسم، رقم الموبايل، الفرقة) تُستخدم فقط لأغراض التحقق وإدارة الحسابات داخل القسم، ولا تتم مشاركتها مع أي جهة خارجية. كلمات المرور مخزّنة في قاعدة بيانات خاصة بالموقع ولا يطّلع عليها سوى الأدمن المسؤول عن إدارة الحسابات. الملفات والصور التي يرفعها الطلاب (ملخصات، صور الشات) تُستخدم فقط داخل نطاق التطبيق بين أعضاء القسم. باستخدامك للموقع فإنك توافق على هذه السياسة.
+        نحرص على خصوصية بيانات الطلاب المسجلين بالموقع. بيانات التسجيل تُستخدم فقط لأغراض التحقق وإدارة الحسابات داخل القسم، ولا تتم مشاركتها مع أي جهة خارجية. كلمات المرور مخزّنة في قاعدة بيانات خاصة بالموقع. الملفات والصور التي يرفعها الطلاب تُستخدم فقط داخل نطاق التطبيق بين أعضاء القسم. باستخدامك للموقع فإنك توافق على هذه السياسة.
       </div>
     </div>
 
-    <div class="ad-slot">
-      <!-- مكان كود إعلانات Google AdSense — الصق الكود هنا بعد تفعيل الحساب -->
-      مساحة إعلانية (AdSense)
-    </div>
+    <div class="ad-slot"><!-- مكان كود إعلانات Google AdSense --></div>
     <div class="footer-credit">تم إنشاء هذا الموقع بواسطة MF.mo.fayyad</div>
   </div>
 </div>
@@ -206,6 +169,11 @@
   <div class="modal">
     <button class="close-x" onclick="closeAccount()">✕</button>
     <h2 class="section-title">👤 حسابي</h2>
+    <div class="avatar-upload">
+      <div id="accAvatarWrap"><div class="av-ph" id="accAvatarPh">؟</div></div>
+      <label>📷 تغيير الصورة<input type="file" id="avatarInput" accept="image/*" style="display:none" onchange="uploadAvatar()"></label>
+      <div id="avatarMsg" style="font-size:12px;color:#7a93ad;margin-top:4px"></div>
+    </div>
     <div class="account-field"><b>الاسم</b><span id="accName"></span></div>
     <div class="account-field"><b>رقم الموبايل</b><span id="accPhone"></span></div>
     <div class="account-field"><b>الفرقة</b><span id="accYear"></span></div>
@@ -231,7 +199,7 @@
     projectId: "science-e2b52",
     storageBucket: "science-e2b52.firebasestorage.app",
     messagingSenderId: "1031434005860",
-    appId: "1:1031434005860:web:e68fccdd746017a5639e71",
+    appId: "1:1031434005880:web:e68fccdd746017a5639e71",
     measurementId: "G-JZ1SFVMM7P"
   };
   firebase.initializeApp(firebaseConfig);
@@ -243,12 +211,7 @@
   function getCurrentUser(){
     const urlParams = new URLSearchParams(window.location.search);
     if(urlParams.get('phone')){
-      const u = {
-        phone: urlParams.get('phone'),
-        name: urlParams.get('name'),
-        role: urlParams.get('role'),
-        year: urlParams.get('year')
-      };
+      const u = {phone:urlParams.get('phone'),name:urlParams.get('name'),role:urlParams.get('role'),year:urlParams.get('year')};
       try{ localStorage.setItem('currentUser', JSON.stringify(u)); }catch(e){}
       return u;
     }
@@ -257,24 +220,22 @@
   }
   function requireLogin(){
     const u = getCurrentUser();
-    if(!u){ window.location.href = 'login.html'; return null; }
+    if(!u){ window.location.href='login.html'; return null; }
     return u;
   }
   async function logoutUser(){
     const u = getCurrentUser();
-    if(u){
-      try{ await db.collection('users').doc(u.phone).update({activeSession:false}); }catch(e){}
-    }
+    if(u){ try{ await db.collection('users').doc(u.phone).update({activeSession:false}); }catch(e){} }
     localStorage.removeItem('currentUser');
-    window.location.href = 'login.html';
+    window.location.href='login.html';
   }
 </script>
 <script>
   const user = requireLogin();
+  if(!user) throw new Error('no user');
   let currentGroupId = null;
   let unsubMessages = null;
 
-  // ===== التنقل بين الأقسام =====
   function showSection(id, btn){
     document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
     document.getElementById('sec-'+id).classList.add('active');
@@ -287,175 +248,161 @@
   }
   function toggleSidebar(){ document.getElementById('sidebar').classList.toggle('open'); }
 
-  // إظهار رابط الأدمن لو الدخول أدمن
-  if(user.role==='admin'){
+  // إظهار زر الأدمن للأدمن فقط
+  if(user.role==='admin'||user.role==='co-admin'){
     document.getElementById('adminLinkBtn').style.display='flex';
     document.getElementById('adminDividerSidebar').style.display='block';
   }
 
-  // ===== جدول المحاضرات (محفوظ محليًا - يعمل بدون نت) =====
-  const defaultSchedule = [
-    {day:'السبت', subject:'كيمياء عامة', time:'9:00 ص', place:'مدرج 1'},
-    {day:'الأحد', subject:'فيزياء', time:'11:00 ص', place:'معمل 3'},
-    {day:'الإثنين', subject:'أحياء', time:'1:00 م', place:'مدرج 2'},
-  ];
+  // جدول المحاضرات
+  const defaultSchedule=[{day:'السبت',subject:'كيمياء عامة',time:'9:00 ص',place:'مدرج 1'},{day:'الأحد',subject:'فيزياء',time:'11:00 ص',place:'معمل 3'},{day:'الإثنين',subject:'أحياء',time:'1:00 م',place:'مدرج 2'}];
   function loadSchedule(){
-    let sched = JSON.parse(localStorage.getItem('schedule')||'null');
-    if(!sched){ sched = defaultSchedule; localStorage.setItem('schedule', JSON.stringify(sched)); }
-    const box = document.getElementById('scheduleList');
-    box.innerHTML = sched.map(s=>`
-      <div class="card-box lecture-card">
-        <div class="info"><b>${s.subject}</b><span>${s.day} — ${s.place}</span></div>
-        <div class="time">${s.time}</div>
-      </div>`).join('');
-    // محاولة تحميل جدول محدث من Firestore وتخزينه محليًا
+    let sched=JSON.parse(localStorage.getItem('schedule')||'null');
+    if(!sched){sched=defaultSchedule;localStorage.setItem('schedule',JSON.stringify(sched));}
+    const box=document.getElementById('scheduleList');
+    box.innerHTML=sched.map(s=>`<div class="card-box lecture-card"><div class="info"><b>${s.subject}</b><span>${s.day} — ${s.place}</span></div><div class="time">${s.time}</div></div>`).join('');
     db.collection('settings').doc('schedule').get().then(snap=>{
-      if(snap.exists && snap.data().items){
-        localStorage.setItem('schedule', JSON.stringify(snap.data().items));
-        if(document.getElementById('sec-schedule').classList.contains('active')) loadSchedule();
-      }
+      if(snap.exists&&snap.data().items){localStorage.setItem('schedule',JSON.stringify(snap.data().items));if(document.getElementById('sec-schedule').classList.contains('active'))loadSchedule();}
     }).catch(()=>{});
   }
   loadSchedule();
 
-  // ===== الشات (جروبات يديرها الأدمن) =====
+  // الشات مع صور البروفايل
   async function loadGroups(){
-    const list = document.getElementById('groupList');
-    list.innerHTML = 'جاري التحميل...';
-    const snap = await db.collection('groups').where('members','array-contains',user.phone).get();
-    if(snap.empty){ list.innerHTML = '<p style="font-size:12.5px;color:#9bb3cb;padding:10px">لا توجد جروبات لك بعد. اطلب من الأدمن إضافتك لجروب.</p>'; return; }
+    const list=document.getElementById('groupList');
+    list.innerHTML='جاري التحميل...';
+    const snap=await db.collection('groups').where('members','array-contains',user.phone).get();
+    if(snap.empty){list.innerHTML='<p style="font-size:12.5px;color:#9bb3cb;padding:10px">لا توجد جروبات لك بعد.</p>';return;}
     list.innerHTML='';
     snap.forEach(doc=>{
-      const g = doc.data();
-      const item = document.createElement('div');
+      const g=doc.data();
+      const item=document.createElement('div');
       item.className='group-item';
-      item.textContent = g.name;
-      item.onclick = ()=>openGroup(doc.id, g.name, item);
+      item.textContent=g.name;
+      item.onclick=()=>openGroup(doc.id,g.name,item);
       list.appendChild(item);
     });
   }
 
-  function openGroup(id, name, el){
-    currentGroupId = id;
+  function openGroup(id,name,el){
+    currentGroupId=id;
     document.querySelectorAll('.group-item').forEach(g=>g.classList.remove('active'));
     el.classList.add('active');
-    const box = document.getElementById('messagesBox');
-    box.innerHTML = '';
-    if(unsubMessages) unsubMessages();
-    unsubMessages = db.collection('groups').doc(id).collection('messages').orderBy('time','asc')
-      .onSnapshot(snap=>{
-        box.innerHTML='';
-        snap.forEach(d=>{
-          const m = d.data();
-          const bubble = document.createElement('div');
-          bubble.className = 'msg-bubble' + (m.phone===user.phone?' me':'');
-          bubble.innerHTML = `<small>${m.name}</small>${m.text?m.text:''}${m.image?`<img src="${m.image}">`:''}`;
-          box.appendChild(bubble);
-        });
-        box.scrollTop = box.scrollHeight;
-      });
+    const box=document.getElementById('messagesBox');
+    box.innerHTML='';
+    if(unsubMessages)unsubMessages();
+    unsubMessages=db.collection('groups').doc(id).collection('messages').orderBy('time','asc').onSnapshot(async snap=>{
+      box.innerHTML='';
+      for(const d of snap.docs){
+        const m=d.data();
+        const isMe=m.phone===user.phone;
+        const bubble=document.createElement('div');
+        bubble.className='msg-bubble'+(isMe?' me':'');
+        // صورة البروفايل
+        let avatarHtml='';
+        try{
+          const usnap=await db.collection('users').doc(m.phone).get();
+          const av=usnap.exists&&usnap.data().avatar?usnap.data().avatar:null;
+          if(av) avatarHtml=`<img class="avatar" src="${av}">`;
+          else avatarHtml=`<div class="avatar-ph">${(m.name||'؟')[0]}</div>`;
+        }catch(e){ avatarHtml=`<div class="avatar-ph">${(m.name||'؟')[0]}</div>`; }
+        bubble.innerHTML=`${avatarHtml}<div class="bubble-body"><small>${m.name}</small>${m.text?m.text:''}${m.image?`<img class="chat-img" src="${m.image}">`:''}
+        </div>`;
+        box.appendChild(bubble);
+      }
+      box.scrollTop=box.scrollHeight;
+    });
   }
 
   async function sendMessage(){
-    const input = document.getElementById('msgText');
-    if(!currentGroupId || !input.value.trim()) return;
-    await db.collection('groups').doc(currentGroupId).collection('messages').add({
-      name:user.name, phone:user.phone, text:input.value.trim(), time:Date.now()
-    });
+    const input=document.getElementById('msgText');
+    if(!currentGroupId||!input.value.trim())return;
+    await db.collection('groups').doc(currentGroupId).collection('messages').add({name:user.name,phone:user.phone,text:input.value.trim(),time:Date.now()});
     input.value='';
   }
-
   function sendImage(){
-    const file = document.getElementById('imgInput').files[0];
-    if(!file || !currentGroupId) return;
-    const reader = new FileReader();
-    reader.onload = async ()=>{
-      await db.collection('groups').doc(currentGroupId).collection('messages').add({
-        name:user.name, phone:user.phone, image:reader.result, time:Date.now()
-      });
-    };
+    const file=document.getElementById('imgInput').files[0];
+    if(!file||!currentGroupId)return;
+    const reader=new FileReader();
+    reader.onload=async()=>{await db.collection('groups').doc(currentGroupId).collection('messages').add({name:user.name,phone:user.phone,image:reader.result,time:Date.now()});};
     reader.readAsDataURL(file);
   }
 
-  // ===== ملخصاتي =====
+  // ملخصاتي
   async function renderSummaries(){
-    const q = (document.getElementById('summarySearch').value||'').trim();
-    const box = document.getElementById('summariesList');
-    box.innerHTML = 'جاري التحميل...';
-    const snap = await db.collection('summaries').orderBy('time','desc').limit(100).get();
-    let items = [];
-    snap.forEach(d=>items.push(d.data()));
-    if(q) items = items.filter(i=>i.title.includes(q) || i.name.includes(q));
-    box.innerHTML = items.length ? items.map(i=>`
-      <div class="card-box file-card">
-        <div class="meta"><b>${i.title}</b><span>بواسطة ${i.name}</span></div>
-        <a class="dl" href="${i.link}" target="_blank">فتح</a>
-      </div>`).join('') : '<p style="font-size:13px;color:#9bb3cb">لا توجد ملخصات بعد</p>';
+    const q=(document.getElementById('summarySearch').value||'').trim();
+    const box=document.getElementById('summariesList');
+    box.innerHTML='جاري التحميل...';
+    const snap=await db.collection('summaries').orderBy('time','desc').limit(100).get();
+    let items=[];snap.forEach(d=>items.push(d.data()));
+    if(q)items=items.filter(i=>i.title.includes(q)||i.name.includes(q));
+    box.innerHTML=items.length?items.map(i=>`<div class="card-box file-card"><div class="meta"><b>${i.title}</b><span>بواسطة ${i.name}</span></div><a class="dl" href="${i.link}" target="_blank">فتح</a></div>`).join(''):'<p style="font-size:13px;color:#9bb3cb">لا توجد ملخصات بعد</p>';
   }
-
   async function uploadSummary(){
-    const title = document.getElementById('summaryTitle').value.trim();
-    const link = document.getElementById('summaryLink').value.trim();
-    if(!title || !link) return alert('من فضلك أدخل العنوان والرابط');
-    await db.collection('summaries').add({title, link, name:user.name, phone:user.phone, time:Date.now()});
-    await db.collection('users').doc(user.phone).update({points: firebase.firestore.FieldValue.increment(10)});
-    document.getElementById('summaryTitle').value='';
-    document.getElementById('summaryLink').value='';
+    const title=document.getElementById('summaryTitle').value.trim();
+    const link=document.getElementById('summaryLink').value.trim();
+    if(!title||!link)return alert('من فضلك أدخل العنوان والرابط');
+    await db.collection('summaries').add({title,link,name:user.name,phone:user.phone,time:Date.now()});
+    await db.collection('users').doc(user.phone).update({points:firebase.firestore.FieldValue.increment(10)});
+    document.getElementById('summaryTitle').value='';document.getElementById('summaryLink').value='';
     renderSummaries();
   }
 
-  // ===== كتبي (مقفولة حسب قائمة الأدمن) =====
+  // كتبي
   async function renderBooks(){
-    const q = (document.getElementById('bookSearch').value||'').trim();
-    const box = document.getElementById('booksList');
-    box.innerHTML = 'جاري التحميل...';
-    const snap = await db.collection('books').orderBy('time','desc').get();
-    let items = [];
-    snap.forEach(d=>items.push(d.data()));
-    if(q) items = items.filter(i=>i.title.includes(q));
-    box.innerHTML = items.length ? items.map(i=>{
-      const allowed = !i.locked || (i.allowedPhones||[]).includes(user.phone);
-      return `<div class="card-box file-card">
-        <div class="meta"><b>${i.title}</b><span>${i.locked?'🔒 مقفول':'متاح للجميع'}</span></div>
-        ${allowed ? `<button class="dl" style="border:none;cursor:pointer" onclick="downloadFile('${i.link}','${i.title.replace(/'/g,"")}.pdf')">تحميل</button>` : `<span class="points-badge">غير متاح لك</span>`}
-      </div>`;
-    }).join('') : '<p style="font-size:13px;color:#9bb3cb">لا توجد كتب بعد</p>';
+    const q=(document.getElementById('bookSearch').value||'').trim();
+    const box=document.getElementById('booksList');
+    box.innerHTML='جاري التحميل...';
+    const snap=await db.collection('books').orderBy('time','desc').get();
+    let items=[];snap.forEach(d=>items.push(d.data()));
+    if(q)items=items.filter(i=>i.title.includes(q));
+    box.innerHTML=items.length?items.map(i=>{
+      const allowed=!i.locked||(i.allowedPhones||[]).includes(user.phone);
+      return `<div class="card-box file-card"><div class="meta"><b>${i.title}</b><span>${i.locked?'🔒 مقفول':'متاح للجميع'}</span></div>${allowed?`<button class="dl" style="border:none;cursor:pointer" onclick="downloadFile('${i.link}','${i.title.replace(/'/g,'')}.pdf')">تحميل</button>`:`<span class="points-badge">غير متاح لك</span>`}</div>`;
+    }).join(''):'<p style="font-size:13px;color:#9bb3cb">لا توجد كتب بعد</p>';
+  }
+  async function downloadFile(url,filename){
+    try{const res=await fetch(url);const blob=await res.blob();const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=filename||'file.pdf';document.body.appendChild(a);a.click();a.remove();}
+    catch(err){alert('تعذّر تحميل الملف');}
   }
 
-  async function downloadFile(url, filename){
-    try{
-      const res = await fetch(url);
-      const blob = await res.blob();
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = filename || 'file.pdf';
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-    }catch(err){
-      console.error(err);
-      alert('تعذّر تحميل الملف، حاول مرة أخرى');
+  // حسابي مع صورة البروفايل
+  async function openAccount(){
+    document.getElementById('accountOverlay').classList.add('active');
+    document.getElementById('accName').textContent=user.name;
+    document.getElementById('accPhone').textContent=user.phone;
+    document.getElementById('accYear').textContent=user.year;
+    document.getElementById('accAvatarPh').textContent=(user.name||'؟')[0];
+    const snap=await db.collection('users').doc(user.phone).get();
+    const data=snap.data();
+    document.getElementById('accPoints').textContent=(data.points||0)+' نقطة';
+    if(data.avatar){
+      document.getElementById('accAvatarWrap').innerHTML=`<img class="av-img" src="${data.avatar}">`;
     }
   }
+  function closeAccount(){document.getElementById('accountOverlay').classList.remove('active');}
 
-  // ===== حسابي =====
-  function openAccount(){
-    document.getElementById('accountOverlay').classList.add('active');
-    document.getElementById('accName').textContent = user.name;
-    document.getElementById('accPhone').textContent = user.phone;
-    document.getElementById('accYear').textContent = user.year;
-    db.collection('users').doc(user.phone).get().then(s=>{
-      document.getElementById('accPoints').textContent = (s.data().points||0)+' نقطة';
-    });
+  async function uploadAvatar(){
+    const file=document.getElementById('avatarInput').files[0];
+    const msg=document.getElementById('avatarMsg');
+    if(!file)return;
+    msg.textContent='جاري رفع الصورة...';
+    try{
+      const ref=storage.ref().child('avatars/'+user.phone);
+      await ref.put(file);
+      const url=await ref.getDownloadURL();
+      await db.collection('users').doc(user.phone).update({avatar:url});
+      document.getElementById('accAvatarWrap').innerHTML=`<img class="av-img" src="${url}">`;
+      msg.textContent='تم تحديث الصورة بنجاح';
+    }catch(e){msg.textContent='حدث خطأ أثناء الرفع';}
   }
-  function closeAccount(){ document.getElementById('accountOverlay').classList.remove('active'); }
 
   async function updatePassword(){
-    const np = document.getElementById('newPass').value;
-    const msg = document.getElementById('accMsg');
-    if(np.length<6){ msg.style.color='#b00020'; msg.textContent='كلمة المرور يجب ألا تقل عن 6 أحرف'; return; }
+    const np=document.getElementById('newPass').value;
+    const msg=document.getElementById('accMsg');
+    if(np.length<6){msg.style.color='#b00020';msg.textContent='كلمة المرور يجب ألا تقل عن 6 أحرف';return;}
     await db.collection('users').doc(user.phone).update({password:np});
-    msg.style.color='#147a35'; msg.textContent='تم تحديث كلمة المرور بنجاح';
+    msg.style.color='#147a35';msg.textContent='تم تحديث كلمة المرور بنجاح';
     document.getElementById('newPass').value='';
   }
 </script>
