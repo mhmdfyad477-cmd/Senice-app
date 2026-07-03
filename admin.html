@@ -54,6 +54,7 @@
     <div class="tabs">
       <button class="active" onclick="showTab('pending', this)">طلبات التسجيل</button>
       <button onclick="showTab('users', this)">كل الأعضاء</button>
+      <button onclick="showTab('admins', this)">المشرفون</button>
       <button onclick="showTab('groups', this)">الجروبات</button>
       <button onclick="showTab('schedule', this)">جدول المحاضرات</button>
       <button onclick="showTab('books', this)">الكتب المقفولة</button>
@@ -67,6 +68,12 @@
     <!-- كل الأعضاء -->
     <div class="section" id="tab-users">
       <div id="usersList"></div>
+    </div>
+
+    <!-- المشرفون (co-admin) -->
+    <div class="section" id="tab-admins">
+      <div class="card-box" style="font-size:13px;color:#7a93ad;margin-bottom:10px">يمكن للمشرفين الدخول للوحة الأدمن بنفس كلمة المرور وإدارة كل شيء ماعدا حذف المشرفين الآخرين.</div>
+      <div id="adminsList"></div>
     </div>
 
     <!-- الجروبات -->
@@ -149,7 +156,7 @@
   }
 
   function loadAll(){
-    loadPending(); loadUsers(); loadGroups(); loadSchedule(); loadBooks();
+    loadPending(); loadUsers(); loadAdmins(); loadGroups(); loadSchedule(); loadBooks();
   }
 
   // ===== طلبات التسجيل =====
@@ -189,13 +196,41 @@
       const u = doc.data();
       const el = document.createElement('div');
       el.className='card-box row';
-      el.innerHTML = `<div class="meta"><b>${u.name} ${u.role==='admin'?'👑':''}</b><span>${u.phone} — الفرقة ${u.year} — ${u.points||0} نقطة ${u.activeSession?'— 🟢 متصل':''}</span></div>
-        <div>
+      const roleLabel = u.role==='admin'?'👑 أدمن':u.role==='co-admin'?'🔑 مشرف':'طالب';
+      el.innerHTML = `<div class="meta"><b>${u.name} — ${roleLabel}</b><span>${u.phone} — الفرقة ${u.year} — ${u.points||0} نقطة ${u.activeSession?'— 🟢 متصل':''}</span></div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
         ${u.activeSession ? `<button class="btn btn-blue" onclick="forceLogout('${doc.id}')">إنهاء الجلسة</button>` : ''}
-        ${u.role!=='admin' ? `<button class="btn btn-reject" onclick="removeUser('${doc.id}')">حذف العضوية</button>` : ''}
+        ${u.role==='student' ? `<button class="btn btn-approve" onclick="makeCoAdmin('${doc.id}')">ترقية لمشرف</button>` : ''}
+        ${u.role==='co-admin' ? `<button class="btn btn-blue" onclick="removeCoAdmin('${doc.id}')">إزالة الإشراف</button>` : ''}
+        ${u.role!=='admin' ? `<button class="btn btn-reject" onclick="removeUser('${doc.id}')">حذف</button>` : ''}
         </div>`;
       box.appendChild(el);
     });
+  }
+
+  // ===== المشرفون =====
+  async function loadAdmins(){
+    const box = document.getElementById('adminsList');
+    box.innerHTML='جاري التحميل...';
+    const snap = await db.collection('users').where('role','in',['admin','co-admin']).get();
+    if(snap.empty){ box.innerHTML='<p style="color:#9bb3cb;font-size:13px">لا يوجد مشرفون بعد</p>'; return; }
+    box.innerHTML='';
+    snap.forEach(doc=>{
+      const u = doc.data();
+      const el = document.createElement('div');
+      el.className='card-box row';
+      el.innerHTML=`<div class="meta"><b>${u.name} ${u.role==='admin'?'👑':''}</b><span>${u.phone}</span></div>
+        ${u.role==='co-admin'?`<button class="btn btn-reject" onclick="removeCoAdmin('${doc.id}')">إزالة</button>`:''}`;
+      box.appendChild(el);
+    });
+  }
+  async function makeCoAdmin(phone){
+    await db.collection('users').doc(phone).update({role:'co-admin'});
+    loadUsers(); loadAdmins();
+  }
+  async function removeCoAdmin(phone){
+    await db.collection('users').doc(phone).update({role:'student'});
+    loadUsers(); loadAdmins();
   }
   async function removeUser(phone){
     if(!confirm('هل تريد حذف هذا العضو نهائيًا؟')) return;
