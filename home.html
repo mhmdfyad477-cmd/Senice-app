@@ -383,18 +383,42 @@
   function closeAccount(){document.getElementById('accountOverlay').classList.remove('active');}
 
   async function uploadAvatar(){
-    const file=document.getElementById('avatarInput').files[0];
-    const msg=document.getElementById('avatarMsg');
-    if(!file)return;
-    msg.textContent='جاري رفع الصورة...';
+    const file = document.getElementById('avatarInput').files[0];
+    const msg = document.getElementById('avatarMsg');
+    if(!file) return;
+    msg.textContent='جاري معالجة الصورة...';
     try{
-      const ref=storage.ref().child('avatars/'+user.phone);
-      await ref.put(file);
-      const url=await ref.getDownloadURL();
-      await db.collection('users').doc(user.phone).update({avatar:url});
-      document.getElementById('accAvatarWrap').innerHTML=`<img class="av-img" src="${url}">`;
-      msg.textContent='تم تحديث الصورة بنجاح';
-    }catch(e){msg.textContent='حدث خطأ أثناء الرفع';}
+      // ضغط الصورة تلقائيًا قبل الرفع
+      const compressed = await compressImage(file, 200, 200, 0.7);
+      await db.collection('users').doc(user.phone).update({avatar: compressed});
+      document.getElementById('accAvatarWrap').innerHTML=`<img class="av-img" src="${compressed}">`;
+      msg.textContent='تم تحديث الصورة بنجاح ✅';
+    }catch(e){ msg.textContent='حدث خطأ: '+e.message; }
+  }
+
+  function compressImage(file, maxW, maxH, quality){
+    return new Promise((resolve, reject)=>{
+      const reader = new FileReader();
+      reader.onload = function(e){
+        const img = new Image();
+        img.onload = function(){
+          const canvas = document.createElement('canvas');
+          let w = img.width, h = img.height;
+          // تصغير بنسبة محافظة على الشكل
+          if(w > maxW || h > maxH){
+            if(w/h > maxW/maxH){ h = Math.round(h*maxW/w); w = maxW; }
+            else{ w = Math.round(w*maxH/h); h = maxH; }
+          }
+          canvas.width = w; canvas.height = h;
+          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+          resolve(canvas.toDataURL('image/jpeg', quality));
+        };
+        img.onerror = reject;
+        img.src = e.target.result;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
   }
 
   async function updatePassword(){
@@ -408,3 +432,4 @@
 </script>
 </body>
 </html>
+
