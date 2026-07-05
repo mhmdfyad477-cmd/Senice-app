@@ -35,9 +35,6 @@
   .group-item{padding:10px;border-radius:10px;cursor:pointer;font-size:13.5px;font-weight:700;color:#4a6585;}
   .group-item.active,.group-item:hover{background:var(--ice);color:var(--blue-main);}
   .chat-area{flex:1;background:#fff;border-radius:16px;display:flex;flex-direction:column;overflow:hidden;}
-  .chat-header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid #eef3fa;font-weight:800;color:var(--blue-deep);font-size:14px;}
-  .chat-bg-btn{background:var(--ice);color:var(--blue-main);border:1.5px solid var(--blue-main);border-radius:10px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;}
-  .messages{background-size:cover;background-position:center;}
   .messages{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;}
   .msg-bubble{max-width:75%;padding:9px 13px;border-radius:14px;font-size:13.5px;background:var(--ice);align-self:flex-start;display:flex;gap:8px;align-items:flex-start;}
   .msg-bubble.me{background:var(--blue-main);color:#fff;align-self:flex-end;flex-direction:row-reverse;}
@@ -153,11 +150,6 @@
       <div class="chat-wrap">
         <div class="group-list" id="groupList"></div>
         <div class="chat-area">
-          <div class="chat-header" id="chatHeader" style="display:none">
-            <span id="chatHeaderTitle"></span>
-            <button id="chatBgBtn" class="chat-bg-btn" style="display:none" onclick="document.getElementById('groupBgInput').click()">🖼️ خلفية الجروب</button>
-            <input type="file" id="groupBgInput" accept="image/*" style="display:none" onchange="setGroupBackground()">
-          </div>
           <div class="messages" id="messagesBox"><p style="text-align:center;color:#9bb3cb;font-size:13px;margin-top:30px">اختر جروب للمحادثة</p></div>
           <div class="chat-input">
             <label>📷<input type="file" id="imgInput" accept="image/*" style="display:none" onchange="sendImage()"></label>
@@ -386,23 +378,12 @@
     });
   }
 
-  let currentGroupData = null;
-  async function openGroup(id,name,el){
+  function openGroup(id,name,el){
     currentGroupId=id;
     document.querySelectorAll('.group-item').forEach(g=>g.classList.remove('active'));
     el.classList.add('active');
     const box=document.getElementById('messagesBox');
     box.innerHTML='';
-    document.getElementById('chatHeader').style.display='flex';
-    document.getElementById('chatHeaderTitle').textContent=name;
-    box.style.backgroundImage='';
-    try{
-      const gSnap = await db.collection('groups').doc(id).get();
-      currentGroupData = gSnap.exists ? gSnap.data() : {};
-      if(currentGroupData.backgroundImage){ box.style.backgroundImage=`url('${currentGroupData.backgroundImage}')`; }
-      const canManage = user.role==='admin' || (currentGroupData.moderators||[]).includes(user.phone);
-      document.getElementById('chatBgBtn').style.display = canManage ? 'inline-block' : 'none';
-    }catch(e){ currentGroupData={}; }
     if(unsubMessages)unsubMessages();
     unsubMessages=db.collection('groups').doc(id).collection('messages').orderBy('time','asc').onSnapshot(async snap=>{
       box.innerHTML='';
@@ -425,18 +406,6 @@
       }
       box.scrollTop=box.scrollHeight;
     });
-  }
-
-  async function setGroupBackground(){
-    const file = document.getElementById('groupBgInput').files[0];
-    if(!file || !currentGroupId) return;
-    if(!db){ alert('هذه الميزة تحتاج اتصال بالإنترنت'); return; }
-    try{
-      const dataUrl = await compressImage(file, 1200, 1600, 0.6);
-      await db.collection('groups').doc(currentGroupId).update({backgroundImage:dataUrl});
-      document.getElementById('messagesBox').style.backgroundImage=`url('${dataUrl}')`;
-      if(currentGroupData) currentGroupData.backgroundImage = dataUrl;
-    }catch(e){ alert('تعذّر تغيير الخلفية: '+e.message); }
   }
 
   async function sendMessage(){
@@ -757,3 +726,4 @@
 </script>
 </body>
 </html>
+
