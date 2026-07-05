@@ -42,6 +42,8 @@
   .msg-bubble .avatar-ph{width:32px;height:32px;border-radius:50%;background:var(--blue-bright);display:flex;align-items:center;justify-content:center;font-size:13px;color:#fff;font-weight:800;flex-shrink:0;}
   .msg-bubble .bubble-body{}
   .msg-bubble small{display:block;font-size:10.5px;opacity:0.7;margin-bottom:3px;}
+  .msg-del-btn{background:transparent;border:none;opacity:0.55;font-size:11px;cursor:pointer;margin-top:4px;display:block;padding:0;color:inherit;}
+  .msg-del-btn:hover{opacity:1;}
   .msg-bubble img.chat-img{max-width:160px;border-radius:10px;margin-top:5px;display:block;}
   .chat-file{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.5);border-radius:10px;padding:6px 10px;margin-top:5px;font-size:12.5px;}
   .msg-bubble.me .chat-file{background:rgba(255,255,255,0.2);}
@@ -273,6 +275,7 @@
   try{
     firebase.initializeApp(firebaseConfig);
     db = firebase.firestore();
+    try{ db.enablePersistence({synchronizeTabs:true}).catch(err=>{ console.warn('تعذر تفعيل التخزين المحلي', err); }); }catch(e){}
     storage = firebase.storage();
   }catch(e){ console.warn('لا يوجد اتصال بالإنترنت — سيعمل الموقع في وضع عدم الاتصال', e); }
   const ADMIN_PHONE = "01229914072";
@@ -401,12 +404,21 @@
     document.querySelectorAll('.group-item').forEach(g=>g.classList.remove('active'));
     el.classList.add('active');
     const box=document.getElementById('messagesBox');
-    box.innerHTML='';
+    box.innerHTML='جاري التحميل...';
     if(unsubMessages)unsubMessages();
+    db.collection('groups').doc(id).get().then(gSnap=>{
+      const jt = (gSnap.exists && gSnap.data().memberJoinTimes) ? gSnap.data().memberJoinTimes[user.phone] : null;
+      const joinTime = (typeof jt === 'number') ? jt : 0; // لو مفيش وقت انضمام مسجل (جروب قديم)، تفضل كل الرسايل ظاهرة
+      attachMessagesListener(id, box, joinTime);
+    }).catch(()=>{ attachMessagesListener(id, box, 0); });
+  }
+
+  function attachMessagesListener(id, box, joinTime){
     unsubMessages=db.collection('groups').doc(id).collection('messages').orderBy('time','asc').onSnapshot(async snap=>{
       box.innerHTML='';
       for(const d of snap.docs){
         const m=d.data();
+        if(m.time && m.time < joinTime) continue; // إخفاء الرسايل اللي كانت قبل ما العضو ينضم
         const isMe=m.phone===user.phone;
         const bubble=document.createElement('div');
         bubble.className='msg-bubble'+(isMe?' me':'');
@@ -423,12 +435,24 @@
           chatFilesCache[d.id]=m;
           fileHtml=`<div class="chat-file"><span>📎 ${m.fileName||'ملف'}</span><button onclick="downloadChatFile('${d.id}')">تحميل</button></div>`;
         }
-        bubble.innerHTML=`${avatarHtml}<div class="bubble-body"><small class="name-link" onclick="openProfile('${m.phone}')">${m.name}</small>${m.text?m.text:''}${m.image?`<img class="chat-img" src="${m.image}">`:''}${fileHtml}
+        let delHtml='';
+        if(isMe || user.role==='admin'){
+          delHtml=`<button class="msg-del-btn" onclick="deleteChatMessage('${d.id}')" title="حذف الرسالة">🗑</button>`;
+        }
+        bubble.innerHTML=`${avatarHtml}<div class="bubble-body"><small class="name-link" onclick="openProfile('${m.phone}')">${m.name}</small>${m.text?m.text:''}${m.image?`<img class="chat-img" src="${m.image}">`:''}${fileHtml}${delHtml}
         </div>`;
         box.appendChild(bubble);
       }
       box.scrollTop=box.scrollHeight;
     });
+  }
+
+  async function deleteChatMessage(msgId){
+    if(!currentGroupId) return;
+    if(!confirm('هل تريد حذف هذه الرسالة؟')) return;
+    try{
+      await db.collection('groups').doc(currentGroupId).collection('messages').doc(msgId).delete();
+    }catch(e){ alert('تعذّر حذف الرسالة'); }
   }
 
   async function sendMessage(){
