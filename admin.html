@@ -32,18 +32,6 @@
   .lock-box button{width:100%;padding:12px;border:none;border-radius:10px;background:var(--blue-main);color:#fff;font-weight:800;cursor:pointer;}
   .chip{display:inline-block;background:var(--ice);color:var(--blue-main);font-size:11.5px;padding:3px 8px;border-radius:8px;margin:2px;}
 
-  /* ===== أزرار زجاجية شفافة ===== */
-  .tabs button{background:rgba(255,255,255,0.5);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.6);}
-  .tabs button.active{background:rgba(21,101,216,0.4);backdrop-filter:blur(8px);color:#fff;border:1px solid rgba(255,255,255,0.5);}
-  .btn{backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,0.4) !important;transition:0.2s;}
-  .btn-approve{background:rgba(20,122,53,0.55) !important;}
-  .btn-approve:hover{background:rgba(20,122,53,0.75) !important;}
-  .btn-reject{background:rgba(176,0,32,0.55) !important;}
-  .btn-reject:hover{background:rgba(176,0,32,0.75) !important;}
-  .btn-blue{background:rgba(21,101,216,0.45) !important;}
-  .btn-blue:hover{background:rgba(21,101,216,0.62) !important;}
-  .topbar a{backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,0.3);}
-  .lock-box button{background:rgba(21,101,216,0.4) !important;backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.5);}
   .announce-admin-preview{background:rgba(245,166,35,0.15);border:1px dashed #f5a623;border-radius:10px;padding:12px;font-size:13px;color:#7a4a06;margin-bottom:10px;}
 </style>
 </head>
@@ -127,6 +115,7 @@
           <button class="btn btn-blue" id="addBookBtn" onclick="addBook()">إضافة كتاب</button>
         </div>
         <p id="uploadProgress" style="font-size:12px;color:#7a93ad"></p>
+        <p style="font-size:11.5px;color:#9bb3cb;margin-top:2px">📎 ارفع أي حجم ملف، وهيتم ضغطه تلقائيًا قبل ما يتخزن جوه قاعدة البيانات (مش على Storage).</p>
       </div>
       <div id="booksAdminList"></div>
     </div>
@@ -174,6 +163,13 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+  if(window['pdfjsLib']){
+    pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+  }
+</script>
 <script>
   const firebaseConfig = {
     apiKey: "AIzaSyBgI8VcLOdQAMgmcpxCzaMS1UCX1vyzSjw",
@@ -321,11 +317,19 @@
       const el = document.createElement('div');
       el.className='card-box';
       el.innerHTML = `<div class="row"><div class="meta"><b>${g.name}</b><span>${(g.members||[]).length} عضو</span></div></div>
-        <div style="margin-top:8px">${allUsers.map(u=>`
+        <div style="margin-top:8px"><b style="font-size:12px;color:#7a93ad">أعضاء الجروب:</b><br>${allUsers.map(u=>`
           <label style="display:inline-flex;align-items:center;gap:4px;margin:3px 8px 3px 0;font-size:12.5px;">
             <input type="checkbox" ${ (g.members||[]).includes(u.phone) ? 'checked':'' } onchange="toggleMember('${doc.id}','${u.phone}',this.checked)">
             ${u.name}
-          </label>`).join('')}</div>`;
+          </label>`).join('')}</div>
+        <div style="margin-top:8px"><b style="font-size:12px;color:#7a93ad">مشرفو الجروب (يقدروا يغيّروا خلفية الشات):</b><br>${(g.members||[]).map(phone=>{
+            const u = allUsers.find(x=>x.phone===phone);
+            if(!u) return '';
+            return `<label style="display:inline-flex;align-items:center;gap:4px;margin:3px 8px 3px 0;font-size:12.5px;">
+            <input type="checkbox" ${ (g.moderators||[]).includes(u.phone) ? 'checked':'' } onchange="toggleModerator('${doc.id}','${u.phone}',this.checked)">
+            ${u.name}
+          </label>`;
+          }).join('')}</div>`;
       box.appendChild(el);
     });
   }
@@ -333,6 +337,13 @@
     const ref = db.collection('groups').doc(groupId);
     if(checked){ await ref.update({members: firebase.firestore.FieldValue.arrayUnion(phone)}); }
     else{ await ref.update({members: firebase.firestore.FieldValue.arrayRemove(phone)}); }
+    loadGroups();
+  }
+  async function toggleModerator(groupId, phone, checked){
+    const ref = db.collection('groups').doc(groupId);
+    if(checked){ await ref.update({moderators: firebase.firestore.FieldValue.arrayUnion(phone)}); }
+    else{ await ref.update({moderators: firebase.firestore.FieldValue.arrayRemove(phone)}); }
+    loadGroups();
   }
 
   // ===== جدول المحاضرات =====
@@ -371,7 +382,122 @@
     loadSchedule();
   }
 
-  // ===== الكتب =====
+  // ===== الكتب (بيتم تخزين الملف نفسه جوه قاعدة البيانات، مش على Storage — بيتضغط تلقائيًا مهما كان حجمه) =====
+  const TARGET_B64_LEN = 900000; // الهدف بعد الضغط عشان نفضل تحت حد مستند Firestore (1MB)
+
+  function readFileAsDataURL(file){
+    return new Promise((resolve,reject)=>{
+      const reader = new FileReader();
+      reader.onload = ()=> resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+  function readFileAsArrayBuffer(file){
+    return new Promise((resolve,reject)=>{
+      const reader = new FileReader();
+      reader.onload = ()=> resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsArrayBuffer(file);
+    });
+  }
+  function blobToDataURL(blob){
+    return new Promise((resolve,reject)=>{
+      const reader = new FileReader();
+      reader.onload = ()=> resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  }
+  function compressImageSimple(file, maxW, maxH, quality){
+    return new Promise((resolve, reject)=>{
+      const reader = new FileReader();
+      reader.onload = function(e){
+        const img = new Image();
+        img.onload = function(){
+          const canvas = document.createElement('canvas');
+          let w = img.width, h = img.height;
+          if(w > maxW || h > maxH){
+            if(w/h > maxW/maxH){ h = Math.round(h*maxW/w); w = maxW; }
+            else{ w = Math.round(w*maxH/h); h = maxH; }
+          }
+          canvas.width = w; canvas.height = h;
+          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+          resolve(canvas.toDataURL('image/jpeg', quality));
+        };
+        img.onerror = reject;
+        img.src = e.target.result;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+  async function compressImageAdaptive(file, targetLen, onProgress){
+    const attempts = [
+      [1600,2200,0.75],[1300,1800,0.65],[1000,1400,0.55],
+      [800,1100,0.45],[650,900,0.35],[500,700,0.3],[380,520,0.25],[280,380,0.2]
+    ];
+    let last=null;
+    for(let i=0;i<attempts.length;i++){
+      const [w,h,q]=attempts[i];
+      if(onProgress) onProgress('جاري ضغط الصورة (محاولة '+(i+1)+')...');
+      const result = await compressImageSimple(file, w, h, q);
+      last=result;
+      if(result.length <= targetLen) return result;
+    }
+    return last;
+  }
+  async function compressPdfAdaptive(file, targetLen, onProgress){
+    if(!window['pdfjsLib'] || !window['jspdf']){
+      return await readFileAsDataURL(file);
+    }
+    const buffer = await readFileAsArrayBuffer(file);
+    const attempts = [
+      [2.0,0.75],[1.6,0.6],[1.2,0.5],[1.0,0.4],[0.8,0.3],[0.6,0.25]
+    ];
+    let lastDataUrl=null;
+    for(let a=0;a<attempts.length;a++){
+      const [scale,quality]=attempts[a];
+      if(onProgress) onProgress('جاري ضغط ملف PDF (محاولة '+(a+1)+')...');
+      try{
+        const loadingTask = pdfjsLib.getDocument({data: buffer.slice(0)});
+        const pdf = await loadingTask.promise;
+        const { jsPDF } = window.jspdf;
+        let doc=null;
+        for(let p=1;p<=pdf.numPages;p++){
+          const page = await pdf.getPage(p);
+          const viewport = page.getViewport({scale});
+          const canvas = document.createElement('canvas');
+          canvas.width = viewport.width; canvas.height = viewport.height;
+          const ctx = canvas.getContext('2d');
+          await page.render({canvasContext:ctx, viewport}).promise;
+          const imgData = canvas.toDataURL('image/jpeg', quality);
+          const orientation = viewport.width > viewport.height ? 'l' : 'p';
+          if(!doc){
+            doc = new jsPDF({orientation, unit:'px', format:[viewport.width, viewport.height]});
+          } else {
+            doc.addPage([viewport.width, viewport.height], orientation);
+          }
+          doc.addImage(imgData, 'JPEG', 0, 0, viewport.width, viewport.height);
+        }
+        const blob = doc.output('blob');
+        const dataUrl = await blobToDataURL(blob);
+        lastDataUrl = dataUrl;
+        if(dataUrl.length <= targetLen) return dataUrl;
+      }catch(e){ console.warn('فشلت محاولة ضغط PDF', e); }
+    }
+    return lastDataUrl || await readFileAsDataURL(file);
+  }
+  async function compressFileForStorage(file, onProgress){
+    if(file.type.startsWith('image/')){
+      return await compressImageAdaptive(file, TARGET_B64_LEN, onProgress);
+    } else if(file.type === 'application/pdf'){
+      return await compressPdfAdaptive(file, TARGET_B64_LEN, onProgress);
+    } else {
+      return await readFileAsDataURL(file);
+    }
+  }
+
   async function addBook(){
     const title = document.getElementById('bookTitle').value.trim();
     const file = document.getElementById('bookFile').files[0];
@@ -380,18 +506,14 @@
     const progress = document.getElementById('uploadProgress');
     if(!title || !file) return alert('من فضلك أدخل العنوان واختر ملف PDF');
 
-    btn.disabled = true; btn.textContent='جاري الرفع...';
+    btn.disabled = true; btn.textContent='جاري المعالجة...';
+    progress.textContent='جاري تجهيز الملف...';
     try{
-      const path = 'books/' + Date.now() + '_' + file.name;
-      const ref = storage.ref().child(path);
-      const task = ref.put(file);
-      task.on('state_changed', snap=>{
-        const pct = Math.round((snap.bytesTransferred/snap.totalBytes)*100);
-        progress.textContent = 'جاري الرفع: '+pct+'%';
-      });
-      await task;
-      const url = await ref.getDownloadURL();
-      await db.collection('books').add({title, link:url, storagePath:path, locked, allowedPhones:[], time:Date.now()});
+      const dataUrl = await compressFileForStorage(file, (msg)=>{ progress.textContent=msg; });
+      if(dataUrl.length > TARGET_B64_LEN){
+        progress.textContent='تم ضغط الملف لأقصى درجة ممكنة لكنه لسه كبير شوية، هيترفع برضه لكن ممكن ياخد وقت أطول.';
+      }
+      await db.collection('books').add({title, fileData:dataUrl, fileType:file.type||'application/pdf', fileName:file.name, locked, allowedPhones:[], time:Date.now()});
       document.getElementById('bookTitle').value='';
       document.getElementById('bookFile').value='';
       progress.textContent='تم رفع الكتاب بنجاح';
@@ -430,11 +552,6 @@
   }
   async function deleteBook(id){
     if(!confirm('حذف هذا الكتاب؟')) return;
-    const snap = await db.collection('books').doc(id).get();
-    const b = snap.data();
-    if(b && b.storagePath){
-      try{ await storage.ref().child(b.storagePath).delete(); }catch(e){}
-    }
     await db.collection('books').doc(id).delete();
     loadBooks();
   }
@@ -519,4 +636,3 @@
 </script>
 </body>
 </html>
-
