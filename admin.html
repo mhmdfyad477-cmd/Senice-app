@@ -316,7 +316,8 @@
       const g = doc.data();
       const el = document.createElement('div');
       el.className='card-box';
-      el.innerHTML = `<div class="row"><div class="meta"><b>${g.name}</b><span>${(g.members||[]).length} عضو</span></div></div>
+      el.innerHTML = `<div class="row"><div class="meta"><b>${g.name}</b><span>${(g.members||[]).length} عضو</span></div>
+        <button class="btn btn-reject" onclick="deleteGroup('${doc.id}')">حذف الجروب</button></div>
         <div style="margin-top:8px">${allUsers.map(u=>`
           <label style="display:inline-flex;align-items:center;gap:4px;margin:3px 8px 3px 0;font-size:12.5px;">
             <input type="checkbox" ${ (g.members||[]).includes(u.phone) ? 'checked':'' } onchange="toggleMember('${doc.id}','${u.phone}',this.checked)">
@@ -324,6 +325,23 @@
           </label>`).join('')}</div>`;
       box.appendChild(el);
     });
+  }
+  async function deleteGroup(groupId){
+    if(!confirm('هل أنت متأكد من حذف هذا الجروب؟ هيتم حذف كل الرسائل اللي جواه ولا يمكن التراجع عن هذا الإجراء.')) return;
+    try{
+      const ref = db.collection('groups').doc(groupId);
+      // حذف كل الرسائل اللي جوه الجروب أولاً (على دفعات)
+      const msgsSnap = await ref.collection('messages').get();
+      const docs = msgsSnap.docs;
+      const batchSize = 400;
+      for(let i=0;i<docs.length;i+=batchSize){
+        const batch = db.batch();
+        docs.slice(i,i+batchSize).forEach(d=> batch.delete(d.ref));
+        await batch.commit();
+      }
+      await ref.delete();
+      loadGroups();
+    }catch(e){ alert('حدث خطأ أثناء حذف الجروب: '+e.message); }
   }
   async function toggleMember(groupId, phone, checked){
     const ref = db.collection('groups').doc(groupId);
@@ -627,3 +645,4 @@
 </script>
 </body>
 </html>
+
