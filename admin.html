@@ -31,6 +31,20 @@
   .lock-box input{width:100%;padding:12px;border-radius:10px;border:1.5px solid #cfe2f7;margin:14px 0;text-align:center;font-size:16px;}
   .lock-box button{width:100%;padding:12px;border:none;border-radius:10px;background:var(--blue-main);color:#fff;font-weight:800;cursor:pointer;}
   .chip{display:inline-block;background:var(--ice);color:var(--blue-main);font-size:11.5px;padding:3px 8px;border-radius:8px;margin:2px;}
+
+  /* ===== أزرار زجاجية شفافة ===== */
+  .tabs button{background:rgba(255,255,255,0.5);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.6);}
+  .tabs button.active{background:rgba(21,101,216,0.4);backdrop-filter:blur(8px);color:#fff;border:1px solid rgba(255,255,255,0.5);}
+  .btn{backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,0.4) !important;transition:0.2s;}
+  .btn-approve{background:rgba(20,122,53,0.55) !important;}
+  .btn-approve:hover{background:rgba(20,122,53,0.75) !important;}
+  .btn-reject{background:rgba(176,0,32,0.55) !important;}
+  .btn-reject:hover{background:rgba(176,0,32,0.75) !important;}
+  .btn-blue{background:rgba(21,101,216,0.45) !important;}
+  .btn-blue:hover{background:rgba(21,101,216,0.62) !important;}
+  .topbar a{backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,0.3);}
+  .lock-box button{background:rgba(21,101,216,0.4) !important;backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.5);}
+  .announce-admin-preview{background:rgba(245,166,35,0.15);border:1px dashed #f5a623;border-radius:10px;padding:12px;font-size:13px;color:#7a4a06;margin-bottom:10px;}
 </style>
 </head>
 <body>
@@ -58,6 +72,8 @@
       <button onclick="showTab('groups', this)">الجروبات</button>
       <button onclick="showTab('schedule', this)">جدول المحاضرات</button>
       <button onclick="showTab('books', this)">الكتب المقفولة</button>
+      <button onclick="showTab('points', this)">النقاط وترتيب الفخر</button>
+      <button onclick="showTab('announce', this)">التنبيهات</button>
     </div>
 
     <!-- طلبات التسجيل -->
@@ -114,6 +130,44 @@
       </div>
       <div id="booksAdminList"></div>
     </div>
+
+    <!-- النقاط وترتيب الفخر -->
+    <div class="section" id="tab-points">
+      <div class="card-box">
+        <b style="display:block;margin-bottom:8px">نقاط رفع الملخص</b>
+        <div class="form-line">
+          <input type="number" id="summaryPointsInput" min="0" placeholder="عدد النقاط لكل ملخص يتم رفعه">
+          <button class="btn btn-blue" onclick="saveSummaryPoints()">حفظ</button>
+        </div>
+        <p id="pointsMsg" style="font-size:12px;color:#7a93ad"></p>
+      </div>
+      <div class="card-box">
+        <b style="display:block;margin-bottom:8px">🏆 بدء موسم جديد لترتيب الفخر</b>
+        <p style="font-size:12.5px;color:#7a93ad;margin-bottom:10px">هذا الزر يصفّر نقاط كل الأعضاء المعتمدين ليبدأ ترتيب الفخر من جديد. لا يمكن التراجع عن هذه الخطوة.</p>
+        <button class="btn btn-reject" onclick="resetAllPoints()">تصفير كل النقاط الآن</button>
+        <p id="resetPointsMsg" style="font-size:12px;color:#7a93ad;margin-top:8px"></p>
+      </div>
+      <div class="card-box">
+        <b style="display:block;margin-bottom:8px">الترتيب الحالي</b>
+        <div id="pointsLeaderboardList"></div>
+      </div>
+    </div>
+
+    <!-- التنبيهات -->
+    <div class="section" id="tab-announce">
+      <div class="card-box">
+        <b style="display:block;margin-bottom:8px">📢 تنبيه ثابت أعلى الموقع</b>
+        <p style="font-size:12.5px;color:#7a93ad;margin-bottom:10px">هذا النص هيظهر كشريط ثابت أعلى الموقع لكل الأعضاء لحد ما تشيله أو حد يقفله.</p>
+        <div class="form-line">
+          <input type="text" id="announceTextInput" placeholder="اكتب نص التنبيه هنا...">
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-blue" onclick="publishAnnouncement()">نشر التنبيه</button>
+          <button class="btn btn-reject" onclick="clearAnnouncement()">إلغاء التنبيه الحالي</button>
+        </div>
+        <div id="announcePreview" style="margin-top:12px"></div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -130,15 +184,19 @@
     appId: "1:1031434005860:web:e68fccdd746017a5639e71",
     measurementId: "G-JZ1SFVMM7P"
   };
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
-  const storage = firebase.storage();
+  let db = null, storage = null;
+  try{
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.firestore();
+    storage = firebase.storage();
+  }catch(e){ console.warn('لا يوجد اتصال بالإنترنت', e); }
   const ADMIN_PHONE = "01229914072";
   const ADMIN_PASS  = "197197";
 </script>
 <script>
   function checkAdminPass(){
     const val = document.getElementById('adminPassInput').value;
+    if(!db){ document.getElementById('lockMsg').textContent='لوحة الأدمن تحتاج اتصال بالإنترنت'; return; }
     if(val === ADMIN_PASS){
       document.getElementById('lockScreen').style.display='none';
       document.getElementById('adminPanel').style.display='block';
@@ -157,6 +215,7 @@
 
   function loadAll(){
     loadPending(); loadUsers(); loadAdmins(); loadGroups(); loadSchedule(); loadBooks();
+    loadPointsSettings(); loadPointsLeaderboard(); loadAnnouncementSettings();
   }
 
   // ===== طلبات التسجيل =====
@@ -379,6 +438,85 @@
     await db.collection('books').doc(id).delete();
     loadBooks();
   }
+
+  // ===== النقاط وترتيب الفخر =====
+  async function loadPointsSettings(){
+    try{
+      const snap = await db.collection('settings').doc('points').get();
+      const val = (snap.exists && typeof snap.data().summaryPoints === 'number') ? snap.data().summaryPoints : 10;
+      document.getElementById('summaryPointsInput').value = val;
+    }catch(e){}
+  }
+  async function saveSummaryPoints(){
+    const val = parseInt(document.getElementById('summaryPointsInput').value, 10);
+    const msg = document.getElementById('pointsMsg');
+    if(isNaN(val) || val < 0){ msg.style.color='#b00020'; msg.textContent='من فضلك أدخل رقمًا صحيحًا'; return; }
+    try{
+      await db.collection('settings').doc('points').set({summaryPoints: val});
+      msg.style.color='#147a35'; msg.textContent='تم حفظ عدد نقاط الملخص بنجاح';
+    }catch(e){ msg.style.color='#b00020'; msg.textContent='حدث خطأ: '+e.message; }
+  }
+  async function resetAllPoints(){
+    if(!confirm('هل أنت متأكد من تصفير نقاط كل الأعضاء وبدء موسم جديد؟ لا يمكن التراجع عن هذا الإجراء.')) return;
+    const msg = document.getElementById('resetPointsMsg');
+    msg.textContent = 'جاري التصفير...';
+    try{
+      const snap = await db.collection('users').get();
+      const batchSize = 400;
+      const docs = snap.docs;
+      for(let i=0;i<docs.length;i+=batchSize){
+        const batch = db.batch();
+        docs.slice(i,i+batchSize).forEach(d=> batch.update(d.ref, {points:0}));
+        await batch.commit();
+      }
+      await db.collection('settings').doc('points').set({lastReset:Date.now()}, {merge:true});
+      msg.textContent = 'تم تصفير نقاط كل الأعضاء، موسم جديد بدأ الآن ✅';
+      loadUsers(); loadPointsLeaderboard();
+    }catch(e){ msg.textContent = 'حدث خطأ: '+e.message; }
+  }
+  async function loadPointsLeaderboard(){
+    const box = document.getElementById('pointsLeaderboardList');
+    box.innerHTML = 'جاري التحميل...';
+    try{
+      const snap = await db.collection('users').where('approved','==',true).get();
+      let items = []; snap.forEach(d=>items.push(d.data()));
+      items.sort((a,b)=>(b.points||0)-(a.points||0));
+      const medals=['🥇','🥈','🥉'];
+      box.innerHTML = items.length ? items.map((u,i)=>`
+        <div class="card-box row"><div class="meta"><b>${i<3?medals[i]:(i+1)+'.'} ${u.name}</b><span>${u.phone}</span></div><b>${u.points||0} نقطة</b></div>`).join('') : '<p style="color:#9bb3cb;font-size:13px">لا يوجد أعضاء بعد</p>';
+    }catch(e){ box.innerHTML = '<p style="color:#9bb3cb;font-size:13px">تعذّر تحميل الترتيب</p>'; }
+  }
+
+  // ===== التنبيهات =====
+  async function loadAnnouncementSettings(){
+    try{
+      const snap = await db.collection('settings').doc('announcement').get();
+      const preview = document.getElementById('announcePreview');
+      if(snap.exists && snap.data().active && snap.data().text){
+        document.getElementById('announceTextInput').value = snap.data().text;
+        preview.innerHTML = '<div class="announce-admin-preview">التنبيه المنشور حاليًا: '+snap.data().text+'</div>';
+      } else {
+        preview.innerHTML = '<div class="announce-admin-preview">لا يوجد تنبيه منشور حاليًا</div>';
+      }
+    }catch(e){}
+  }
+  async function publishAnnouncement(){
+    const text = document.getElementById('announceTextInput').value.trim();
+    if(!text) return alert('من فضلك أدخل نص التنبيه');
+    try{
+      await db.collection('settings').doc('announcement').set({text, active:true, time:Date.now()});
+      loadAnnouncementSettings();
+      alert('تم نشر التنبيه بنجاح');
+    }catch(e){ alert('حدث خطأ: '+e.message); }
+  }
+  async function clearAnnouncement(){
+    try{
+      await db.collection('settings').doc('announcement').set({active:false}, {merge:true});
+      document.getElementById('announceTextInput').value='';
+      loadAnnouncementSettings();
+    }catch(e){ alert('حدث خطأ: '+e.message); }
+  }
 </script>
 </body>
 </html>
+
