@@ -11,7 +11,7 @@
   .topbar{position:sticky;top:0;z-index:30;background:linear-gradient(135deg,var(--blue-main),var(--blue-deep));color:#fff;display:flex;align-items:center;justify-content:space-between;padding:12px 18px;box-shadow:0 4px 14px rgba(10,46,92,0.25);}
   .topbar .brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:16px;}
   .topbar .brand svg{width:26px;height:26px;fill:#fff;}
-  .menu-btn{background:rgba(255,255,255,0.15);border:none;color:#fff;width:38px;height:38px;border-radius:10px;font-size:18px;cursor:pointer;}
+  .menu-btn{background:rgba(255,255,255,0.18);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.3);color:#fff;width:38px;height:38px;border-radius:10px;font-size:18px;cursor:pointer;}
   .layout{display:flex;min-height:calc(100vh - 58px);}
   .sidebar{width:230px;background:#fff;border-left:1px solid #e1ecf8;padding:16px 12px;display:flex;flex-direction:column;gap:6px;position:sticky;top:58px;height:calc(100vh - 58px);overflow-y:auto;transition:0.3s;}
   .sidebar button{display:flex;align-items:center;gap:10px;background:transparent;border:none;text-align:right;padding:11px 12px;border-radius:12px;cursor:pointer;font-size:14.5px;font-weight:700;color:#4a6585;}
@@ -43,25 +43,63 @@
   .msg-bubble img.chat-img{max-width:160px;border-radius:10px;margin-top:5px;display:block;}
   .chat-input{display:flex;gap:8px;padding:10px;border-top:1px solid #eef3fa;}
   .chat-input input[type=text]{flex:1;padding:10px 12px;border-radius:12px;border:1.5px solid #cfe2f7;font-size:13.5px;}
-  .chat-input button,.chat-input label{background:var(--blue-main);color:#fff;border:none;border-radius:12px;padding:0 14px;cursor:pointer;display:flex;align-items:center;font-size:13px;font-weight:700;}
+  .chat-input button,.chat-input label{background:rgba(21,101,216,0.35);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.4);color:#fff;border-radius:12px;padding:0 14px;cursor:pointer;display:flex;align-items:center;font-size:13px;font-weight:700;transition:0.2s;}
+  .chat-input button:hover,.chat-input label:hover{background:rgba(21,101,216,0.5);}
   .search-bar{display:flex;gap:8px;margin-bottom:14px;}
   .search-bar input{flex:1;padding:11px 14px;border-radius:12px;border:1.5px solid #cfe2f7;font-size:14px;}
   .file-card{display:flex;justify-content:space-between;align-items:center;}
   .file-card .meta b{display:block;font-size:14.5px;}
   .file-card .meta span{font-size:12px;color:#7a93ad;}
-  .file-card a.dl{background:var(--blue-main);color:#fff;text-decoration:none;padding:8px 14px;border-radius:10px;font-size:12.5px;font-weight:700;}
+  .file-card a.dl,.file-card button.dl{background:rgba(21,101,216,0.32);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.5);color:#fff;text-decoration:none;padding:8px 14px;border-radius:10px;font-size:12.5px;font-weight:700;transition:0.2s;}
+  .file-card a.dl:hover,.file-card button.dl:hover{background:rgba(21,101,216,0.48);}
   .points-badge{background:var(--gold);color:#fff;font-size:11px;font-weight:800;padding:3px 8px;border-radius:8px;}
   .upload-box{display:flex;gap:10px;flex-wrap:wrap;}
   .upload-box input[type=text]{flex:1;min-width:160px;padding:10px;border-radius:10px;border:1.5px solid #cfe2f7;}
-  .upload-box button{background:var(--blue-deep);color:#fff;border:none;padding:10px 16px;border-radius:10px;cursor:pointer;font-weight:700;}
+  .upload-box button{background:rgba(10,46,92,0.35);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.4);color:#fff;padding:10px 16px;border-radius:10px;cursor:pointer;font-weight:700;transition:0.2s;}
+  .upload-box button:hover{background:rgba(10,46,92,0.5);}
   .account-field{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f0f4fa;font-size:14px;}
   .account-field b{color:#7a93ad;font-weight:600;}
   .avatar-upload{display:flex;flex-direction:column;align-items:center;margin-bottom:16px;}
   .avatar-upload .av-img{width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid var(--blue-main);}
   .avatar-upload .av-ph{width:80px;height:80px;border-radius:50%;background:var(--blue-bright);display:flex;align-items:center;justify-content:center;font-size:28px;color:#fff;font-weight:800;border:3px solid var(--blue-main);}
-  .avatar-upload label{margin-top:8px;background:var(--ice);color:var(--blue-main);border:1.5px solid var(--blue-main);border-radius:10px;padding:6px 14px;font-size:12.5px;font-weight:700;cursor:pointer;}
-  .ad-slot{background:#f4f8fd;border:1px dashed #c7d9ee;border-radius:12px;padding:18px;text-align:center;color:#9bb3cb;font-size:12.5px;margin:18px 0;}
+  .avatar-upload label{margin-top:8px;background:rgba(21,101,216,0.14);backdrop-filter:blur(6px);color:var(--blue-main);border:1.5px solid rgba(21,101,216,0.35);border-radius:10px;padding:6px 14px;font-size:12.5px;font-weight:700;cursor:pointer;}
   .footer-credit{text-align:center;font-size:11.5px;color:#9bb3cb;padding:18px 0;}
+
+  /* ===== أزرار زجاجية شفافة ===== */
+  .glass-btn{background:rgba(255,255,255,0.25) !important;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.45) !important;color:var(--blue-deep) !important;box-shadow:0 4px 16px rgba(10,46,92,0.10);transition:0.2s;}
+  .glass-btn:hover{background:rgba(255,255,255,0.45) !important;transform:translateY(-1px);}
+  .glass-btn.glass-primary{background:rgba(21,101,216,0.35) !important;color:#fff !important;border:1px solid rgba(255,255,255,0.5) !important;}
+  .glass-btn.glass-primary:hover{background:rgba(21,101,216,0.5) !important;}
+  .sidebar button{background:rgba(255,255,255,0.4);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);border:1px solid transparent;}
+  .sidebar button.active,.sidebar button:hover{background:rgba(21,101,216,0.14);border:1px solid rgba(21,101,216,0.18);}
+  .menu-btn{backdrop-filter:blur(6px);}
+
+  /* ===== شريط التنبيهات ===== */
+  .announce-bar{display:none;background:rgba(245,166,35,0.18);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid rgba(245,166,35,0.4);color:#7a4a06;font-size:13px;font-weight:700;padding:10px 16px;align-items:center;justify-content:space-between;gap:10px;position:sticky;top:58px;z-index:25;}
+  .announce-bar.active{display:flex;}
+  .announce-bar button{background:transparent;border:none;color:#7a4a06;font-size:16px;cursor:pointer;}
+
+  /* ===== ترتيب الفخر ===== */
+  .rank-card{display:flex;align-items:center;gap:12px;border-right:none !important;}
+  .rank-card .rank-num{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:15px;flex-shrink:0;background:var(--ice);color:var(--blue-main);}
+  .rank-card.gold .rank-num{background:linear-gradient(135deg,#ffd76a,#c9891a);color:#fff;box-shadow:0 4px 12px rgba(201,137,26,0.5);}
+  .rank-card.silver .rank-num{background:linear-gradient(135deg,#e6e9ee,#9aa3ad);color:#fff;box-shadow:0 4px 12px rgba(120,130,140,0.4);}
+  .rank-card.bronze .rank-num{background:linear-gradient(135deg,#e0a172,#9a5a26);color:#fff;box-shadow:0 4px 12px rgba(154,90,38,0.4);}
+  .rank-card.gold{background:linear-gradient(90deg,rgba(255,215,106,0.15),#fff);}
+  .rank-card.silver{background:linear-gradient(90deg,rgba(200,205,212,0.18),#fff);}
+  .rank-card.bronze{background:linear-gradient(90deg,rgba(224,161,114,0.18),#fff);}
+  .rank-card .rank-avatar{width:38px;height:38px;border-radius:50%;object-fit:cover;flex-shrink:0;}
+  .rank-card .rank-avatar-ph{width:38px;height:38px;border-radius:50%;background:var(--blue-bright);display:flex;align-items:center;justify-content:center;font-size:15px;color:#fff;font-weight:800;flex-shrink:0;}
+  .rank-card .rank-info{flex:1;}
+  .rank-card .rank-info b{display:block;font-size:14.5px;color:var(--blue-deep);}
+  .rank-card .rank-info span{font-size:12px;color:#7a93ad;}
+  .rank-card .rank-points{font-weight:900;color:var(--gold);font-size:14px;}
+
+  .name-link{cursor:pointer;text-decoration:underline;text-decoration-style:dotted;}
+  .profile-header{display:flex;flex-direction:column;align-items:center;margin-bottom:14px;}
+  .profile-header .p-avatar{width:76px;height:76px;border-radius:50%;object-fit:cover;border:3px solid var(--blue-main);}
+  .profile-header .p-avatar-ph{width:76px;height:76px;border-radius:50%;background:var(--blue-bright);display:flex;align-items:center;justify-content:center;font-size:26px;color:#fff;font-weight:800;border:3px solid var(--blue-main);}
+  .profile-header b{margin-top:8px;font-size:16px;color:var(--blue-deep);}
   .overlay{display:none;position:fixed;inset:0;background:rgba(10,46,92,0.45);z-index:50;align-items:center;justify-content:center;padding:20px;}
   .overlay.active{display:flex;}
   .modal{background:#fff;border-radius:18px;max-width:420px;width:100%;padding:24px;position:relative;max-height:90vh;overflow-y:auto;}
@@ -85,12 +123,18 @@
   <div style="width:38px"></div>
 </div>
 
+<div class="announce-bar" id="announceBar">
+  <span id="announceText"></span>
+  <button onclick="dismissAnnouncement()">✕</button>
+</div>
+
 <div class="layout">
   <div class="sidebar" id="sidebar">
     <button class="active" onclick="showSection('schedule',this)">📅 جدول المحاضرات</button>
     <button onclick="showSection('chat',this)">💬 الشات</button>
     <button onclick="showSection('summaries',this)">📝 ملخصاتي</button>
     <button onclick="showSection('books',this)">📚 كتبي</button>
+    <button onclick="showSection('leaderboard',this)">🏆 ترتيب الفخر</button>
     <div class="divider"></div>
     <button onclick="openAccount()">👤 حسابي</button>
     <button class="small-link" onclick="showSection('summaries',this)">↳ ملخصاتي</button>
@@ -131,9 +175,11 @@
       <div class="search-bar"><input type="text" id="summarySearch" placeholder="ابحث عن ملخص..." oninput="renderSummaries()"></div>
       <div class="card-box upload-box">
         <input type="text" id="summaryTitle" placeholder="عنوان الملخص">
-        <input type="text" id="summaryLink" placeholder="رابط ملف الملخص (PDF/صورة)">
-        <button onclick="uploadSummary()">رفع ملخص (+10 نقاط)</button>
+        <input type="file" id="summaryFile" accept="application/pdf,image/*" style="flex:1;min-width:160px;">
+        <button class="glass-btn glass-primary" id="uploadSummaryBtn" onclick="uploadSummary()">رفع ملخص (+<span id="summaryPointsLabel">10</span> نقاط)</button>
       </div>
+      <p id="summaryUploadProgress" style="font-size:12px;color:#7a93ad;margin-bottom:4px"></p>
+      <p style="font-size:11.5px;color:#9bb3cb;margin-bottom:10px">📎 الملفات بتتخزن جوه قاعدة البيانات مباشرة، يفضل حجم الملف أقل من 700KB (الصور بتتضغط تلقائيًا).</p>
       <div id="summariesList"></div>
     </div>
 
@@ -142,6 +188,11 @@
       <div class="search-bar"><input type="text" id="bookSearch" placeholder="ابحث عن كتاب..." oninput="renderBooks()"></div>
       <div id="booksList"></div>
       <p style="font-size:12px;color:#9bb3cb;margin-top:6px">الكتب المقفولة تظهر فقط للأسماء التي يحددها الأدمن.</p>
+    </div>
+
+    <div class="section" id="sec-leaderboard">
+      <h2 class="section-title">🏆 ترتيب الفخر</h2>
+      <div id="leaderboardList"></div>
     </div>
 
     <div class="section" id="sec-about">
@@ -159,7 +210,6 @@
       </div>
     </div>
 
-    <div class="ad-slot"><!-- مكان كود إعلانات Google AdSense --></div>
     <div class="footer-credit">تم إنشاء هذا الموقع بواسطة MF.mo.fayyad</div>
   </div>
 </div>
@@ -182,10 +232,24 @@
       <label style="font-size:12.5px;font-weight:700;color:var(--blue-deep)">كلمة مرور جديدة</label>
       <div style="display:flex;gap:8px;margin-top:6px;">
         <input type="password" id="newPass" placeholder="كلمة مرور جديدة" style="flex:1;padding:10px;border-radius:10px;border:1.5px solid #cfe2f7;">
-        <button onclick="updatePassword()" style="background:var(--blue-main);color:#fff;border:none;border-radius:10px;padding:0 14px;cursor:pointer;font-weight:700;">حفظ</button>
+        <button class="glass-btn glass-primary" onclick="updatePassword()" style="border-radius:10px;padding:0 14px;cursor:pointer;font-weight:700;">حفظ</button>
       </div>
       <div id="accMsg" style="font-size:12.5px;margin-top:8px;color:#147a35;"></div>
     </div>
+  </div>
+</div>
+
+<!-- مودال بروفايل عضو (من الشات) -->
+<div class="overlay" id="profileOverlay">
+  <div class="modal">
+    <button class="close-x" onclick="closeProfile()">✕</button>
+    <div class="profile-header">
+      <div id="profAvatarWrap"><div class="p-avatar-ph" id="profAvatarPh">؟</div></div>
+      <b id="profName"></b>
+    </div>
+    <div class="account-field"><b>رقم الموبايل</b><span id="profPhone"></span></div>
+    <div class="account-field"><b>الفرقة</b><span id="profYear"></span></div>
+    <div class="account-field"><b>نقاط الفخر</b><span id="profPoints"></span></div>
   </div>
 </div>
 
@@ -202,9 +266,12 @@
     appId: "1:1031434005880:web:e68fccdd746017a5639e71",
     measurementId: "G-JZ1SFVMM7P"
   };
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
-  const storage = firebase.storage();
+  let db = null, storage = null;
+  try{
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.firestore();
+    storage = firebase.storage();
+  }catch(e){ console.warn('لا يوجد اتصال بالإنترنت — سيعمل الموقع في وضع عدم الاتصال', e); }
   const ADMIN_PHONE = "01229914072";
   const ADMIN_PASS  = "197197";
 
@@ -225,7 +292,7 @@
   }
   async function logoutUser(){
     const u = getCurrentUser();
-    if(u){ try{ await db.collection('users').doc(u.phone).update({activeSession:false}); }catch(e){} }
+    if(u && db){ try{ await db.collection('users').doc(u.phone).update({activeSession:false}); }catch(e){} }
     localStorage.removeItem('currentUser');
     window.location.href='login.html';
   }
@@ -244,6 +311,7 @@
     if(id==='chat') loadGroups();
     if(id==='summaries') renderSummaries();
     if(id==='books') renderBooks();
+    if(id==='leaderboard') renderLeaderboard();
     if(window.innerWidth<=760) document.getElementById('sidebar').classList.remove('open');
   }
   function toggleSidebar(){ document.getElementById('sidebar').classList.toggle('open'); }
@@ -261,15 +329,38 @@
     if(!sched){sched=defaultSchedule;localStorage.setItem('schedule',JSON.stringify(sched));}
     const box=document.getElementById('scheduleList');
     box.innerHTML=sched.map(s=>`<div class="card-box lecture-card"><div class="info"><b>${s.subject}</b><span>${s.day} — ${s.place}</span></div><div class="time">${s.time}</div></div>`).join('');
-    db.collection('settings').doc('schedule').get().then(snap=>{
-      if(snap.exists&&snap.data().items){localStorage.setItem('schedule',JSON.stringify(snap.data().items));if(document.getElementById('sec-schedule').classList.contains('active'))loadSchedule();}
-    }).catch(()=>{});
+    if(db){
+      db.collection('settings').doc('schedule').get().then(snap=>{
+        if(snap.exists&&snap.data().items){localStorage.setItem('schedule',JSON.stringify(snap.data().items));if(document.getElementById('sec-schedule').classList.contains('active'))loadSchedule();}
+      }).catch(()=>{});
+    }
   }
   loadSchedule();
+
+  // شريط التنبيهات (يظهر فقط لو الأدمن فعّله من لوحة الأدمن)
+  function dismissAnnouncement(){
+    document.getElementById('announceBar').classList.remove('active');
+    try{ sessionStorage.setItem('announceDismissed', 'true'); }catch(e){}
+  }
+  function loadAnnouncement(){
+    if(!db) return;
+    db.collection('settings').doc('announcement').get().then(snap=>{
+      if(snap.exists && snap.data().active && snap.data().text){
+        let dismissed=false;
+        try{ dismissed = sessionStorage.getItem('announceDismissed')==='true'; }catch(e){}
+        if(!dismissed){
+          document.getElementById('announceText').textContent = snap.data().text;
+          document.getElementById('announceBar').classList.add('active');
+        }
+      }
+    }).catch(()=>{});
+  }
+  loadAnnouncement();
 
   // الشات مع صور البروفايل
   async function loadGroups(){
     const list=document.getElementById('groupList');
+    if(!db){ list.innerHTML='<p style="font-size:12.5px;color:#9bb3cb;padding:10px">الشات يحتاج اتصال بالإنترنت.</p>'; return; }
     list.innerHTML='جاري التحميل...';
     const snap=await db.collection('groups').where('members','array-contains',user.phone).get();
     if(snap.empty){list.innerHTML='<p style="font-size:12.5px;color:#9bb3cb;padding:10px">لا توجد جروبات لك بعد.</p>';return;}
@@ -306,7 +397,7 @@
           if(av) avatarHtml=`<img class="avatar" src="${av}">`;
           else avatarHtml=`<div class="avatar-ph">${(m.name||'؟')[0]}</div>`;
         }catch(e){ avatarHtml=`<div class="avatar-ph">${(m.name||'؟')[0]}</div>`; }
-        bubble.innerHTML=`${avatarHtml}<div class="bubble-body"><small>${m.name}</small>${m.text?m.text:''}${m.image?`<img class="chat-img" src="${m.image}">`:''}
+        bubble.innerHTML=`${avatarHtml}<div class="bubble-body"><small class="name-link" onclick="openProfile('${m.phone}')">${m.name}</small>${m.text?m.text:''}${m.image?`<img class="chat-img" src="${m.image}">`:''}
         </div>`;
         box.appendChild(bubble);
       }
@@ -316,42 +407,148 @@
 
   async function sendMessage(){
     const input=document.getElementById('msgText');
+    if(!db){ alert('الشات يحتاج اتصال بالإنترنت'); return; }
     if(!currentGroupId||!input.value.trim())return;
     await db.collection('groups').doc(currentGroupId).collection('messages').add({name:user.name,phone:user.phone,text:input.value.trim(),time:Date.now()});
     input.value='';
   }
   function sendImage(){
     const file=document.getElementById('imgInput').files[0];
+    if(!db){ alert('الشات يحتاج اتصال بالإنترنت'); return; }
     if(!file||!currentGroupId)return;
     const reader=new FileReader();
     reader.onload=async()=>{await db.collection('groups').doc(currentGroupId).collection('messages').add({name:user.name,phone:user.phone,image:reader.result,time:Date.now()});};
     reader.readAsDataURL(file);
   }
 
-  // ملخصاتي
+  // بروفايل عضو (بيتفتح لما تدوس ع اسمه في الشات)
+  async function openProfile(phone){
+    if(!db) return;
+    document.getElementById('profileOverlay').classList.add('active');
+    document.getElementById('profName').textContent='...';
+    document.getElementById('profPhone').textContent=phone;
+    document.getElementById('profYear').textContent='...';
+    document.getElementById('profPoints').textContent='...';
+    document.getElementById('profAvatarWrap').innerHTML='<div class="p-avatar-ph" id="profAvatarPh">؟</div>';
+    try{
+      const snap=await db.collection('users').doc(phone).get();
+      if(!snap.exists)return;
+      const u=snap.data();
+      document.getElementById('profName').textContent=u.name||'';
+      document.getElementById('profPhone').textContent=u.phone||phone;
+      document.getElementById('profYear').textContent=u.year||'—';
+      document.getElementById('profPoints').textContent=(u.points||0)+' نقطة';
+      if(u.avatar){ document.getElementById('profAvatarWrap').innerHTML=`<img class="p-avatar" src="${u.avatar}">`; }
+      else{ document.getElementById('profAvatarWrap').innerHTML=`<div class="p-avatar-ph">${(u.name||'؟')[0]}</div>`; }
+    }catch(e){}
+  }
+  function closeProfile(){ document.getElementById('profileOverlay').classList.remove('active'); }
+
+  // ملخصاتي (بيتم تخزين الملف نفسه جوه قاعدة البيانات، مش على Storage)
+  const MAX_SUMMARY_B64 = 900000; // حد أقصى تقريبي (حجم الملف بعد الترميز) عشان نفضل تحت حد المستند 1MB
+  let summariesCache = {};
+
+  function readFileAsDataURL(file){
+    return new Promise((resolve,reject)=>{
+      const reader = new FileReader();
+      reader.onload = ()=> resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function downloadSummaryFile(id){
+    const item = summariesCache[id];
+    if(!item || !item.fileData) return;
+    const a=document.createElement('a');
+    a.href=item.fileData;
+    a.download=item.fileName || (item.title+'');
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }
+
+  async function getSummaryPoints(){
+    if(!db) return 10;
+    try{
+      const snap=await db.collection('settings').doc('points').get();
+      if(snap.exists && typeof snap.data().summaryPoints==='number') return snap.data().summaryPoints;
+    }catch(e){}
+    return 10;
+  }
+  getSummaryPoints().then(p=>{ document.getElementById('summaryPointsLabel').textContent=p; });
+
   async function renderSummaries(){
     const q=(document.getElementById('summarySearch').value||'').trim();
     const box=document.getElementById('summariesList');
+    if(!db){ box.innerHTML='<p style="font-size:13px;color:#9bb3cb">الملخصات تحتاج اتصال بالإنترنت.</p>'; return; }
     box.innerHTML='جاري التحميل...';
     const snap=await db.collection('summaries').orderBy('time','desc').limit(100).get();
-    let items=[];snap.forEach(d=>items.push(d.data()));
+    let items=[];snap.forEach(d=>items.push({id:d.id, ...d.data()}));
     if(q)items=items.filter(i=>i.title.includes(q)||i.name.includes(q));
-    box.innerHTML=items.length?items.map(i=>`<div class="card-box file-card"><div class="meta"><b>${i.title}</b><span>بواسطة ${i.name}</span></div><a class="dl" href="${i.link}" target="_blank">فتح</a></div>`).join(''):'<p style="font-size:13px;color:#9bb3cb">لا توجد ملخصات بعد</p>';
+    summariesCache={};
+    items.forEach(i=>{ summariesCache[i.id]=i; });
+    box.innerHTML=items.length?items.map(i=>`<div class="card-box file-card"><div class="meta"><b>${i.title}</b><span>بواسطة <span class="name-link" onclick="openProfile('${i.phone}')">${i.name}</span></span></div><button class="dl glass-btn glass-primary" style="border:none;cursor:pointer" onclick="downloadSummaryFile('${i.id}')">تحميل</button></div>`).join(''):'<p style="font-size:13px;color:#9bb3cb">لا توجد ملخصات بعد</p>';
   }
   async function uploadSummary(){
     const title=document.getElementById('summaryTitle').value.trim();
-    const link=document.getElementById('summaryLink').value.trim();
-    if(!title||!link)return alert('من فضلك أدخل العنوان والرابط');
-    await db.collection('summaries').add({title,link,name:user.name,phone:user.phone,time:Date.now()});
-    await db.collection('users').doc(user.phone).update({points:firebase.firestore.FieldValue.increment(10)});
-    document.getElementById('summaryTitle').value='';document.getElementById('summaryLink').value='';
-    renderSummaries();
+    const file=document.getElementById('summaryFile').files[0];
+    const btn=document.getElementById('uploadSummaryBtn');
+    const progress=document.getElementById('summaryUploadProgress');
+    if(!db){ alert('رفع الملخصات يحتاج اتصال بالإنترنت'); return; }
+    if(!title||!file)return alert('من فضلك أدخل العنوان واختر الملف');
+    btn.disabled=true;
+    progress.textContent='جاري تجهيز الملف...';
+    try{
+      let dataUrl;
+      if(file.type.startsWith('image/')){
+        dataUrl = await compressImage(file, 1000, 1400, 0.7);
+      } else {
+        dataUrl = await readFileAsDataURL(file);
+      }
+      if(dataUrl.length > MAX_SUMMARY_B64){
+        progress.textContent='الملف كبير جدًا، من فضلك استخدم ملفًا أصغر (أقل من 700KB تقريبًا) أو صورة بجودة أقل.';
+        btn.disabled=false;
+        return;
+      }
+      const pointsToAward=await getSummaryPoints();
+      await db.collection('summaries').add({title, fileData:dataUrl, fileType:file.type||'application/octet-stream', fileName:file.name, name:user.name, phone:user.phone, time:Date.now()});
+      await db.collection('users').doc(user.phone).update({points:firebase.firestore.FieldValue.increment(pointsToAward)});
+      document.getElementById('summaryTitle').value='';
+      document.getElementById('summaryFile').value='';
+      progress.textContent='تم رفع الملخص بنجاح (+'+pointsToAward+' نقطة)';
+      renderSummaries();
+    }catch(err){
+      console.error(err);
+      progress.textContent='حدث خطأ أثناء الرفع: '+err.message;
+    }
+    btn.disabled=false;
+  }
+
+  // ترتيب الفخر
+  async function renderLeaderboard(){
+    const box=document.getElementById('leaderboardList');
+    if(!db){ box.innerHTML='<p style="font-size:13px;color:#9bb3cb">الترتيب يحتاج اتصال بالإنترنت.</p>'; return; }
+    box.innerHTML='جاري التحميل...';
+    try{
+      const snap=await db.collection('users').where('approved','==',true).get();
+      let items=[]; snap.forEach(d=>items.push(d.data()));
+      items.sort((a,b)=>(b.points||0)-(a.points||0));
+      const medalClass=['gold','silver','bronze'];
+      box.innerHTML=items.length?items.map((u,i)=>{
+        const cls=i<3?medalClass[i]:'';
+        const rankIcon=i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1);
+        let avatarHtml=u.avatar?`<img class="rank-avatar" src="${u.avatar}">`:`<div class="rank-avatar-ph">${(u.name||'؟')[0]}</div>`;
+        return `<div class="card-box rank-card ${cls}"><div class="rank-num">${rankIcon}</div>${avatarHtml}<div class="rank-info name-link" onclick="openProfile('${u.phone}')"><b>${u.name}</b><span>${u.year||''}</span></div><div class="rank-points">${u.points||0} نقطة</div></div>`;
+      }).join(''):'<p style="font-size:13px;color:#9bb3cb">لا يوجد أعضاء بعد</p>';
+    }catch(e){ box.innerHTML='<p style="font-size:13px;color:#9bb3cb">تعذّر تحميل الترتيب</p>'; }
   }
 
   // كتبي
   async function renderBooks(){
     const q=(document.getElementById('bookSearch').value||'').trim();
     const box=document.getElementById('booksList');
+    if(!db){ box.innerHTML='<p style="font-size:13px;color:#9bb3cb">الكتب تحتاج اتصال بالإنترنت.</p>'; return; }
     box.innerHTML='جاري التحميل...';
     const snap=await db.collection('books').orderBy('time','desc').get();
     let items=[];snap.forEach(d=>items.push(d.data()));
@@ -373,6 +570,7 @@
     document.getElementById('accPhone').textContent=user.phone;
     document.getElementById('accYear').textContent=user.year;
     document.getElementById('accAvatarPh').textContent=(user.name||'؟')[0];
+    if(!db) return;
     const snap=await db.collection('users').doc(user.phone).get();
     const data=snap.data();
     document.getElementById('accPoints').textContent=(data.points||0)+' نقطة';
@@ -386,6 +584,7 @@
     const file = document.getElementById('avatarInput').files[0];
     const msg = document.getElementById('avatarMsg');
     if(!file) return;
+    if(!db){ msg.textContent='تغيير الصورة يحتاج اتصال بالإنترنت'; return; }
     msg.textContent='جاري معالجة الصورة...';
     try{
       // ضغط الصورة تلقائيًا قبل الرفع
@@ -425,6 +624,7 @@
     const np=document.getElementById('newPass').value;
     const msg=document.getElementById('accMsg');
     if(np.length<6){msg.style.color='#b00020';msg.textContent='كلمة المرور يجب ألا تقل عن 6 أحرف';return;}
+    if(!db){msg.style.color='#b00020';msg.textContent='هذه العملية تحتاج اتصال بالإنترنت';return;}
     await db.collection('users').doc(user.phone).update({password:np});
     msg.style.color='#147a35';msg.textContent='تم تحديث كلمة المرور بنجاح';
     document.getElementById('newPass').value='';
