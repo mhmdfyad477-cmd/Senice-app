@@ -301,7 +301,7 @@
   async function createGroup(){
     const name = document.getElementById('newGroupName').value.trim();
     if(!name) return;
-    await db.collection('groups').add({name, members:[ADMIN_PHONE], createdAt:Date.now()});
+    await db.collection('groups').add({name, members:[ADMIN_PHONE], memberJoinTimes:{[ADMIN_PHONE]:Date.now()}, createdAt:Date.now()});
     document.getElementById('newGroupName').value='';
     loadGroups();
   }
@@ -327,7 +327,12 @@
   }
   async function toggleMember(groupId, phone, checked){
     const ref = db.collection('groups').doc(groupId);
-    if(checked){ await ref.update({members: firebase.firestore.FieldValue.arrayUnion(phone)}); }
+    if(checked){
+      await ref.update({
+        members: firebase.firestore.FieldValue.arrayUnion(phone),
+        ['memberJoinTimes.'+phone]: Date.now()
+      });
+    }
     else{ await ref.update({members: firebase.firestore.FieldValue.arrayRemove(phone)}); }
     loadGroups();
   }
@@ -622,4 +627,3 @@
 </script>
 </body>
 </html>
-
