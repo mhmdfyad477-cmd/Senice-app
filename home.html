@@ -133,7 +133,7 @@
     <button onclick="showSection('books',this)">📚 كتبي</button>
     <button onclick="showSection('leaderboard',this)">🏆 ترتيب الفخر</button>
     <div class="divider"></div>
-    <button onclick="openAccount()">👤 حسابي</button>
+    <button onclick="window.location.href='account.html'">👤 حسابي</button>
     <button class="small-link" onclick="showSection('summaries',this)">↳ ملخصاتي</button>
     <button class="small-link" onclick="showSection('books',this)">↳ كتبي</button>
     <div class="divider"></div>
@@ -212,31 +212,6 @@
   </div>
 </div>
 
-<!-- مودال حسابي -->
-<div class="overlay" id="accountOverlay">
-  <div class="modal">
-    <button class="close-x" onclick="closeAccount()">✕</button>
-    <h2 class="section-title">👤 حسابي</h2>
-    <div class="avatar-upload">
-      <div id="accAvatarWrap"><div class="av-ph" id="accAvatarPh">؟</div></div>
-      <label>📷 تغيير الصورة<input type="file" id="avatarInput" accept="image/*" style="display:none" onchange="uploadAvatar()"></label>
-      <div id="avatarMsg" style="font-size:12px;color:#7a93ad;margin-top:4px"></div>
-    </div>
-    <div class="account-field"><b>الاسم</b><span id="accName"></span></div>
-    <div class="account-field"><b>رقم الموبايل</b><span id="accPhone"></span></div>
-    <div class="account-field"><b>الفرقة</b><span id="accYear"></span></div>
-    <div class="account-field"><b>نقاط الفخر</b><span id="accPoints"></span></div>
-    <div style="margin-top:16px;">
-      <label style="font-size:12.5px;font-weight:700;color:var(--blue-deep)">كلمة مرور جديدة</label>
-      <div style="display:flex;gap:8px;margin-top:6px;">
-        <input type="password" id="newPass" placeholder="كلمة مرور جديدة" style="flex:1;padding:10px;border-radius:10px;border:1.5px solid #cfe2f7;">
-        <button onclick="updatePassword()" style="background:var(--blue-main);color:#fff;border:none;border-radius:10px;padding:0 14px;cursor:pointer;font-weight:700;">حفظ</button>
-      </div>
-      <div id="accMsg" style="font-size:12.5px;margin-top:8px;color:#147a35;"></div>
-    </div>
-  </div>
-</div>
-
 <!-- مودال بروفايل عضو (من الشات) -->
 <div class="overlay" id="profileOverlay">
   <div class="modal">
@@ -268,7 +243,7 @@
     projectId: "science-e2b52",
     storageBucket: "science-e2b52.firebasestorage.app",
     messagingSenderId: "1031434005860",
-    appId: "1:1031434005880:web:e68fccdd746017a5639e71",
+    appId: "1:1031434005860:web:e68fccdd746017a5639e71",
     measurementId: "G-JZ1SFVMM7P"
   };
   let db = null, storage = null;
@@ -436,7 +411,7 @@
           fileHtml=`<div class="chat-file"><span>📎 ${m.fileName||'ملف'}</span><button onclick="downloadChatFile('${d.id}')">تحميل</button></div>`;
         }
         let delHtml='';
-        if(isMe || user.role==='admin'){
+        if(isMe || user.role==='admin' || user.role==='co-admin'){
           delHtml=`<button class="msg-del-btn" onclick="deleteChatMessage('${d.id}')" title="حذف الرسالة">🗑</button>`;
         }
         bubble.innerHTML=`${avatarHtml}<div class="bubble-body"><small class="name-link" onclick="openProfile('${m.phone}')">${m.name}</small>${m.text?m.text:''}${m.image?`<img class="chat-img" src="${m.image}">`:''}${fileHtml}${delHtml}
@@ -511,9 +486,8 @@
   }
   function closeProfile(){ document.getElementById('profileOverlay').classList.remove('active'); }
 
-  // ملخصاتي (بيتم تخزين الملف نفسه جوه قاعدة البيانات، مش على Storage — بيتضغط تلقائيًا مهما كان حجمه)
-  const TARGET_B64_LEN = 900000; // الهدف بعد الضغط (تقريبًا أقل من 700KB فعلي) عشان يفضل تحت حد مستند Firestore (1MB)
-  let summariesCache = {};
+  // -------------------- دوال ضغط الملفات (مشتركة) --------------------
+  const TARGET_B64_LEN = 900000;
 
   function readFileAsDataURL(file){
     return new Promise((resolve,reject)=>{
@@ -540,7 +514,6 @@
     });
   }
 
-  // يضغط صورة تدريجيًا لحد ما توصل للحجم المطلوب (مهما كان حجم الصورة الأصلي)
   async function compressImageAdaptive(file, targetLen, onProgress){
     const attempts = [
       [1600,2200,0.75],[1300,1800,0.65],[1000,1400,0.55],
@@ -557,10 +530,8 @@
     return last;
   }
 
-  // يضغط ملف PDF تدريجيًا عن طريق تحويل صفحاته لصور بجودة أقل وإعادة تجميعه
   async function compressPdfAdaptive(file, targetLen, onProgress){
     if(!window['pdfjsLib'] || !window['jspdf']){
-      // لو مكتبات الضغط مش متاحة (مثلاً من غير إنترنت)، نرجع الملف الأصلي كـ base64
       return await readFileAsDataURL(file);
     }
     const buffer = await readFileAsArrayBuffer(file);
@@ -601,17 +572,42 @@
     return lastDataUrl || await readFileAsDataURL(file);
   }
 
-  // نقطة دخول موحدة: تضغط أي ملف (صورة أو PDF) مهما كان حجمه لحد ما يقرب من الحجم المستهدف
   async function compressFileForStorage(file, onProgress){
     if(file.type.startsWith('image/')){
       return await compressImageAdaptive(file, TARGET_B64_LEN, onProgress);
     } else if(file.type === 'application/pdf'){
       return await compressPdfAdaptive(file, TARGET_B64_LEN, onProgress);
     } else {
-      // أنواع ملفات تانية: نرجعها زي ما هي كـ base64 (من غير ضغط، لأنه مش نوع مدعوم للضغط)
       return await readFileAsDataURL(file);
     }
   }
+
+  function compressImage(file, maxW, maxH, quality){
+    return new Promise((resolve, reject)=>{
+      const reader = new FileReader();
+      reader.onload = function(e){
+        const img = new Image();
+        img.onload = function(){
+          const canvas = document.createElement('canvas');
+          let w = img.width, h = img.height;
+          if(w > maxW || h > maxH){
+            if(w/h > maxW/maxH){ h = Math.round(h*maxW/w); w = maxW; }
+            else{ w = Math.round(w*maxH/h); h = maxH; }
+          }
+          canvas.width = w; canvas.height = h;
+          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+          resolve(canvas.toDataURL('image/jpeg', quality));
+        };
+        img.onerror = reject;
+        img.src = e.target.result;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // -------------------- ملخصاتي --------------------
+  let summariesCache = {};
 
   function downloadSummaryFile(id){
     const item = summariesCache[id];
@@ -644,8 +640,29 @@
     if(q)items=items.filter(i=>i.title.includes(q)||i.name.includes(q));
     summariesCache={};
     items.forEach(i=>{ summariesCache[i.id]=i; });
-    box.innerHTML=items.length?items.map(i=>`<div class="card-box file-card"><div class="meta"><b>${i.title}</b><span>بواسطة <span class="name-link" onclick="openProfile('${i.phone}')">${i.name}</span></span></div><button class="dl" style="border:none;cursor:pointer" onclick="downloadSummaryFile('${i.id}')">تحميل</button></div>`).join(''):'<p style="font-size:13px;color:#9bb3cb">لا توجد ملخصات بعد</p>';
+    box.innerHTML=items.length?items.map(i=>{
+      const canDelete = (user.phone === i.phone) || (user.role === 'admin' || user.role === 'co-admin');
+      return `<div class="card-box file-card">
+        <div class="meta">
+          <b>${i.title}</b>
+          <span>بواسطة <span class="name-link" onclick="openProfile('${i.phone}')">${i.name}</span></span>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <button class="dl" style="border:none;cursor:pointer" onclick="downloadSummaryFile('${i.id}')">تحميل</button>
+          ${canDelete ? `<button class="dl" style="border:none;cursor:pointer;background:#b00020;color:#fff;" onclick="deleteSummary('${i.id}')">🗑 حذف</button>` : ''}
+        </div>
+      </div>`;
+    }).join(''):'<p style="font-size:13px;color:#9bb3cb">لا توجد ملخصات بعد</p>';
   }
+
+  async function deleteSummary(id){
+    if(!confirm('هل تريد حذف هذا الملخص نهائيًا؟')) return;
+    try{
+      await db.collection('summaries').doc(id).delete();
+      renderSummaries();
+    }catch(e){ alert('حدث خطأ أثناء الحذف: '+e.message); }
+  }
+
   async function uploadSummary(){
     const title=document.getElementById('summaryTitle').value.trim();
     const file=document.getElementById('summaryFile').files[0];
@@ -674,7 +691,55 @@
     btn.disabled=false;
   }
 
-  // ترتيب الفخر
+  // -------------------- كتبي --------------------
+  let booksCache = {};
+
+  async function renderBooks(){
+    const q=(document.getElementById('bookSearch').value||'').trim();
+    const box=document.getElementById('booksList');
+    if(!db){ box.innerHTML='<p style="font-size:13px;color:#9bb3cb">الكتب تحتاج اتصال بالإنترنت.</p>'; return; }
+    box.innerHTML='جاري التحميل...';
+    const snap=await db.collection('books').orderBy('time','desc').get();
+    let items=[];snap.forEach(d=>items.push({id:d.id, ...d.data()}));
+    if(q)items=items.filter(i=>i.title.includes(q));
+    booksCache={};
+    items.forEach(i=>{ booksCache[i.id]=i; });
+    box.innerHTML=items.length?items.map(i=>{
+      const allowed = !i.locked || (i.allowedPhones || []).includes(user.phone);
+      const canDelete = (user.phone === i.phone) || (user.role === 'admin' || user.role === 'co-admin');
+      return `<div class="card-box file-card">
+        <div class="meta">
+          <b>${i.title}</b>
+          <span>${i.locked?'🔒 مقفول':'متاح للجميع'}</span>
+        </div>
+        <div style="display:flex;gap:6px;">
+          ${allowed ? `<button class="dl" style="border:none;cursor:pointer" onclick="downloadBookFile('${i.id}')">تحميل</button>` : `<span class="points-badge">غير متاح لك</span>`}
+          ${canDelete ? `<button class="dl" style="border:none;cursor:pointer;background:#b00020;color:#fff;" onclick="deleteBookFile('${i.id}')">🗑 حذف</button>` : ''}
+        </div>
+      </div>`;
+    }).join(''):'<p style="font-size:13px;color:#9bb3cb">لا توجد كتب بعد</p>';
+  }
+
+  function downloadBookFile(id){
+    const item = booksCache[id];
+    if(!item || !item.fileData) return;
+    const a=document.createElement('a');
+    a.href=item.fileData;
+    a.download=item.fileName || (item.title+'.pdf');
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }
+
+  async function deleteBookFile(id){
+    if(!confirm('هل تريد حذف هذا الكتاب نهائيًا؟')) return;
+    try{
+      await db.collection('books').doc(id).delete();
+      renderBooks();
+    }catch(e){ alert('حدث خطأ أثناء الحذف: '+e.message); }
+  }
+
+  // -------------------- ترتيب الفخر --------------------
   async function renderLeaderboard(){
     const box=document.getElementById('leaderboardList');
     if(!db){ box.innerHTML='<p style="font-size:13px;color:#9bb3cb">الترتيب يحتاج اتصال بالإنترنت.</p>'; return; }
@@ -692,101 +757,6 @@
       }).join(''):'<p style="font-size:13px;color:#9bb3cb">لا يوجد أعضاء بعد</p>';
     }catch(e){ box.innerHTML='<p style="font-size:13px;color:#9bb3cb">تعذّر تحميل الترتيب</p>'; }
   }
-
-  // كتبي
-  let booksCache = {};
-  async function renderBooks(){
-    const q=(document.getElementById('bookSearch').value||'').trim();
-    const box=document.getElementById('booksList');
-    if(!db){ box.innerHTML='<p style="font-size:13px;color:#9bb3cb">الكتب تحتاج اتصال بالإنترنت.</p>'; return; }
-    box.innerHTML='جاري التحميل...';
-    const snap=await db.collection('books').orderBy('time','desc').get();
-    let items=[];snap.forEach(d=>items.push({id:d.id, ...d.data()}));
-    if(q)items=items.filter(i=>i.title.includes(q));
-    booksCache={};
-    items.forEach(i=>{ booksCache[i.id]=i; });
-    box.innerHTML=items.length?items.map(i=>{
-      const allowed=!i.locked||(i.allowedPhones||[]).includes(user.phone);
-      return `<div class="card-box file-card"><div class="meta"><b>${i.title}</b><span>${i.locked?'🔒 مقفول':'متاح للجميع'}</span></div>${allowed?`<button class="dl" style="border:none;cursor:pointer" onclick="downloadBookFile('${i.id}')">تحميل</button>`:`<span class="points-badge">غير متاح لك</span>`}</div>`;
-    }).join(''):'<p style="font-size:13px;color:#9bb3cb">لا توجد كتب بعد</p>';
-  }
-  function downloadBookFile(id){
-    const item = booksCache[id];
-    if(!item || !item.fileData) return;
-    const a=document.createElement('a');
-    a.href=item.fileData;
-    a.download=item.fileName || (item.title+'.pdf');
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-  }
-
-  // حسابي مع صورة البروفايل
-  async function openAccount(){
-    document.getElementById('accountOverlay').classList.add('active');
-    document.getElementById('accName').textContent=user.name;
-    document.getElementById('accPhone').textContent=user.phone;
-    document.getElementById('accYear').textContent=user.year;
-    document.getElementById('accAvatarPh').textContent=(user.name||'؟')[0];
-    if(!db) return;
-    const snap=await db.collection('users').doc(user.phone).get();
-    const data=snap.data();
-    document.getElementById('accPoints').textContent=(data.points||0)+' نقطة';
-    if(data.avatar){
-      document.getElementById('accAvatarWrap').innerHTML=`<img class="av-img" src="${data.avatar}">`;
-    }
-  }
-  function closeAccount(){document.getElementById('accountOverlay').classList.remove('active');}
-
-  async function uploadAvatar(){
-    const file = document.getElementById('avatarInput').files[0];
-    const msg = document.getElementById('avatarMsg');
-    if(!file) return;
-    if(!db){ msg.textContent='تغيير الصورة يحتاج اتصال بالإنترنت'; return; }
-    msg.textContent='جاري معالجة الصورة...';
-    try{
-      // ضغط الصورة تلقائيًا قبل الرفع
-      const compressed = await compressImage(file, 200, 200, 0.7);
-      await db.collection('users').doc(user.phone).update({avatar: compressed});
-      document.getElementById('accAvatarWrap').innerHTML=`<img class="av-img" src="${compressed}">`;
-      msg.textContent='تم تحديث الصورة بنجاح ✅';
-    }catch(e){ msg.textContent='حدث خطأ: '+e.message; }
-  }
-
-  function compressImage(file, maxW, maxH, quality){
-    return new Promise((resolve, reject)=>{
-      const reader = new FileReader();
-      reader.onload = function(e){
-        const img = new Image();
-        img.onload = function(){
-          const canvas = document.createElement('canvas');
-          let w = img.width, h = img.height;
-          // تصغير بنسبة محافظة على الشكل
-          if(w > maxW || h > maxH){
-            if(w/h > maxW/maxH){ h = Math.round(h*maxW/w); w = maxW; }
-            else{ w = Math.round(w*maxH/h); h = maxH; }
-          }
-          canvas.width = w; canvas.height = h;
-          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-          resolve(canvas.toDataURL('image/jpeg', quality));
-        };
-        img.onerror = reject;
-        img.src = e.target.result;
-      };
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-  }
-
-  async function updatePassword(){
-    const np=document.getElementById('newPass').value;
-    const msg=document.getElementById('accMsg');
-    if(np.length<6){msg.style.color='#b00020';msg.textContent='كلمة المرور يجب ألا تقل عن 6 أحرف';return;}
-    if(!db){msg.style.color='#b00020';msg.textContent='هذه العملية تحتاج اتصال بالإنترنت';return;}
-    await db.collection('users').doc(user.phone).update({password:np});
-    msg.style.color='#147a35';msg.textContent='تم تحديث كلمة المرور بنجاح';
-    document.getElementById('newPass').value='';
-  }
 </script>
 </body>
-</html>
+  </html>
