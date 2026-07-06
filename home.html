@@ -65,18 +65,12 @@
   .upload-box button{background:var(--blue-deep);color:#fff;border:none;padding:10px 16px;border-radius:10px;cursor:pointer;font-weight:700;}
   .account-field{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f0f4fa;font-size:14px;}
   .account-field b{color:#7a93ad;font-weight:600;}
-  .avatar-upload{display:flex;flex-direction:column;align-items:center;margin-bottom:16px;}
-  .avatar-upload .av-img{width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid var(--blue-main);}
-  .avatar-upload .av-ph{width:80px;height:80px;border-radius:50%;background:var(--blue-bright);display:flex;align-items:center;justify-content:center;font-size:28px;color:#fff;font-weight:800;border:3px solid var(--blue-main);}
-  .avatar-upload label{margin-top:8px;background:var(--ice);color:var(--blue-main);border:1.5px solid var(--blue-main);border-radius:10px;padding:6px 14px;font-size:12.5px;font-weight:700;cursor:pointer;}
   .footer-credit{text-align:center;font-size:11.5px;color:#9bb3cb;padding:18px 0;}
 
-  /* ===== شريط التنبيهات ===== */
   .announce-bar{display:none;background:rgba(245,166,35,0.18);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid rgba(245,166,35,0.4);color:#7a4a06;font-size:13px;font-weight:700;padding:10px 16px;align-items:center;justify-content:space-between;gap:10px;position:sticky;top:58px;z-index:25;}
   .announce-bar.active{display:flex;}
   .announce-bar button{background:transparent;border:none;color:#7a4a06;font-size:16px;cursor:pointer;}
 
-  /* ===== ترتيب الفخر ===== */
   .rank-card{display:flex;align-items:center;gap:12px;border-right:none !important;}
   .rank-card .rank-num{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:15px;flex-shrink:0;background:var(--ice);color:var(--blue-main);}
   .rank-card.gold .rank-num{background:linear-gradient(135deg,#ffd76a,#c9891a);color:#fff;box-shadow:0 4px 12px rgba(201,137,26,0.5);}
@@ -177,7 +171,7 @@
         <button id="uploadSummaryBtn" onclick="uploadSummary()">رفع ملخص (+<span id="summaryPointsLabel">10</span> نقاط)</button>
       </div>
       <p id="summaryUploadProgress" style="font-size:12px;color:#7a93ad;margin-bottom:4px"></p>
-      <p style="font-size:11.5px;color:#9bb3cb;margin-bottom:10px">📎 ارفع أي حجم ملف، وهيتم ضغطه تلقائيًا قبل ما يتخزن جوه قاعدة البيانات.</p>
+      <p style="font-size:11.5px;color:#9bb3cb;margin-bottom:10px">📎 الملفات بتترفع على سحابة Cloudinary بسرعة عالية.</p>
       <div id="summariesList"></div>
     </div>
 
@@ -212,7 +206,7 @@
   </div>
 </div>
 
-<!-- مودال بروفايل عضو (من الشات) -->
+<!-- مودال بروفايل عضو -->
 <div class="overlay" id="profileOverlay">
   <div class="modal">
     <button class="close-x" onclick="closeProfile()">✕</button>
@@ -229,13 +223,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script>
-  if(window['pdfjsLib']){
-    pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
-  }
-</script>
+
 <script>
   const firebaseConfig = {
     apiKey: "AIzaSyBgI8VcLOdQAMgmcpxCzaMS1UCX1vyzSjw",
@@ -252,9 +240,11 @@
     db = firebase.firestore();
     try{ db.enablePersistence({synchronizeTabs:true}).catch(err=>{ console.warn('تعذر تفعيل التخزين المحلي', err); }); }catch(e){}
     storage = firebase.storage();
-  }catch(e){ console.warn('لا يوجد اتصال بالإنترنت — سيعمل الموقع في وضع عدم الاتصال', e); }
-  const ADMIN_PHONE = "01229914072";
-  const ADMIN_PASS  = "197197";
+  }catch(e){ console.warn('لا يوجد اتصال بالإنترنت', e); }
+  
+  // بيانات Cloudinary
+  const CLOUD_NAME = 'dgbuovcf';
+  const UPLOAD_PRESET = 'Science_app';
 
   function getCurrentUser(){
     const urlParams = new URLSearchParams(window.location.search);
@@ -277,8 +267,7 @@
     localStorage.removeItem('currentUser');
     window.location.href='login.html';
   }
-</script>
-<script>
+
   const user = requireLogin();
   if(!user) throw new Error('no user');
   let currentGroupId = null;
@@ -303,7 +292,6 @@
     }
   }
 
-  // إظهار زر الأدمن للأدمن فقط
   if(user.role==='admin'||user.role==='co-admin'){
     document.getElementById('adminLinkBtn').style.display='flex';
     document.getElementById('adminDividerSidebar').style.display='block';
@@ -324,7 +312,7 @@
   }
   loadSchedule();
 
-  // شريط التنبيهات (يظهر فقط لو الأدمن فعّله من لوحة الأدمن)
+  // تنبيهات
   function dismissAnnouncement(){
     document.getElementById('announceBar').classList.remove('active');
     try{ sessionStorage.setItem('announceDismissed', 'true'); }catch(e){}
@@ -344,7 +332,7 @@
   }
   loadAnnouncement();
 
-  // الشات مع صور البروفايل
+  // الشات
   async function loadGroups(){
     const list=document.getElementById('groupList');
     if(!db){ list.innerHTML='<p style="font-size:12.5px;color:#9bb3cb;padding:10px">الشات يحتاج اتصال بالإنترنت.</p>'; return; }
@@ -365,13 +353,8 @@
   let chatFilesCache = {};
   function downloadChatFile(id){
     const item = chatFilesCache[id];
-    if(!item || !item.fileData) return;
-    const a=document.createElement('a');
-    a.href=item.fileData;
-    a.download=item.fileName || 'file';
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
+    if(!item || !item.fileUrl) return;
+    window.open(item.fileUrl, '_blank');
   }
 
   function openGroup(id,name,el){
@@ -383,7 +366,7 @@
     if(unsubMessages)unsubMessages();
     db.collection('groups').doc(id).get().then(gSnap=>{
       const jt = (gSnap.exists && gSnap.data().memberJoinTimes) ? gSnap.data().memberJoinTimes[user.phone] : null;
-      const joinTime = (typeof jt === 'number') ? jt : 0; // لو مفيش وقت انضمام مسجل (جروب قديم)، تفضل كل الرسايل ظاهرة
+      const joinTime = (typeof jt === 'number') ? jt : 0;
       attachMessagesListener(id, box, joinTime);
     }).catch(()=>{ attachMessagesListener(id, box, 0); });
   }
@@ -393,11 +376,10 @@
       box.innerHTML='';
       for(const d of snap.docs){
         const m=d.data();
-        if(m.time && m.time < joinTime) continue; // إخفاء الرسايل اللي كانت قبل ما العضو ينضم
+        if(m.time && m.time < joinTime) continue;
         const isMe=m.phone===user.phone;
         const bubble=document.createElement('div');
         bubble.className='msg-bubble'+(isMe?' me':'');
-        // صورة البروفايل
         let avatarHtml='';
         try{
           const usnap=await db.collection('users').doc(m.phone).get();
@@ -406,7 +388,7 @@
           else avatarHtml=`<div class="avatar-ph">${(m.name||'؟')[0]}</div>`;
         }catch(e){ avatarHtml=`<div class="avatar-ph">${(m.name||'؟')[0]}</div>`; }
         let fileHtml='';
-        if(m.fileData){
+        if(m.fileUrl){
           chatFilesCache[d.id]=m;
           fileHtml=`<div class="chat-file"><span>📎 ${m.fileName||'ملف'}</span><button onclick="downloadChatFile('${d.id}')">تحميل</button></div>`;
         }
@@ -437,23 +419,26 @@
     await db.collection('groups').doc(currentGroupId).collection('messages').add({name:user.name,phone:user.phone,text:input.value.trim(),time:Date.now()});
     input.value='';
   }
+
+  // رفع ملفات الشات على Cloudinary
   async function sendChatFile(){
     const fileInput=document.getElementById('chatFileInput');
     const file=fileInput.files[0];
     const progress=document.getElementById('chatFileProgress');
     if(!db){ alert('الشات يحتاج اتصال بالإنترنت'); return; }
     if(!file||!currentGroupId)return;
-    progress.textContent='جاري تجهيز الملف...';
+    progress.textContent='جاري رفع الملف على Cloudinary...';
     try{
-      const dataUrl = await compressFileForStorage(file, (msg)=>{ progress.textContent=msg; });
-      const payload = {name:user.name, phone:user.phone, time:Date.now()};
-      if(file.type.startsWith('image/')){
-        payload.image = dataUrl;
-      } else {
-        payload.fileData = dataUrl;
-        payload.fileType = file.type || 'application/octet-stream';
-        payload.fileName = file.name;
-      }
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('upload_preset', UPLOAD_PRESET);
+      const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/upload`, { method: 'POST', body: formData });
+      const data = await response.json();
+      const fileUrl = data.secure_url;
+      
+      const payload = {name:user.name, phone:user.phone, time:Date.now(), fileUrl, fileName: file.name};
+      if(file.type.startsWith('image/')) payload.image = fileUrl;
+      
       await db.collection('groups').doc(currentGroupId).collection('messages').add(payload);
       fileInput.value='';
       progress.textContent='';
@@ -463,7 +448,7 @@
     }
   }
 
-  // بروفايل عضو (بيتفتح لما تدوس ع اسمه في الشات)
+  // بروفايل
   async function openProfile(phone){
     if(!db) return;
     document.getElementById('profileOverlay').classList.add('active');
@@ -486,139 +471,8 @@
   }
   function closeProfile(){ document.getElementById('profileOverlay').classList.remove('active'); }
 
-  // -------------------- دوال ضغط الملفات (مشتركة) --------------------
-  const TARGET_B64_LEN = 900000;
-
-  function readFileAsDataURL(file){
-    return new Promise((resolve,reject)=>{
-      const reader = new FileReader();
-      reader.onload = ()=> resolve(reader.result);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-  }
-  function readFileAsArrayBuffer(file){
-    return new Promise((resolve,reject)=>{
-      const reader = new FileReader();
-      reader.onload = ()=> resolve(reader.result);
-      reader.onerror = reject;
-      reader.readAsArrayBuffer(file);
-    });
-  }
-  function blobToDataURL(blob){
-    return new Promise((resolve,reject)=>{
-      const reader = new FileReader();
-      reader.onload = ()=> resolve(reader.result);
-      reader.onerror = reject;
-      reader.readAsDataURL(blob);
-    });
-  }
-
-  async function compressImageAdaptive(file, targetLen, onProgress){
-    const attempts = [
-      [1600,2200,0.75],[1300,1800,0.65],[1000,1400,0.55],
-      [800,1100,0.45],[650,900,0.35],[500,700,0.3],[380,520,0.25],[280,380,0.2]
-    ];
-    let last=null;
-    for(let i=0;i<attempts.length;i++){
-      const [w,h,q]=attempts[i];
-      if(onProgress) onProgress('جاري ضغط الصورة (محاولة '+(i+1)+')...');
-      const result = await compressImage(file, w, h, q);
-      last=result;
-      if(result.length <= targetLen) return result;
-    }
-    return last;
-  }
-
-  async function compressPdfAdaptive(file, targetLen, onProgress){
-    if(!window['pdfjsLib'] || !window['jspdf']){
-      return await readFileAsDataURL(file);
-    }
-    const buffer = await readFileAsArrayBuffer(file);
-    const attempts = [
-      [2.0,0.75],[1.6,0.6],[1.2,0.5],[1.0,0.4],[0.8,0.3],[0.6,0.25]
-    ];
-    let lastDataUrl=null;
-    for(let a=0;a<attempts.length;a++){
-      const [scale,quality]=attempts[a];
-      if(onProgress) onProgress('جاري ضغط ملف PDF (محاولة '+(a+1)+')...');
-      try{
-        const loadingTask = pdfjsLib.getDocument({data: buffer.slice(0)});
-        const pdf = await loadingTask.promise;
-        const { jsPDF } = window.jspdf;
-        let doc=null;
-        for(let p=1;p<=pdf.numPages;p++){
-          const page = await pdf.getPage(p);
-          const viewport = page.getViewport({scale});
-          const canvas = document.createElement('canvas');
-          canvas.width = viewport.width; canvas.height = viewport.height;
-          const ctx = canvas.getContext('2d');
-          await page.render({canvasContext:ctx, viewport}).promise;
-          const imgData = canvas.toDataURL('image/jpeg', quality);
-          const orientation = viewport.width > viewport.height ? 'l' : 'p';
-          if(!doc){
-            doc = new jsPDF({orientation, unit:'px', format:[viewport.width, viewport.height]});
-          } else {
-            doc.addPage([viewport.width, viewport.height], orientation);
-          }
-          doc.addImage(imgData, 'JPEG', 0, 0, viewport.width, viewport.height);
-        }
-        const blob = doc.output('blob');
-        const dataUrl = await blobToDataURL(blob);
-        lastDataUrl = dataUrl;
-        if(dataUrl.length <= targetLen) return dataUrl;
-      }catch(e){ console.warn('فشلت محاولة ضغط PDF', e); }
-    }
-    return lastDataUrl || await readFileAsDataURL(file);
-  }
-
-  async function compressFileForStorage(file, onProgress){
-    if(file.type.startsWith('image/')){
-      return await compressImageAdaptive(file, TARGET_B64_LEN, onProgress);
-    } else if(file.type === 'application/pdf'){
-      return await compressPdfAdaptive(file, TARGET_B64_LEN, onProgress);
-    } else {
-      return await readFileAsDataURL(file);
-    }
-  }
-
-  function compressImage(file, maxW, maxH, quality){
-    return new Promise((resolve, reject)=>{
-      const reader = new FileReader();
-      reader.onload = function(e){
-        const img = new Image();
-        img.onload = function(){
-          const canvas = document.createElement('canvas');
-          let w = img.width, h = img.height;
-          if(w > maxW || h > maxH){
-            if(w/h > maxW/maxH){ h = Math.round(h*maxW/w); w = maxW; }
-            else{ w = Math.round(w*maxH/h); h = maxH; }
-          }
-          canvas.width = w; canvas.height = h;
-          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-          resolve(canvas.toDataURL('image/jpeg', quality));
-        };
-        img.onerror = reject;
-        img.src = e.target.result;
-      };
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-  }
-
-  // -------------------- ملخصاتي --------------------
+  // -------------------- ملخصاتي (Cloudinary) --------------------
   let summariesCache = {};
-
-  function downloadSummaryFile(id){
-    const item = summariesCache[id];
-    if(!item || !item.fileData) return;
-    const a=document.createElement('a');
-    a.href=item.fileData;
-    a.download=item.fileName || (item.title+'');
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-  }
 
   async function getSummaryPoints(){
     if(!db) return 10;
@@ -655,6 +509,12 @@
     }).join(''):'<p style="font-size:13px;color:#9bb3cb">لا توجد ملخصات بعد</p>';
   }
 
+  function downloadSummaryFile(id){
+    const item = summariesCache[id];
+    if(!item || !item.fileUrl) return;
+    window.open(item.fileUrl, '_blank');
+  }
+
   async function deleteSummary(id){
     if(!confirm('هل تريد حذف هذا الملخص نهائيًا؟')) return;
     try{
@@ -664,34 +524,50 @@
   }
 
   async function uploadSummary(){
-    const title=document.getElementById('summaryTitle').value.trim();
-    const file=document.getElementById('summaryFile').files[0];
-    const btn=document.getElementById('uploadSummaryBtn');
-    const progress=document.getElementById('summaryUploadProgress');
-    if(!db){ alert('رفع الملخصات يحتاج اتصال بالإنترنت'); return; }
-    if(!title||!file)return alert('من فضلك أدخل العنوان واختر الملف');
-    btn.disabled=true;
-    progress.textContent='جاري تجهيز الملف...';
-    try{
-      const dataUrl = await compressFileForStorage(file, (msg)=>{ progress.textContent=msg; });
-      if(dataUrl.length > TARGET_B64_LEN){
-        progress.textContent='تم ضغط الملف لأقصى درجة ممكنة لكنه لسه كبير شوية، هيترفع برضه لكن ممكن ياخد وقت أطول.';
-      }
-      const pointsToAward=await getSummaryPoints();
-      await db.collection('summaries').add({title, fileData:dataUrl, fileType:file.type||'application/octet-stream', fileName:file.name, name:user.name, phone:user.phone, time:Date.now()});
-      await db.collection('users').doc(user.phone).update({points:firebase.firestore.FieldValue.increment(pointsToAward)});
-      document.getElementById('summaryTitle').value='';
-      document.getElementById('summaryFile').value='';
-      progress.textContent='تم رفع الملخص بنجاح (+'+pointsToAward+' نقطة)';
+    const title = document.getElementById('summaryTitle').value.trim();
+    const file = document.getElementById('summaryFile').files[0];
+    const btn = document.getElementById('uploadSummaryBtn');
+    const progress = document.getElementById('summaryUploadProgress');
+    if (!db) { alert('رفع الملخصات يحتاج اتصال بالإنترنت'); return; }
+    if (!title || !file) return alert('من فضلك أدخل العنوان واختر الملف');
+
+    btn.disabled = true;
+    progress.textContent = 'جاري رفع الملف على Cloudinary...';
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', UPLOAD_PRESET);
+
+    try {
+      const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/upload`, { method: 'POST', body: formData });
+      const data = await response.json();
+      const fileUrl = data.secure_url;
+
+      const pointsToAward = await getSummaryPoints();
+      await db.collection('summaries').add({
+        title,
+        fileUrl,
+        fileName: file.name,
+        name: user.name,
+        phone: user.phone,
+        time: Date.now()
+      });
+      await db.collection('users').doc(user.phone).update({
+        points: firebase.firestore.FieldValue.increment(pointsToAward)
+      });
+
+      document.getElementById('summaryTitle').value = '';
+      document.getElementById('summaryFile').value = '';
+      progress.textContent = 'تم رفع الملخص بنجاح (+' + pointsToAward + ' نقطة)';
       renderSummaries();
-    }catch(err){
+    } catch (err) {
       console.error(err);
-      progress.textContent='حدث خطأ أثناء الرفع: '+err.message;
+      progress.textContent = 'حدث خطأ أثناء الرفع: ' + err.message;
     }
-    btn.disabled=false;
+    btn.disabled = false;
   }
 
-  // -------------------- كتبي --------------------
+  // -------------------- كتبي (من Firestore+Cloudinary) --------------------
   let booksCache = {};
 
   async function renderBooks(){
@@ -722,13 +598,8 @@
 
   function downloadBookFile(id){
     const item = booksCache[id];
-    if(!item || !item.fileData) return;
-    const a=document.createElement('a');
-    a.href=item.fileData;
-    a.download=item.fileName || (item.title+'.pdf');
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
+    if(!item || !item.fileUrl) return;
+    window.open(item.fileUrl, '_blank');
   }
 
   async function deleteBookFile(id){
