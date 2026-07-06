@@ -31,7 +31,6 @@
   .lock-box input{width:100%;padding:12px;border-radius:10px;border:1.5px solid #cfe2f7;margin:14px 0;text-align:center;font-size:16px;}
   .lock-box button{width:100%;padding:12px;border:none;border-radius:10px;background:var(--blue-main);color:#fff;font-weight:800;cursor:pointer;}
   .chip{display:inline-block;background:var(--ice);color:var(--blue-main);font-size:11.5px;padding:3px 8px;border-radius:8px;margin:2px;}
-
   .announce-admin-preview{background:rgba(245,166,35,0.15);border:1px dashed #f5a623;border-radius:10px;padding:12px;font-size:13px;color:#7a4a06;margin-bottom:10px;}
 </style>
 </head>
@@ -74,7 +73,7 @@
       <div id="usersList"></div>
     </div>
 
-    <!-- المشرفون (co-admin) -->
+    <!-- المشرفون -->
     <div class="section" id="tab-admins">
       <div class="card-box" style="font-size:13px;color:#7a93ad;margin-bottom:10px">يمكن للمشرفين الدخول للوحة الأدمن بنفس كلمة المرور وإدارة كل شيء ماعدا حذف المشرفين الآخرين.</div>
       <div id="adminsList"></div>
@@ -110,17 +109,17 @@
       <div class="card-box">
         <div class="form-line">
           <input type="text" id="bookTitle" placeholder="عنوان الكتاب">
-          <input type="file" id="bookFile" accept="application/pdf" style="flex:1;min-width:160px;">
+          <input type="file" id="bookFile" accept="application/pdf,image/*" style="flex:1;min-width:160px;">
           <select id="bookLocked"><option value="no">متاح للجميع</option><option value="yes">مقفول (تحديد أسماء)</option></select>
           <button class="btn btn-blue" id="addBookBtn" onclick="addBook()">إضافة كتاب</button>
         </div>
         <p id="uploadProgress" style="font-size:12px;color:#7a93ad"></p>
-        <p style="font-size:11.5px;color:#9bb3cb;margin-top:2px">📎 ارفع أي حجم ملف، وهيتم ضغطه تلقائيًا قبل ما يتخزن جوه قاعدة البيانات (مش على Storage).</p>
+        <p style="font-size:11.5px;color:#9bb3cb;margin-top:2px">📎 الملفات بتترفع على سحابة Cloudinary.</p>
       </div>
       <div id="booksAdminList"></div>
     </div>
 
-    <!-- النقاط وترتيب الفخر -->
+    <!-- النقاط -->
     <div class="section" id="tab-points">
       <div class="card-box">
         <b style="display:block;margin-bottom:8px">نقاط رفع الملخص</b>
@@ -163,13 +162,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script>
-  if(window['pdfjsLib']){
-    pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
-  }
-</script>
+
 <script>
   const firebaseConfig = {
     apiKey: "AIzaSyBgI8VcLOdQAMgmcpxCzaMS1UCX1vyzSjw",
@@ -186,10 +179,14 @@
     db = firebase.firestore();
     storage = firebase.storage();
   }catch(e){ console.warn('لا يوجد اتصال بالإنترنت', e); }
+  
+  // بيانات Cloudinary
+  const CLOUD_NAME = 'dgbuovcf';
+  const UPLOAD_PRESET = 'Science_app';
+
   const ADMIN_PHONE = "01229914072";
   const ADMIN_PASS  = "197197";
-</script>
-<script>
+
   function checkAdminPass(){
     const val = document.getElementById('adminPassInput').value;
     if(!db){ document.getElementById('lockMsg').textContent='لوحة الأدمن تحتاج اتصال بالإنترنت'; return; }
@@ -214,7 +211,7 @@
     loadPointsSettings(); loadPointsLeaderboard(); loadAnnouncementSettings();
   }
 
-  // ===== طلبات التسجيل =====
+  // طلبات التسجيل
   async function loadPending(){
     const box = document.getElementById('pendingList');
     box.innerHTML='جاري التحميل...';
@@ -241,7 +238,7 @@
     loadPending();
   }
 
-  // ===== كل الأعضاء =====
+  // كل الأعضاء
   async function loadUsers(){
     const box = document.getElementById('usersList');
     box.innerHTML='جاري التحميل...';
@@ -263,7 +260,6 @@
     });
   }
 
-  // ===== المشرفون =====
   async function loadAdmins(){
     const box = document.getElementById('adminsList');
     box.innerHTML='جاري التحميل...';
@@ -297,7 +293,7 @@
     loadUsers();
   }
 
-  // ===== الجروبات =====
+  // الجروبات
   async function createGroup(){
     const name = document.getElementById('newGroupName').value.trim();
     if(!name) return;
@@ -330,7 +326,6 @@
     if(!confirm('هل أنت متأكد من حذف هذا الجروب؟ هيتم حذف كل الرسائل اللي جواه ولا يمكن التراجع عن هذا الإجراء.')) return;
     try{
       const ref = db.collection('groups').doc(groupId);
-      // حذف كل الرسائل اللي جوه الجروب أولاً (على دفعات)
       const msgsSnap = await ref.collection('messages').get();
       const docs = msgsSnap.docs;
       const batchSize = 400;
@@ -355,7 +350,7 @@
     loadGroups();
   }
 
-  // ===== جدول المحاضرات =====
+  // جدول المحاضرات
   async function addScheduleItem(){
     const day = document.getElementById('schDay').value.trim();
     const subject = document.getElementById('schSubject').value.trim();
@@ -391,121 +386,8 @@
     loadSchedule();
   }
 
-  // ===== الكتب (بيتم تخزين الملف نفسه جوه قاعدة البيانات، مش على Storage — بيتضغط تلقائيًا مهما كان حجمه) =====
-  const TARGET_B64_LEN = 900000; // الهدف بعد الضغط عشان نفضل تحت حد مستند Firestore (1MB)
-
-  function readFileAsDataURL(file){
-    return new Promise((resolve,reject)=>{
-      const reader = new FileReader();
-      reader.onload = ()=> resolve(reader.result);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-  }
-  function readFileAsArrayBuffer(file){
-    return new Promise((resolve,reject)=>{
-      const reader = new FileReader();
-      reader.onload = ()=> resolve(reader.result);
-      reader.onerror = reject;
-      reader.readAsArrayBuffer(file);
-    });
-  }
-  function blobToDataURL(blob){
-    return new Promise((resolve,reject)=>{
-      const reader = new FileReader();
-      reader.onload = ()=> resolve(reader.result);
-      reader.onerror = reject;
-      reader.readAsDataURL(blob);
-    });
-  }
-  function compressImageSimple(file, maxW, maxH, quality){
-    return new Promise((resolve, reject)=>{
-      const reader = new FileReader();
-      reader.onload = function(e){
-        const img = new Image();
-        img.onload = function(){
-          const canvas = document.createElement('canvas');
-          let w = img.width, h = img.height;
-          if(w > maxW || h > maxH){
-            if(w/h > maxW/maxH){ h = Math.round(h*maxW/w); w = maxW; }
-            else{ w = Math.round(w*maxH/h); h = maxH; }
-          }
-          canvas.width = w; canvas.height = h;
-          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-          resolve(canvas.toDataURL('image/jpeg', quality));
-        };
-        img.onerror = reject;
-        img.src = e.target.result;
-      };
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-  }
-  async function compressImageAdaptive(file, targetLen, onProgress){
-    const attempts = [
-      [1600,2200,0.75],[1300,1800,0.65],[1000,1400,0.55],
-      [800,1100,0.45],[650,900,0.35],[500,700,0.3],[380,520,0.25],[280,380,0.2]
-    ];
-    let last=null;
-    for(let i=0;i<attempts.length;i++){
-      const [w,h,q]=attempts[i];
-      if(onProgress) onProgress('جاري ضغط الصورة (محاولة '+(i+1)+')...');
-      const result = await compressImageSimple(file, w, h, q);
-      last=result;
-      if(result.length <= targetLen) return result;
-    }
-    return last;
-  }
-  async function compressPdfAdaptive(file, targetLen, onProgress){
-    if(!window['pdfjsLib'] || !window['jspdf']){
-      return await readFileAsDataURL(file);
-    }
-    const buffer = await readFileAsArrayBuffer(file);
-    const attempts = [
-      [2.0,0.75],[1.6,0.6],[1.2,0.5],[1.0,0.4],[0.8,0.3],[0.6,0.25]
-    ];
-    let lastDataUrl=null;
-    for(let a=0;a<attempts.length;a++){
-      const [scale,quality]=attempts[a];
-      if(onProgress) onProgress('جاري ضغط ملف PDF (محاولة '+(a+1)+')...');
-      try{
-        const loadingTask = pdfjsLib.getDocument({data: buffer.slice(0)});
-        const pdf = await loadingTask.promise;
-        const { jsPDF } = window.jspdf;
-        let doc=null;
-        for(let p=1;p<=pdf.numPages;p++){
-          const page = await pdf.getPage(p);
-          const viewport = page.getViewport({scale});
-          const canvas = document.createElement('canvas');
-          canvas.width = viewport.width; canvas.height = viewport.height;
-          const ctx = canvas.getContext('2d');
-          await page.render({canvasContext:ctx, viewport}).promise;
-          const imgData = canvas.toDataURL('image/jpeg', quality);
-          const orientation = viewport.width > viewport.height ? 'l' : 'p';
-          if(!doc){
-            doc = new jsPDF({orientation, unit:'px', format:[viewport.width, viewport.height]});
-          } else {
-            doc.addPage([viewport.width, viewport.height], orientation);
-          }
-          doc.addImage(imgData, 'JPEG', 0, 0, viewport.width, viewport.height);
-        }
-        const blob = doc.output('blob');
-        const dataUrl = await blobToDataURL(blob);
-        lastDataUrl = dataUrl;
-        if(dataUrl.length <= targetLen) return dataUrl;
-      }catch(e){ console.warn('فشلت محاولة ضغط PDF', e); }
-    }
-    return lastDataUrl || await readFileAsDataURL(file);
-  }
-  async function compressFileForStorage(file, onProgress){
-    if(file.type.startsWith('image/')){
-      return await compressImageAdaptive(file, TARGET_B64_LEN, onProgress);
-    } else if(file.type === 'application/pdf'){
-      return await compressPdfAdaptive(file, TARGET_B64_LEN, onProgress);
-    } else {
-      return await readFileAsDataURL(file);
-    }
-  }
+  // ===== الكتب (رفع على Cloudinary) =====
+  let booksCacheAdmin = {};
 
   async function addBook(){
     const title = document.getElementById('bookTitle').value.trim();
@@ -513,26 +395,41 @@
     const locked = document.getElementById('bookLocked').value === 'yes';
     const btn = document.getElementById('addBookBtn');
     const progress = document.getElementById('uploadProgress');
-    if(!title || !file) return alert('من فضلك أدخل العنوان واختر ملف PDF');
+    if(!title || !file) return alert('من فضلك أدخل العنوان واختر ملف');
 
-    btn.disabled = true; btn.textContent='جاري المعالجة...';
-    progress.textContent='جاري تجهيز الملف...';
+    btn.disabled = true;
+    progress.textContent = 'جاري رفع الكتاب على Cloudinary...';
+    
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', UPLOAD_PRESET);
+
     try{
-      const dataUrl = await compressFileForStorage(file, (msg)=>{ progress.textContent=msg; });
-      if(dataUrl.length > TARGET_B64_LEN){
-        progress.textContent='تم ضغط الملف لأقصى درجة ممكنة لكنه لسه كبير شوية، هيترفع برضه لكن ممكن ياخد وقت أطول.';
-      }
-      await db.collection('books').add({title, fileData:dataUrl, fileType:file.type||'application/pdf', fileName:file.name, locked, allowedPhones:[], time:Date.now()});
+      const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/upload`, { method: 'POST', body: formData });
+      const data = await response.json();
+      const fileUrl = data.secure_url;
+
+      await db.collection('books').add({
+        title,
+        fileUrl,
+        fileType: file.type || 'application/pdf',
+        fileName: file.name,
+        locked,
+        allowedPhones: [],
+        time: Date.now()
+      });
+      
       document.getElementById('bookTitle').value='';
       document.getElementById('bookFile').value='';
-      progress.textContent='تم رفع الكتاب بنجاح';
+      progress.textContent = 'تم رفع الكتاب بنجاح';
       loadBooks();
     }catch(err){
       console.error(err);
-      progress.textContent='حدث خطأ أثناء الرفع: '+err.message;
+      progress.textContent = 'حدث خطأ أثناء الرفع: '+err.message;
     }
-    btn.disabled=false; btn.textContent='إضافة كتاب';
+    btn.disabled=false;
   }
+
   async function loadBooks(){
     const box = document.getElementById('booksAdminList');
     box.innerHTML='جاري التحميل...';
@@ -554,18 +451,20 @@
       box.appendChild(el);
     });
   }
+
   async function toggleBookAccess(bookId, phone, checked){
     const ref = db.collection('books').doc(bookId);
     if(checked){ await ref.update({allowedPhones: firebase.firestore.FieldValue.arrayUnion(phone)}); }
     else{ await ref.update({allowedPhones: firebase.firestore.FieldValue.arrayRemove(phone)}); }
   }
+  
   async function deleteBook(id){
     if(!confirm('حذف هذا الكتاب؟')) return;
     await db.collection('books').doc(id).delete();
     loadBooks();
   }
 
-  // ===== النقاط وترتيب الفخر =====
+  // النقاط
   async function loadPointsSettings(){
     try{
       const snap = await db.collection('settings').doc('points').get();
@@ -613,7 +512,7 @@
     }catch(e){ box.innerHTML = '<p style="color:#9bb3cb;font-size:13px">تعذّر تحميل الترتيب</p>'; }
   }
 
-  // ===== التنبيهات =====
+  // التنبيهات
   async function loadAnnouncementSettings(){
     try{
       const snap = await db.collection('settings').doc('announcement').get();
@@ -644,5 +543,4 @@
   }
 </script>
 </body>
-</html>
-
+            </html>
