@@ -101,6 +101,33 @@
     .chat-wrap{flex-direction:column;height:auto;}
     .group-list{width:100%;max-height:140px;}
   }
+  
+  /* شريط التقدم */
+  #progressWrapper {
+    margin-top:10px;
+    background:#e9ecef;
+    border-radius:10px;
+    padding:8px 12px;
+  }
+  #progressWrapper .bar-bg {
+    background:#e9ecef;
+    border-radius:10px;
+    height:8px;
+    overflow:hidden;
+  }
+  #progressWrapper .bar-fill {
+    width:0%;
+    height:100%;
+    background:linear-gradient(90deg, #1565d8, #2f9bf0);
+    transition:width 0.3s;
+    border-radius:10px;
+  }
+  #progressWrapper .progress-text {
+    font-size:12px;
+    color:#5c7a9c;
+    margin-top:4px;
+    text-align:center;
+  }
 </style>
 </head>
 <body>
@@ -171,6 +198,15 @@
         <button id="uploadSummaryBtn" onclick="uploadSummary()">رفع ملخص (+<span id="summaryPointsLabel">10</span> نقاط)</button>
       </div>
       <p id="summaryUploadProgress" style="font-size:12px;color:#7a93ad;margin-bottom:4px"></p>
+      
+      <!-- ✅ شريط التقدم الجديد -->
+      <div id="progressWrapper" style="display:none;">
+        <div class="bar-bg">
+          <div class="bar-fill" id="progressBar"></div>
+        </div>
+        <div class="progress-text" id="progressText">0%</div>
+      </div>
+      
       <p style="font-size:11.5px;color:#9bb3cb;margin-bottom:10px">📎 الملفات بتترفع على سحابة Cloudinary بسرعة عالية.</p>
       <div id="summariesList"></div>
     </div>
@@ -433,7 +469,6 @@
       formData.append('file', file);
       formData.append('upload_preset', UPLOAD_PRESET);
       
-      // 🔥 تحديد نوع الملف (image أو raw)
       const resourceType = file.type.startsWith('image/') ? 'image' : 'raw';
       
       const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/${resourceType}/upload`, { method: 'POST', body: formData });
@@ -535,66 +570,94 @@
     }catch(e){ alert('حدث خطأ أثناء الحذف: '+e.message); }
   }
 
-  // ✅ دالة رفع الملخصات (مدعومة للصور والـ PDF)
+  // ✅ دالة رفع الملخصات (مع شريط تقدم)
   async function uploadSummary(){
     const title = document.getElementById('summaryTitle').value.trim();
     const file = document.getElementById('summaryFile').files[0];
     const btn = document.getElementById('uploadSummaryBtn');
     const progress = document.getElementById('summaryUploadProgress');
-    
+    const wrapper = document.getElementById('progressWrapper');
+    const bar = document.getElementById('progressBar');
+    const text = document.getElementById('progressText');
+
     if (!db) { alert('رفع الملخصات يحتاج اتصال بالإنترنت'); return; }
     if (!title || !file) return alert('من فضلك أدخل العنوان واختر الملف');
 
     btn.disabled = true;
-    progress.textContent = 'جاري رفع الملف على Cloudinary...';
+    progress.textContent = 'جاري رفع الملف...';
+
+    // إظهار شريط التقدم
+    wrapper.style.display = 'block';
+    bar.style.width = '0%';
+    text.textContent = '0%';
 
     const formData = new FormData();
     formData.append('file', file);
     formData.append('upload_preset', UPLOAD_PRESET);
 
-    // 🔥 تحديد نوع الملف (image أو raw)
     const resourceType = file.type.startsWith('image/') ? 'image' : 'raw';
+    const url = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/${resourceType}/upload`;
 
-    try {
-      const response = await fetch(
-        `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/${resourceType}/upload`,
-        { method: 'POST', body: formData }
-      );
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error?.message || 'فشل رفع الملف');
+    // استخدام XMLHttpRequest لتتبع التقدم
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', url, true);
+
+    xhr.upload.onprogress = function(e) {
+      if (e.lengthComputable) {
+        const percent = Math.round((e.loaded / e.total) * 100);
+        bar.style.width = percent + '%';
+        text.textContent = percent + '% (' + (e.loaded / 1024 / 1024).toFixed(1) + ' / ' + (e.total / 1024 / 1024).toFixed(1) + ' ميجابايت)';
       }
-      
-      const data = await response.json();
-      const fileUrl = data.secure_url;
+    };
 
-      if (!fileUrl) throw new Error('لم يتم استلام رابط الملف من Cloudinary');
+    xhr.onload = async function() {
+      if (xhr.status === 200) {
+        const data = JSON.parse(xhr.responseText);
+        const fileUrl = data.secure_url;
 
-      const pointsToAward = await getSummaryPoints();
-      await db.collection('summaries').add({
-        title,
-        fileUrl,
-        fileName: file.name,
-        name: user.name,
-        phone: user.phone,
-        time: Date.now()
-      });
-      
-      await db.collection('users').doc(user.phone).update({
-        points: firebase.firestore.FieldValue.increment(pointsToAward)
-      });
+        if (!fileUrl) {
+          progress.textContent = '❌ لم يتم استلام رابط الملف';
+          btn.disabled = false;
+          wrapper.style.display = 'none';
+          return;
+        }
 
-      document.getElementById('summaryTitle').value = '';
-      document.getElementById('summaryFile').value = '';
-      progress.textContent = '✅ تم رفع الملخص بنجاح (+' + pointsToAward + ' نقطة)';
-      renderSummaries();
-      
-    } catch (err) {
-      console.error('خطأ في الرفع:', err);
-      progress.textContent = '❌ حدث خطأ أثناء الرفع: ' + err.message;
-    }
-    btn.disabled = false;
+        const pointsToAward = await getSummaryPoints();
+        await db.collection('summaries').add({
+          title,
+          fileUrl,
+          fileName: file.name,
+          name: user.name,
+          phone: user.phone,
+          time: Date.now()
+        });
+        await db.collection('users').doc(user.phone).update({
+          points: firebase.firestore.FieldValue.increment(pointsToAward)
+        });
+
+        document.getElementById('summaryTitle').value = '';
+        document.getElementById('summaryFile').value = '';
+        progress.textContent = '✅ تم رفع الملخص بنجاح (+' + pointsToAward + ' نقطة)';
+        renderSummaries();
+        wrapper.style.display = 'none';
+      } else {
+        let errMsg = 'فشل الرفع';
+        try {
+          const errData = JSON.parse(xhr.responseText);
+          errMsg = errData.error?.message || errMsg;
+        } catch(e) {}
+        progress.textContent = '❌ حدث خطأ: ' + errMsg;
+      }
+      btn.disabled = false;
+    };
+
+    xhr.onerror = function() {
+      progress.textContent = '❌ حدث خطأ في الشبكة';
+      btn.disabled = false;
+      wrapper.style.display = 'none';
+    };
+
+    xhr.send(formData);
   }
 
   // -------------------- كتبي (Cloudinary) --------------------
@@ -660,4 +723,4 @@
   }
 </script>
 </body>
-  </html>
+                                                                         </html>
