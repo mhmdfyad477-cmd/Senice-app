@@ -16,9 +16,10 @@
       notifyButton: {
         enable: true,
       },
-      // ✅ المسار الصحيح للملفين
       serviceWorkerPath: "/OneSignalSDKWorker.js",
       path: "/",
+      autoRegister: true,
+      allowLocalhostAsSecureOrigin: true,
     });
   });
 </script>
@@ -151,7 +152,6 @@
     قسم علوم — ابتدائي
   </div>
   <div style="display:flex;align-items:center;gap:8px;">
-    <!-- جرس الإشعارات -->
     <div class="notif-bell" onclick="toggleNotifDropdown()">
       🔔
       <span class="notif-badge" id="notifBadge">0</span>
@@ -300,7 +300,6 @@
   const CLOUD_NAME = 'dgbuovcf';
   const UPLOAD_PRESET = 'Science_app';
 
-  // ----- دوال المستخدم -----
   function getCurrentUser(){
     const urlParams = new URLSearchParams(window.location.search);
     if(urlParams.get('phone')){
@@ -329,6 +328,35 @@
   let unsubMessages = null;
   let typingTimeout = null;
   let replyToMsg = null;
+
+  // ==================== تسجيل المستخدم في OneSignal تلقائياً ====================
+  async function registerUserInOneSignal() {
+    try {
+      if (!window.OneSignal) {
+        console.warn('OneSignal not loaded yet');
+        return;
+      }
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') {
+        console.warn('❌ المستخدم رفض الإشعارات');
+        return;
+      }
+      await OneSignal.setExternalUserId(user.phone);
+      console.log('✅ تم تسجيل المستخدم في OneSignal:', user.phone);
+      
+      const token = await OneSignal.getExternalUserId();
+      if (token && db) {
+        await db.collection('users').doc(user.phone).update({ fcmToken: token });
+      }
+    } catch (err) {
+      console.error('❌ فشل تسجيل OneSignal:', err);
+    }
+  }
+
+  // استدعاء التسجيل بعد تحميل الصفحة
+  if (user && window.OneSignal) {
+    setTimeout(registerUserInOneSignal, 3000);
+  }
 
   // ----- إظهار الأقسام -----
   function showSection(id, btn){
@@ -537,7 +565,6 @@
     input.value='';
     clearTyping();
 
-    // إشعار داخلي (جرس ومنبثق)
     try{
       const groupSnap=await db.collection('groups').doc(currentGroupId).get();
       const group=groupSnap.data();
@@ -549,7 +576,6 @@
     }catch(err){ console.error('خطأ في الإشعار الداخلي:', err); }
   }
 
-  // ----- إشارة الكتابة (Typing) -----
   function onTyping(){
     if(!currentGroupId || !user) return;
     const typingRef=db.collection('groups').doc(currentGroupId).collection('typing').doc('status');
@@ -577,7 +603,6 @@
     });
   }
 
-  // ----- المشاهدين (Seen) -----
   async function markMessagesAsSeen(groupId, userPhone){
     if(!db) return;
     try{
@@ -600,7 +625,6 @@
     }catch(e){ console.warn('خطأ في تحديث المشاهدين:', e); }
   }
 
-  // ----- رفع ملفات الشات -----
   async function sendChatFile(){
     const fileInput=document.getElementById('chatFileInput');
     const file=fileInput.files[0];
@@ -626,7 +650,6 @@
     }catch(err){ progress.textContent='❌ '+err.message; }
   }
 
-  // ----- بروفايل -----
   async function openProfile(phone){
     if(!db) return;
     document.getElementById('profileOverlay').classList.add('active');
@@ -649,7 +672,7 @@
   }
   function closeProfile(){ document.getElementById('profileOverlay').classList.remove('active'); }
 
-  // ==================== الإشعارات الداخلية (الجرس والمنبثق) ====================
+  // ==================== الإشعارات الداخلية ====================
   let unreadCount = 0;
   let notifList = [];
 
@@ -712,31 +735,6 @@
       unreadCount=0;
       document.getElementById('notifBadge').style.display='none';
     }
-  }
-
-  // ==================== OneSignal ====================
-  async function subscribeToNotifications() {
-    try {
-      const permission = await Notification.requestPermission();
-      if (permission === 'granted') {
-        if (window.OneSignal) {
-          await OneSignal.setExternalUserId(user.phone);
-          console.log('✅ OneSignal متصل للمستخدم:', user.phone);
-          // تخزين التوكين في Firestore
-          const token = await OneSignal.getExternalUserId();
-          if (token) {
-            await db.collection('users').doc(user.phone).update({ fcmToken: token });
-          }
-        }
-      } else {
-        console.warn('❌ الإشعارات مرفوضة');
-      }
-    } catch (err) { console.error('❌ فشل OneSignal:', err); }
-  }
-
-  // تشغيل OneSignal بعد تحميل الصفحة
-  if (user && window.OneSignal) {
-    setTimeout(subscribeToNotifications, 3000);
   }
 
   // ==================== ملخصاتي ====================
@@ -889,4 +887,4 @@
   }
 </script>
 </body>
-                               </html>
+                                                                                </html>
