@@ -626,6 +626,47 @@
       margin-top: 4px;
       text-align: center;
     }
+
+    /* ===== إعدادات الجروب ===== */
+    #groupSettings {
+      background: #f5f8fc;
+      padding: 10px 14px;
+      border-radius: 10px;
+      margin-bottom: 8px;
+      direction: rtl;
+    }
+    #groupSettings select {
+      padding: 6px 10px;
+      border-radius: 8px;
+      border: 1.5px solid #cfe2f7;
+      flex: 1;
+      min-width: 120px;
+    }
+    .admin-tag {
+      background: var(--blue-main);
+      color: #fff;
+      font-size: 11px;
+      padding: 2px 10px;
+      border-radius: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .admin-tag button {
+      background: transparent;
+      border: none;
+      color: #fff;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .group-settings-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
     @media (max-width: 760px) {
       .sidebar {
         position: fixed;
@@ -697,6 +738,26 @@
           <div class="group-list" id="groupList"></div>
           <div class="chat-area">
             <div class="messages" id="messagesBox"><p style="text-align:center;color:#9bb3cb;font-size:13px;margin-top:30px">اختر جروب للمحادثة</p></div>
+
+            <!-- ===== إعدادات الجروب (للمشرفين فقط) ===== -->
+            <div id="groupSettings" style="display:none;">
+              <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                <span style="font-weight:700; color:var(--blue-deep);">⚙️ إعدادات الجروب</span>
+                <label class="group-settings-label">
+                  <input type="checkbox" id="onlyAdminsCanSend" onchange="toggleChatRestriction()">
+                  <span>المشرفين فقط يرسلون</span>
+                </label>
+              </div>
+              <div id="adminsList" style="margin-top:8px; display:flex; flex-wrap:wrap; gap:6px;"></div>
+              <div style="margin-top:8px; display:flex; gap:6px; flex-wrap:wrap;">
+                <select id="memberSelect" style="padding:6px 10px; border-radius:8px; border:1.5px solid #cfe2f7; flex:1; min-width:120px;">
+                  <option value="">اختر عضو لترقيته...</option>
+                </select>
+                <button class="dl" style="background:var(--blue-deep); color:#fff; padding:6px 14px; border:none; border-radius:8px; cursor:pointer;" onclick="addAdmin()">➕ ترقية</button>
+              </div>
+              <p id="groupSettingsMsg" style="font-size:11px; color:#7a93ad; margin-top:4px;"></p>
+            </div>
+
             <p id="chatFileProgress" style="font-size:11.5px;color:#7a93ad;padding:0 10px;"></p>
             <div class="chat-input">
               <label>📎<input type="file" id="chatFileInput" style="display:none" onchange="sendChatFile()"></label>
@@ -803,7 +864,8 @@
     function getCurrentUser() {
       const urlParams = new URLSearchParams(window.location.search);
       if (urlParams.get('phone')) {
-        const u = { phone: urlParams.get('phone'), name: urlParams.get('name'), role: urlParams.get('role'), year: urlParams.get('year') };
+        const u = { phone: urlParams.get('phone'), name: urlParams.get('name'), role: urlParams.get('role'), year: urlParams.get(
+            'year') };
         try { localStorage.setItem('currentUser', JSON.stringify(u)); } catch (e) {}
         return u;
       }
@@ -828,6 +890,11 @@
     if (!user) throw new Error('no user');
     let currentGroupId = null;
     let unsubMessages = null;
+
+    // متغيرات إدارة الجروب
+    let currentGroupAdmins = [];
+    let currentGroupOnlyAdminsCanSend = false;
+    let currentGroupCreatedBy = '';
 
     // ---------------------- عرض الأقسام ----------------------
     function showSection(id, btn) {
@@ -872,7 +939,8 @@
       ).join('');
       if (db) {
         db.collection('settings').doc('schedule').get().then(snap => {
-          if (snap.exists && snap.data().items) { localStorage.setItem('schedule', JSON.stringify(snap.data().items)); if (document.getElementById('sec-schedule').classList.contains('active')) loadSchedule(); }
+          if (snap.exists && snap.data().items) { localStorage.setItem('schedule', JSON.stringify(snap.data().items)); if (
+              document.getElementById('sec-schedule').classList.contains('active')) loadSchedule(); }
         }).catch(() => {});
       }
     }
@@ -899,7 +967,7 @@
     }
     loadAnnouncement();
 
-    // ==================== الشات (بسيط) ====================
+    // ==================== الشات ====================
 
     async function loadGroups() {
       const list = document.getElementById('groupList');
@@ -927,6 +995,110 @@
       window.open(item.fileUrl, '_blank');
     }
 
+    // ==================== إدارة الجروب (للمشرفين) ====================
+
+    // تحميل إعدادات الجروب
+    async function loadGroupSettings(groupId) {
+      if (!db) return;
+      try {
+        const snap = await db.collection('groups').doc(groupId).get();
+        if (!snap.exists) return;
+        const data = snap.data();
+        currentGroupAdmins = data.admins || [data.createdBy || user.phone];
+        currentGroupOnlyAdminsCanSend = data.onlyAdminsCanSend || false;
+        currentGroupCreatedBy = data.createdBy || user.phone;
+
+        const settingsDiv = document.getElementById('groupSettings');
+        const isAdmin = currentGroupAdmins.includes(user.phone);
+        settingsDiv.style.display = isAdmin ? 'block' : 'none';
+
+        document.getElementById('onlyAdminsCanSend').checked = currentGroupOnlyAdminsCanSend;
+
+        await renderAdminsList(groupId);
+        await populateMemberSelect(groupId);
+
+        document.getElementById('groupSettingsMsg').textContent = '';
+      } catch (e) { console.warn('خطأ في تحميل إعدادات الجروب:', e); }
+    }
+
+    // عرض المشرفين
+    async function renderAdminsList(groupId) {
+      const container = document.getElementById('adminsList');
+      if (!currentGroupAdmins.length) {
+        container.innerHTML = '<span style="font-size:12px; color:#7a93ad;">لا يوجد مشرفين</span>';
+        return;
+      }
+      let html = '';
+      for (const phone of currentGroupAdmins) {
+        let name = phone;
+        try {
+          const snap = await db.collection('users').doc(phone).get();
+          if (snap.exists) name = snap.data().name || phone;
+        } catch (e) {}
+        const isSelf = phone === user.phone;
+        const isCreator = phone === currentGroupCreatedBy;
+        html += `<span class="admin-tag">${name} ${isCreator ? '👑' : ''} ${!isSelf && !isCreator ? `<button onclick="removeAdmin('${phone}')">✕</button>` : ''}</span>`;
+      }
+      container.innerHTML = html;
+    }
+
+    // تعبئة قائمة الأعضاء للترقية
+    async function populateMemberSelect(groupId) {
+      const select = document.getElementById('memberSelect');
+      select.innerHTML = '<option value="">اختر عضو لترقيته...</option>';
+      try {
+        const snap = await db.collection('groups').doc(groupId).get();
+        const members = snap.data().members || [];
+        for (const phone of members) {
+          if (currentGroupAdmins.includes(phone)) continue;
+          let name = phone;
+          try {
+            const usnap = await db.collection('users').doc(phone).get();
+            if (usnap.exists) name = usnap.data().name || phone;
+          } catch (e) {}
+          select.innerHTML += `<option value="${phone}">${name}</option>`;
+        }
+      } catch (e) {}
+    }
+
+    // ترقية عضو لمشرف
+    async function addAdmin() {
+      const select = document.getElementById('memberSelect');
+      const phone = select.value;
+      if (!phone) return alert('اختر عضواً أولاً');
+      try {
+        await db.collection('groups').doc(currentGroupId).update({
+          admins: firebase.firestore.FieldValue.arrayUnion(phone)
+        });
+        document.getElementById('groupSettingsMsg').textContent = '✅ تمت الترقية';
+        loadGroupSettings(currentGroupId);
+      } catch (e) { alert('خطأ: ' + e.message); }
+    }
+
+    // إزالة مشرف
+    async function removeAdmin(phone) {
+      if (!confirm('هل تريد إزالة هذا المشرف؟')) return;
+      try {
+        await db.collection('groups').doc(currentGroupId).update({
+          admins: firebase.firestore.FieldValue.arrayRemove(phone)
+        });
+        loadGroupSettings(currentGroupId);
+      } catch (e) { alert('خطأ: ' + e.message); }
+    }
+
+    // تفعيل/تعطيل تقييد الكتابة
+    async function toggleChatRestriction() {
+      const checked = document.getElementById('onlyAdminsCanSend').checked;
+      try {
+        await db.collection('groups').doc(currentGroupId).update({
+          onlyAdminsCanSend: checked
+        });
+        currentGroupOnlyAdminsCanSend = checked;
+        document.getElementById('groupSettingsMsg').textContent = checked ? '🔒 الكتابة للمشرفين فقط' : '🔓 الكتابة للجميع';
+      } catch (e) { alert('خطأ: ' + e.message); }
+    }
+
+    // ==================== فتح الجروب ====================
     function openGroup(id, name, el) {
       currentGroupId = id;
       document.querySelectorAll('.group-item').forEach(g => g.classList.remove('active'));
@@ -938,6 +1110,7 @@
         const jt = (gSnap.exists && gSnap.data().memberJoinTimes) ? gSnap.data().memberJoinTimes[user.phone] : null;
         const joinTime = (typeof jt === 'number') ? jt : 0;
         attachMessagesListener(id, box, joinTime);
+        loadGroupSettings(id); // ✅ تحميل إعدادات الجروب
       }).catch(() => { attachMessagesListener(id, box, 0); });
     }
 
@@ -960,7 +1133,8 @@
           let fileHtml = '';
           if (m.fileUrl) {
             chatFilesCache[d.id] = m;
-            fileHtml = `<div class="chat-file"><span>📎 ${m.fileName||'ملف'}</span><button onclick="downloadChatFile('${d.id}')">تحميل</button></div>`;
+            fileHtml =
+              `<div class="chat-file"><span>📎 ${m.fileName||'ملف'}</span><button onclick="downloadChatFile('${d.id}')">تحميل</button></div>`;
           }
           let imageHtml = m.image ? `<img class="chat-img" src="${m.image}">` : '';
           let delHtml = '';
@@ -989,10 +1163,18 @@
       } catch (e) { alert('تعذّر حذف الرسالة'); }
     }
 
+    // ==================== إرسال رسالة (مع التحقق من الصلاحية) ====================
     async function sendMessage() {
       const input = document.getElementById('msgText');
       if (!db) { alert('الشات يحتاج اتصال بالإنترنت'); return; }
       if (!currentGroupId || !input.value.trim()) return;
+
+      // ✅ التحقق من صلاحية الكتابة
+      if (currentGroupOnlyAdminsCanSend && !currentGroupAdmins.includes(user.phone)) {
+        alert('⛔ الكتابة مقصورة على المشرفين فقط');
+        return;
+      }
+
       const msgText = input.value.trim();
       await db.collection('groups').doc(currentGroupId).collection('messages').add({
         name: user.name,
@@ -1016,7 +1198,8 @@
         formData.append('file', file);
         formData.append('upload_preset', UPLOAD_PRESET);
         const resourceType = file.type.startsWith('image/') ? 'image' : 'raw';
-        const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/${resourceType}/upload`, { method: 'POST', body: formData });
+        const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/${resourceType}/upload`, { method: 'POST',
+          body: formData });
         if (!response.ok) throw new Error('فشل الرفع');
         const data = await response.json();
         const fileUrl = data.secure_url;
@@ -1046,8 +1229,10 @@
         document.getElementById('profPhone').textContent = u.phone || phone;
         document.getElementById('profYear').textContent = u.year || '—';
         document.getElementById('profPoints').textContent = (u.points || 0) + ' نقطة';
-        if (u.avatar) { document.getElementById('profAvatarWrap').innerHTML = `<img class="p-avatar" src="${u.avatar}">`; } else { document.getElementById('profAvatarWrap').innerHTML =
-            `<div class="p-avatar-ph">${(u.name||'؟')[0]}</div>`; }
+        if (u.avatar) { document.getElementById('profAvatarWrap').innerHTML = `<img class="p-avatar" src="${u.avatar}">`; } else {
+          document.getElementById('profAvatarWrap').innerHTML =
+            `<div class="p-avatar-ph">${(u.name||'؟')[0]}</div>`;
+        }
       } catch (e) {}
     }
 
@@ -1127,7 +1312,8 @@
         if (e.lengthComputable) {
           const p = Math.round((e.loaded / e.total) * 100);
           bar.style.width = p + '%';
-          text.textContent = p + '% (' + (e.loaded / 1024 / 1024).toFixed(1) + ' / ' + (e.total / 1024 / 1024).toFixed(1) + ' ميجا)';
+          text.textContent = p + '% (' + (e.loaded / 1024 / 1024).toFixed(1) + ' / ' + (e.total / 1024 / 1024).toFixed(1) +
+            ' ميجا)';
         }
       };
       xhr.onload = async function() {
@@ -1221,4 +1407,4 @@
     }
   </script>
 </body>
-                                                                                                             </html>
+        </html>
