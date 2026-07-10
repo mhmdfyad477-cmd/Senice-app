@@ -27,6 +27,7 @@
   .btn-points{background:#f5a623;color:#fff;}
   .btn-excel{background:#1d6f42;color:#fff;}
   .btn-gold{background:linear-gradient(135deg,#ffd700,#b8860b);color:#fff;box-shadow:0 2px 8px rgba(184,134,11,0.3);}
+  .btn-sm{padding:4px 12px;font-size:12px;}
   .form-line{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
   .form-line input, .form-line select{padding:10px;border-radius:10px;border:1.5px solid #cfe2f7;flex:1;min-width:140px;}
   .lock-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;}
@@ -78,6 +79,9 @@
       <button onclick="showTab('books', this)">الكتب المقفولة</button>
       <button onclick="showTab('points', this)">النقاط وترتيب الفخر</button>
       <button onclick="showTab('announce', this)">التنبيهات</button>
+      <button onclick="showTab('folders', this)">📁 المجلدات</button>
+      <button onclick="showTab('reports', this)">📊 التقارير</button>
+      <button onclick="showTab('quizzes', this)">📝 الكويزات</button>
     </div>
 
     <!-- ===== لوحة الاحصائيات ===== -->
@@ -192,6 +196,76 @@
       </div>
     </div>
 
+    <!-- ===== إدارة المجلدات ===== -->
+    <div class="section" id="tab-folders">
+      <div class="card-box">
+        <b style="display:block;margin-bottom:8px;">📁 إنشاء مجلد جديد</b>
+        <div class="form-line">
+          <input type="text" id="newFolderName" placeholder="اسم المجلد (مثال: كيمياء)">
+          <button class="btn btn-blue" onclick="createFolder()">➕ إنشاء مجلد</button>
+        </div>
+        <p id="folderMsg" style="font-size:12px;color:#7a93ad;"></p>
+      </div>
+      <div class="card-box">
+        <b style="display:block;margin-bottom:8px;">📂 المجلدات الموجودة</b>
+        <div id="foldersList">
+          <p style="font-size:13px;color:#7a93ad;">جاري التحميل...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== التقارير والإحصائيات ===== -->
+    <div class="section" id="tab-reports">
+      <div class="card-box">
+        <b style="display:block;margin-bottom:8px;">📊 إحصائيات عامة</b>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;">
+          <div style="background:#f8faff;padding:12px;border-radius:10px;text-align:center;">
+            <div style="font-size:24px;font-weight:900;color:var(--blue-deep);" id="reportUsers">0</div>
+            <div style="font-size:12px;color:#7a93ad;">👥 الأعضاء</div>
+          </div>
+          <div style="background:#f8faff;padding:12px;border-radius:10px;text-align:center;">
+            <div style="font-size:24px;font-weight:900;color:var(--blue-deep);" id="reportGroups">0</div>
+            <div style="font-size:12px;color:#7a93ad;">💬 الجروبات</div>
+          </div>
+          <div style="background:#f8faff;padding:12px;border-radius:10px;text-align:center;">
+            <div style="font-size:24px;font-weight:900;color:var(--blue-deep);" id="reportMessages">0</div>
+            <div style="font-size:12px;color:#7a93ad;">📨 الرسائل</div>
+          </div>
+          <div style="background:#f8faff;padding:12px;border-radius:10px;text-align:center;">
+            <div style="font-size:24px;font-weight:900;color:var(--blue-deep);" id="reportSummaries">0</div>
+            <div style="font-size:12px;color:#7a93ad;">📝 الملخصات</div>
+          </div>
+          <div style="background:#f8faff;padding:12px;border-radius:10px;text-align:center;">
+            <div style="font-size:24px;font-weight:900;color:var(--blue-deep);" id="reportBooks">0</div>
+            <div style="font-size:12px;color:#7a93ad;">📚 الكتب</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- تقرير نشاط الطلاب -->
+      <div class="card-box">
+        <b style="display:block;margin-bottom:8px;">📋 نشاط الطلاب</b>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+          <input type="text" id="searchStudent" placeholder="ابحث عن طالب..." style="flex:1;padding:8px;border-radius:8px;border:1.5px solid #cfe2f7;">
+          <button class="btn btn-blue" onclick="searchStudentReport()">🔍 بحث</button>
+          <button class="btn btn-excel" onclick="exportFullReport()">📊 تصدير تقرير شامل (Excel)</button>
+        </div>
+        <div id="studentReportList">
+          <p style="font-size:13px;color:#7a93ad;">جاري التحميل...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== إدارة الكويزات ===== -->
+    <div class="section" id="tab-quizzes">
+      <div class="card-box">
+        <b style="display:block;margin-bottom:8px;">📋 جميع الكويزات</b>
+        <div id="adminQuizzesList">
+          <p style="font-size:13px;color:#7a93ad;">جاري التحميل...</p>
+        </div>
+      </div>
+    </div>
+
     <!-- التنبيهات -->
     <div class="section" id="tab-announce">
       <div class="card-box">
@@ -255,6 +329,9 @@
     btn.classList.add('active');
     if(id === 'dashboard') loadDashboard();
     if(id === 'points') { loadPointsLeaderboard(); loadMedalManagement(); }
+    if(id === 'folders') loadFolders();
+    if(id === 'reports') loadReports();
+    if(id === 'quizzes') loadAdminQuizzes();
   }
 
   function loadAll(){
@@ -269,6 +346,9 @@
     loadPointsLeaderboard();
     loadAnnouncementSettings();
     loadMedalManagement();
+    loadFolders();
+    loadReports();
+    loadAdminQuizzes();
   }
 
   // ====== لوحة الاحصائيات ======
@@ -352,7 +432,6 @@
       });
       alert(`✅ تم منح الميداليات لـ ${winners.length} فائز`);
       loadMedalManagement();
-      // تحديث لوحة الاحصائيات لو مفتوحة
       if(document.getElementById('tab-dashboard').classList.contains('active')) loadDashboard();
     } catch(e){ alert('خطأ: '+e.message); }
   }
@@ -396,8 +475,232 @@
     }
   }
 
-  // ====== باقي الدوال (كما هي مع بعض التحديثات) ======
-  // طلبات التسجيل
+  // ====== إدارة المجلدات ======
+  async function createFolder() {
+    const name = document.getElementById('newFolderName').value.trim();
+    const msg = document.getElementById('folderMsg');
+    if (!name) { msg.textContent = '⚠️ أدخل اسم المجلد'; msg.style.color = '#b00020'; return; }
+    if (!db) { msg.textContent = '❌ لا يوجد اتصال بالإنترنت'; msg.style.color = '#b00020'; return; }
+    try {
+      const existing = await db.collection('folders').where('name', '==', name).get();
+      if (!existing.empty) { msg.textContent = '⚠️ هذا المجلد موجود بالفعل'; msg.style.color = '#b00020'; return; }
+      await db.collection('folders').add({
+        name: name,
+        createdAt: Date.now(),
+        createdBy: ADMIN_PHONE
+      });
+      document.getElementById('newFolderName').value = '';
+      msg.textContent = '✅ تم إنشاء المجلد';
+      msg.style.color = '#147a35';
+      loadFolders();
+    } catch (e) { msg.textContent = '❌ خطأ: ' + e.message; msg.style.color = '#b00020'; }
+  }
+
+  async function loadFolders() {
+    const box = document.getElementById('foldersList');
+    if (!db) { box.innerHTML = '<p style="font-size:13px;color:#9bb3cb;">لا يوجد اتصال بالإنترنت</p>'; return; }
+    try {
+      const snap = await db.collection('folders').orderBy('name', 'asc').get();
+      if (snap.empty) { box.innerHTML = '<p style="font-size:13px;color:#9bb3cb;">لا توجد مجلدات حتى الآن</p>'; return; }
+      let html = '';
+      snap.forEach(doc => {
+        const f = doc.data();
+        html += `
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f0f4fa;">
+            <span>📁 <b>${f.name}</b> <span style="font-size:11px;color:#7a93ad;">(تم الإنشاء: ${new Date(f.createdAt).toLocaleDateString('ar')})</span></span>
+            <button class="btn btn-reject" style="padding:4px 12px;font-size:12px;" onclick="deleteFolder('${doc.id}','${f.name}')">🗑 حذف</button>
+          </div>
+        `;
+      });
+      box.innerHTML = html;
+    } catch (e) { box.innerHTML = '<p style="font-size:13px;color:#b00020;">خطأ في التحميل</p>'; }
+  }
+
+  async function deleteFolder(folderId, folderName) {
+    if (!confirm(`هل تريد حذف المجلد "${folderName}" وجميع الملخصات الموجودة فيه؟`)) return;
+    try {
+      const summariesSnap = await db.collection('summaries').where('folderId', '==', folderId).get();
+      const batch = db.batch();
+      summariesSnap.forEach(doc => batch.delete(doc.ref));
+      await batch.commit();
+      await db.collection('folders').doc(folderId).delete();
+      loadFolders();
+      if (document.getElementById('tab-reports').classList.contains('active')) loadReports();
+    } catch (e) { alert('❌ خطأ: ' + e.message); }
+  }
+
+  // ====== التقارير والإحصائيات ======
+  async function loadReports() {
+    try {
+      const usersSnap = await db.collection('users').where('approved','==',true).get();
+      document.getElementById('reportUsers').textContent = usersSnap.size;
+      const groupsSnap = await db.collection('groups').get();
+      document.getElementById('reportGroups').textContent = groupsSnap.size;
+      let totalMessages = 0;
+      for (const doc of groupsSnap.docs) {
+        const msgs = await db.collection('groups').doc(doc.id).collection('messages').get();
+        totalMessages += msgs.size;
+      }
+      document.getElementById('reportMessages').textContent = totalMessages;
+      const summariesSnap = await db.collection('summaries').get();
+      document.getElementById('reportSummaries').textContent = summariesSnap.size;
+      const booksSnap = await db.collection('books').get();
+      document.getElementById('reportBooks').textContent = booksSnap.size;
+      await loadStudentReport();
+    } catch (e) { console.warn('خطأ في التقارير:', e); }
+  }
+
+  async function loadStudentReport(filter = '') {
+    const box = document.getElementById('studentReportList');
+    box.innerHTML = 'جاري التحميل...';
+    try {
+      const snap = await db.collection('users').where('approved','==',true).get();
+      let items = [];
+      snap.forEach(d => items.push({ id: d.id, ...d.data() }));
+
+      if (filter.trim()) {
+        const f = filter.trim().toLowerCase();
+        items = items.filter(u => 
+          (u.name || '').toLowerCase().includes(f) || 
+          (u.phone || '').includes(f)
+        );
+      }
+
+      items.sort((a,b) => (b.points||0) - (a.points||0));
+
+      if (items.length === 0) {
+        box.innerHTML = '<p style="font-size:13px;color:#7a93ad;">لا يوجد أعضاء</p>';
+        return;
+      }
+
+      let html = '';
+      for (const u of items) {
+        let msgCount = 0, summaryCount = 0;
+        try {
+          const groupsSnap = await db.collection('groups').where('members', 'array-contains', u.id).get();
+          for (const g of groupsSnap.docs) {
+            const msgs = await db.collection('groups').doc(g.id).collection('messages').where('phone','==',u.id).get();
+            msgCount += msgs.size;
+          }
+        } catch(e) {}
+        try {
+          const sumSnap = await db.collection('summaries').where('phone','==',u.id).get();
+          summaryCount = sumSnap.size;
+        } catch(e) {}
+        html += `
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f0f4fa;flex-wrap:wrap;gap:6px;">
+            <div>
+              <b>${u.name || 'غير معروف'}</b>
+              <span style="font-size:12px;color:#7a93ad;margin-right:8px;">${u.phone}</span>
+              <span style="font-size:11px;color:#7a93ad;margin-right:8px;">${u.year || '—'}</span>
+            </div>
+            <div style="display:flex;gap:12px;font-size:12px;flex-wrap:wrap;">
+              <span>⭐ ${u.points||0} نقطة</span>
+              <span>📨 ${msgCount} رسالة</span>
+              <span>📝 ${summaryCount} ملخص</span>
+              <span style="color:${u.activeSession ? '#147a35' : '#7a93ad'}">${u.activeSession ? '🟢 متصل' : '🔴 غير متصل'}</span>
+              <span style="font-size:11px;color:#9bb3cb;">آخر دخول: ${u.lastLogin ? new Date(u.lastLogin).toLocaleDateString('ar') : '—'}</span>
+            </div>
+          </div>
+        `;
+      }
+      box.innerHTML = html;
+    } catch (e) {
+      box.innerHTML = '<p style="font-size:13px;color:#b00020;">خطأ في التحميل: ' + e.message + '</p>';
+    }
+  }
+
+  function searchStudentReport() {
+    const filter = document.getElementById('searchStudent').value;
+    loadStudentReport(filter);
+  }
+
+  async function exportFullReport() {
+    if (!db) { alert('لا يوجد اتصال بالإنترنت'); return; }
+    try {
+      const snap = await db.collection('users').where('approved','==',true).get();
+      if (snap.empty) { alert('لا يوجد أعضاء'); return; }
+      let rows = [];
+      for (const doc of snap.docs) {
+        const u = doc.data();
+        let msgCount = 0, summaryCount = 0;
+        try {
+          const groupsSnap = await db.collection('groups').where('members', 'array-contains', u.phone).get();
+          for (const g of groupsSnap.docs) {
+            const msgs = await db.collection('groups').doc(g.id).collection('messages').where('phone','==',u.phone).get();
+            msgCount += msgs.size;
+          }
+        } catch(e) {}
+        try {
+          const sumSnap = await db.collection('summaries').where('phone','==',u.phone).get();
+          summaryCount = sumSnap.size;
+        } catch(e) {}
+        rows.push({
+          name: u.name || '',
+          phone: u.phone || '',
+          year: u.year || '',
+          points: u.points || 0,
+          messages: msgCount,
+          summaries: summaryCount,
+          active: u.activeSession ? 'متصل' : 'غير متصل',
+          lastLogin: u.lastLogin ? new Date(u.lastLogin).toLocaleDateString('ar') : '—'
+        });
+      }
+      let html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel">
+      <head><meta charset="UTF-8"><title>تقرير شامل</title></head>
+      <body><table border="1" style="direction:rtl;font-family:Arial;font-size:13px;">
+      <tr style="background:#1565d8;color:#fff;font-weight:bold;">
+        <th>#</th><th>الاسم</th><th>رقم الموبايل</th><th>الفرقة</th><th>النقاط</th><th>الرسائل</th><th>الملخصات</th><th>الحالة</th><th>آخر دخول</th>
+      </tr>`;
+      rows.forEach((u, i) => {
+        html += `<tr><td>${i+1}</td><td>${u.name}</td><td>${u.phone}</td><td>${u.year}</td><td>${u.points}</td><td>${u.messages}</td><td>${u.summaries}</td><td>${u.active}</td><td>${u.lastLogin}</td></tr>`;
+      });
+      html += `</table></body></html>`;
+      const blob = new Blob([html], { type: 'application/vnd.ms-excel;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `تقرير_الأعضاء_${new Date().toLocaleDateString('ar')}.xls`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (e) { alert('خطأ في التصدير: '+e.message); }
+  }
+
+  // ====== إدارة الكويزات في الأدمن ======
+  async function loadAdminQuizzes() {
+    const box = document.getElementById('adminQuizzesList');
+    if (!db) { box.innerHTML = '<p style="font-size:13px;color:#7a93ad;">لا يوجد اتصال بالإنترنت</p>'; return; }
+    box.innerHTML = 'جاري التحميل...';
+    try {
+      const snap = await db.collection('quizzes').orderBy('createdAt', 'desc').get();
+      if (snap.empty) { box.innerHTML = '<p style="font-size:13px;color:#7a93ad;">لا توجد كويزات</p>'; return; }
+      let html = '';
+      snap.forEach(doc => {
+        const q = doc.data();
+        const resultsCount = q.results ? Object.keys(q.results).length : 0;
+        html += `
+          <div class="card-box" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;">
+            <div><b>${q.title}</b> <span style="font-size:12px;color:#7a93ad;">${q.subject || ''}</span> <span style="font-size:11px;color:#7a93ad;">(${q.questions ? q.questions.length : 0} أسئلة)</span></div>
+            <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+              <span style="font-size:12px;color:#7a93ad;">👥 ${resultsCount} مشارك</span>
+              <button class="btn btn-reject btn-sm" onclick="deleteQuiz('${doc.id}')">🗑 حذف</button>
+            </div>
+          </div>
+        `;
+      });
+      box.innerHTML = html;
+    } catch (e) { box.innerHTML = '<p style="font-size:13px;color:#b00020;">خطأ في التحميل</p>'; }
+  }
+
+  async function deleteQuiz(quizId) {
+    if (!confirm('هل تريد حذف هذا الكويز وجميع نتائجه؟')) return;
+    await db.collection('quizzes').doc(quizId).delete();
+    loadAdminQuizzes();
+  }
+
+  // ====== باقي الدوال ======
   async function loadPending(){
     const box = document.getElementById('pendingList');
     box.innerHTML='جاري التحميل...';
@@ -417,7 +720,6 @@
   async function approveUser(phone){ await db.collection('users').doc(phone).update({approved:true}); loadPending(); loadUsers(); loadDashboard(); }
   async function rejectUser(phone){ if(!confirm('حذف الطلب؟')) return; await db.collection('users').doc(phone).delete(); loadPending(); }
 
-  // كل الأعضاء
   async function loadUsers(){
     const box = document.getElementById('usersList');
     box.innerHTML='جاري التحميل...';
@@ -459,7 +761,6 @@
     }catch(e){ msg.textContent = '❌ خطأ: '+e.message; msg.style.color = '#b00020'; }
   }
 
-  // المشرفون
   async function loadAdmins(){
     const box = document.getElementById('adminsList');
     box.innerHTML='جاري التحميل...';
@@ -480,7 +781,6 @@
   async function removeUser(phone){ if(!confirm('حذف العضو؟')) return; await db.collection('users').doc(phone).delete(); loadUsers(); loadDashboard(); }
   async function forceLogout(phone){ await db.collection('users').doc(phone).update({activeSession:false}); loadUsers(); }
 
-  // الجروبات
   async function createGroup(){
     const name = document.getElementById('newGroupName').value.trim();
     if(!name) return;
@@ -556,7 +856,6 @@
     loadGroups();
   }
 
-  // جدول المحاضرات
   async function addScheduleItem(){
     const day = document.getElementById('schDay').value.trim();
     const subject = document.getElementById('schSubject').value.trim();
@@ -592,7 +891,6 @@
     loadSchedule();
   }
 
-  // الكتب
   async function addBook(){
     const title = document.getElementById('bookTitle').value.trim();
     const file = document.getElementById('bookFile').files[0];
@@ -645,7 +943,6 @@
   }
   async function deleteBook(id){ if(!confirm('حذف الكتاب؟')) return; await db.collection('books').doc(id).delete(); loadBooks(); loadDashboard(); }
 
-  // النقاط
   async function loadPointsSettings(){
     try{
       const snap = await db.collection('settings').doc('points').get();
@@ -690,7 +987,6 @@
     }catch(e){ box.innerHTML = '<p style="color:#9bb3cb;font-size:13px">تعذّر التحميل</p>'; }
   }
 
-  // التنبيهات
   async function loadAnnouncementSettings(){
     try{
       const snap = await db.collection('settings').doc('announcement').get();
@@ -715,4 +1011,4 @@
   }
 </script>
 </body>
-      </html>
+  </html>
