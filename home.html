@@ -63,6 +63,7 @@
   .points-badge{background:var(--gold);color:#fff;font-size:11px;font-weight:800;padding:3px 8px;border-radius:8px;}
   .upload-box{display:flex;gap:10px;flex-wrap:wrap;}
   .upload-box input[type=text]{flex:1;min-width:160px;padding:10px;border-radius:10px;border:1.5px solid #cfe2f7;}
+  .upload-box select{flex:1;min-width:140px;padding:10px;border-radius:10px;border:1.5px solid #cfe2f7;}
   .upload-box button{background:var(--blue-deep);color:#fff;border:none;padding:10px 16px;border-radius:10px;cursor:pointer;font-weight:700;}
   .account-field{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f0f4fa;font-size:14px;}
   .account-field b{color:#7a93ad;font-weight:600;}
@@ -71,7 +72,6 @@
   .announce-bar.active{display:flex;}
   .announce-bar button{background:transparent;border:none;color:#7a4a06;font-size:16px;cursor:pointer;}
   
-  /* ترتيب الفخر مع الميداليات */
   .rank-card{display:flex;align-items:center;gap:12px;border-right:none !important;}
   .rank-card .rank-num{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:15px;flex-shrink:0;background:var(--ice);color:var(--blue-main);}
   .rank-card.gold .rank-num{background:linear-gradient(135deg,#ffd76a,#c9891a);color:#fff;box-shadow:0 4px 12px rgba(201,137,26,0.5);}
@@ -102,7 +102,6 @@
   #progressWrapper .bar-fill{width:0%;height:100%;background:linear-gradient(90deg,#1565d8,#2f9bf0);transition:width 0.3s;border-radius:10px;}
   #progressWrapper .progress-text{font-size:12px;color:#5c7a9c;margin-top:4px;text-align:center;}
   
-  /* إعدادات الجروب */
   #groupSettings{background:#f5f8fc;padding:10px 14px;border-radius:10px;margin-bottom:8px;direction:rtl;}
   #groupSettings select{padding:6px 10px;border-radius:8px;border:1.5px solid #cfe2f7;flex:1;min-width:120px;}
   .admin-tag{background:var(--blue-main);color:#fff;font-size:11px;padding:2px 10px;border-radius:12px;display:inline-flex;align-items:center;gap:4px;}
@@ -140,6 +139,7 @@
     <button onclick="showSection('summaries',this)">📝 ملخصاتي</button>
     <button onclick="showSection('books',this)">📚 كتبي</button>
     <button onclick="showSection('leaderboard',this)">🏆 ترتيب الفخر</button>
+    <button onclick="window.location.href='quizzes.html'">📝 الكويزات</button>
     <div class="divider"></div>
     <button onclick="window.location.href='account.html'">👤 حسابي</button>
     <button class="small-link" onclick="showSection('summaries',this)">↳ ملخصاتي</button>
@@ -167,7 +167,6 @@
         <div class="chat-area">
           <div class="messages" id="messagesBox"><p style="text-align:center;color:#9bb3cb;font-size:13px;margin-top:30px">اختر جروب للمحادثة</p></div>
           
-          <!-- إعدادات الجروب (للمشرفين) -->
           <div id="groupSettings" style="display:none;">
             <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
               <span style="font-weight:700; color:var(--blue-deep);">⚙️ إعدادات الجروب</span>
@@ -201,6 +200,9 @@
       <div class="search-bar"><input type="text" id="summarySearch" placeholder="ابحث عن ملخص..." oninput="renderSummaries()"></div>
       <div class="card-box upload-box">
         <input type="text" id="summaryTitle" placeholder="عنوان الملخص">
+        <select id="summaryFolder">
+          <option value="">اختر المجلد...</option>
+        </select>
         <input type="file" id="summaryFile" accept="application/pdf,image/*" style="flex:1;min-width:160px;">
         <button id="uploadSummaryBtn" onclick="uploadSummary()">رفع ملخص (+<span id="summaryPointsLabel">10</span> نقاط)</button>
       </div>
@@ -283,7 +285,6 @@
   const CLOUD_NAME = 'dgbuovcf';
   const UPLOAD_PRESET = 'Science_app';
 
-  // ---------------------- المستخدم ----------------------
   function getCurrentUser(){
     const urlParams = new URLSearchParams(window.location.search);
     if(urlParams.get('phone')){
@@ -314,14 +315,13 @@
   let currentGroupOnlyAdminsCanSend = false;
   let currentGroupCreatedBy = '';
 
-  // ---------------------- عرض الأقسام ----------------------
   function showSection(id, btn){
     document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
     document.getElementById('sec-'+id).classList.add('active');
     document.querySelectorAll('.sidebar button').forEach(b=>b.classList.remove('active'));
     if(btn) btn.classList.add('active');
     if(id==='chat') loadGroups();
-    if(id==='summaries') renderSummaries();
+    if(id==='summaries') { loadFoldersSelect(); renderSummaries(); }
     if(id==='books') renderBooks();
     if(id==='leaderboard') renderLeaderboard();
     if(window.innerWidth<=760) document.getElementById('sidebar').classList.remove('open');
@@ -336,7 +336,6 @@
     document.getElementById('adminDividerSidebar').style.display='block';
   }
 
-  // ---------------------- جدول المحاضرات ----------------------
   const defaultSchedule=[{day:'السبت',subject:'كيمياء عامة',time:'9:00 ص',place:'مدرج 1'},{day:'الأحد',subject:'فيزياء',time:'11:00 ص',place:'معمل 3'},{day:'الإثنين',subject:'أحياء',time:'1:00 م',place:'مدرج 2'}];
   function loadSchedule(){
     let sched=JSON.parse(localStorage.getItem('schedule')||'null');
@@ -351,7 +350,6 @@
   }
   loadSchedule();
 
-  // ---------------------- تنبيهات ----------------------
   function dismissAnnouncement(){
     document.getElementById('announceBar').classList.remove('active');
     try{ sessionStorage.setItem('announceDismissed', 'true'); }catch(e){}
@@ -370,8 +368,6 @@
     }).catch(()=>{});
   }
   loadAnnouncement();
-
-  // ==================== الشات ====================
 
   async function loadGroups(){
     const list=document.getElementById('groupList');
@@ -398,7 +394,6 @@
     window.open(item.fileUrl, '_blank');
   }
 
-  // ==================== إدارة الجروب ====================
   async function loadGroupSettings(groupId){
     if(!db) return;
     try{
@@ -477,7 +472,6 @@
     }catch(e){ alert('خطأ: '+e.message); }
   }
 
-  // ==================== فتح الجروب ====================
   function openGroup(id,name,el){
     currentGroupId=id;
     document.querySelectorAll('.group-item').forEach(g=>g.classList.remove('active'));
@@ -541,7 +535,6 @@
     }catch(e){ alert('تعذّر حذف الرسالة'); }
   }
 
-  // ==================== إرسال رسالة (مع التحقق) ====================
   async function sendMessage(){
     const input=document.getElementById('msgText');
     if(!db){ alert('الشات يحتاج اتصال بالإنترنت'); return; }
@@ -562,7 +555,6 @@
     input.value='';
   }
 
-  // ---------------------- رفع ملفات الشات ----------------------
   async function sendChatFile(){
     const fileInput=document.getElementById('chatFileInput');
     const file=fileInput.files[0];
@@ -588,7 +580,6 @@
     }catch(err){ progress.textContent='❌ '+err.message; }
   }
 
-  // ---------------------- بروفايل ----------------------
   async function openProfile(phone){
     if(!db) return;
     document.getElementById('profileOverlay').classList.add('active');
@@ -611,7 +602,22 @@
   }
   function closeProfile(){ document.getElementById('profileOverlay').classList.remove('active'); }
 
-  // ==================== ملخصاتي ====================
+  // ====== تحميل المجلدات في القائمة المنسدلة ======
+  async function loadFoldersSelect() {
+    const select = document.getElementById('summaryFolder');
+    if (!db) return;
+    try {
+      const snap = await db.collection('folders').orderBy('name', 'asc').get();
+      select.innerHTML = '<option value="">اختر المجلد...</option>';
+      snap.forEach(doc => {
+        const f = doc.data();
+        select.innerHTML += `<option value="${doc.id}">${f.name}</option>`;
+      });
+    } catch (e) { console.warn('خطأ في تحميل المجلدات', e); }
+  }
+  document.addEventListener('DOMContentLoaded', loadFoldersSelect);
+
+  // ====== ملخصاتي (مع المجلدات) ======
   let summariesCache={};
   async function getSummaryPoints(){
     if(!db) return 10;
@@ -623,27 +629,56 @@
   }
   getSummaryPoints().then(p=>{ document.getElementById('summaryPointsLabel').textContent=p; });
 
-  async function renderSummaries(){
-    const q=(document.getElementById('summarySearch').value||'').trim();
-    const box=document.getElementById('summariesList');
-    if(!db){ box.innerHTML='<p style="font-size:13px;color:#9bb3cb">الملخصات تحتاج اتصال بالإنترنت.</p>'; return; }
-    box.innerHTML='جاري التحميل...';
-    const snap=await db.collection('summaries').orderBy('time','desc').limit(100).get();
-    let items=[];snap.forEach(d=>items.push({id:d.id, ...d.data()}));
-    if(q)items=items.filter(i=>i.title.includes(q)||i.name.includes(q));
-    summariesCache={};
-    items.forEach(i=>{ summariesCache[i.id]=i; });
-    box.innerHTML=items.length?items.map(i=>{
-      const canDelete=(user.phone===i.phone)||(user.role==='admin'||user.role==='co-admin');
-      return `<div class="card-box file-card">
-        <div class="meta"><b>${i.title}</b><span>بواسطة <span class="name-link" onclick="openProfile('${i.phone}')">${i.name}</span></span></div>
-        <div style="display:flex;gap:6px;">
-          <button class="dl" onclick="downloadSummaryFile('${i.id}')">تحميل</button>
-          ${canDelete?`<button class="dl" style="background:#b00020;color:#fff;" onclick="deleteSummary('${i.id}')">🗑 حذف</button>`:''}
-        </div>
-      </div>`;
-    }).join(''):'<p style="font-size:13px;color:#9bb3cb">لا توجد ملخصات بعد</p>';
+  async function renderSummaries() {
+    const q = (document.getElementById('summarySearch').value || '').trim();
+    const box = document.getElementById('summariesList');
+    if (!db) { box.innerHTML = '<p style="font-size:13px;color:#9bb3cb;">الملخصات تحتاج اتصال بالإنترنت.</p>'; return; }
+    box.innerHTML = 'جاري التحميل...';
+    try {
+      const foldersSnap = await db.collection('folders').orderBy('name', 'asc').get();
+      const folders = {};
+      foldersSnap.forEach(d => { folders[d.id] = d.data().name; });
+
+      const snap = await db.collection('summaries').orderBy('time', 'desc').limit(200).get();
+      let items = [];
+      snap.forEach(d => items.push({ id: d.id, ...d.data() }));
+      
+      if (q) items = items.filter(i => i.title.includes(q) || i.name.includes(q));
+
+      const grouped = {};
+      items.forEach(item => {
+        const folderId = item.folderId || 'uncategorized';
+        if (!grouped[folderId]) grouped[folderId] = [];
+        grouped[folderId].push(item);
+      });
+
+      let html = '';
+      const folderNames = { uncategorized: '📂 بدون مجلد' };
+      Object.keys(folders).forEach(k => { folderNames[k] = '📁 ' + folders[k]; });
+
+      for (const [folderId, summaryList] of Object.entries(grouped)) {
+        const folderName = folderNames[folderId] || '📂 بدون مجلد';
+        html += `<div style="margin-bottom:16px;">
+          <div style="font-size:16px;font-weight:700;color:var(--blue-deep);padding:6px 12px;background:#eaf4ff;border-radius:8px;margin-bottom:6px;display:flex;justify-content:space-between;">
+            <span>${folderName}</span>
+            <span style="font-size:12px;color:#7a93ad;font-weight:400;">${summaryList.length} ملخص</span>
+          </div>`;
+        summaryList.forEach(i => {
+          const canDelete = (user.phone === i.phone) || (user.role === 'admin' || user.role === 'co-admin');
+          html += `<div class="card-box file-card" style="margin-bottom:6px;padding:10px 14px;">
+            <div class="meta"><b>${i.title}</b><span>بواسطة <span class="name-link" onclick="openProfile('${i.phone}')">${i.name}</span></span></div>
+            <div style="display:flex;gap:6px;">
+              <button class="dl" onclick="downloadSummaryFile('${i.id}')">تحميل</button>
+              ${canDelete ? `<button class="dl" style="background:#b00020;color:#fff;" onclick="deleteSummary('${i.id}')">🗑</button>` : ''}
+            </div>
+          </div>`;
+        });
+        html += `</div>`;
+      }
+      box.innerHTML = html || '<p style="font-size:13px;color:#9bb3cb;">لا توجد ملخصات بعد</p>';
+    } catch (e) { box.innerHTML = '<p style="font-size:13px;color:#b00020;">خطأ في التحميل</p>'; }
   }
+
   function downloadSummaryFile(id){
     const item=summariesCache[id];
     if(!item || !item.fileUrl) return;
@@ -656,6 +691,7 @@
 
   async function uploadSummary(){
     const title=document.getElementById('summaryTitle').value.trim();
+    const folderId=document.getElementById('summaryFolder').value;
     const file=document.getElementById('summaryFile').files[0];
     const btn=document.getElementById('uploadSummaryBtn');
     const progress=document.getElementById('summaryUploadProgress');
@@ -689,7 +725,15 @@
         const fileUrl=data.secure_url;
         if(!fileUrl){ progress.textContent='❌ لا يوجد رابط'; btn.disabled=false; wrapper.style.display='none'; return; }
         const points=await getSummaryPoints();
-        await db.collection('summaries').add({title, fileUrl, fileName:file.name, name:user.name, phone:user.phone, time:Date.now()});
+        await db.collection('summaries').add({
+          title,
+          fileUrl,
+          fileName: file.name,
+          folderId: folderId || null,
+          name: user.name,
+          phone: user.phone,
+          time: Date.now()
+        });
         await db.collection('users').doc(user.phone).update({points: firebase.firestore.FieldValue.increment(points)});
         document.getElementById('summaryTitle').value='';
         document.getElementById('summaryFile').value='';
@@ -707,7 +751,7 @@
     xhr.send(formData);
   }
 
-  // ==================== كتبي ====================
+  // ====== كتبي ======
   let booksCache={};
   async function renderBooks(){
     const q=(document.getElementById('bookSearch').value||'').trim();
@@ -741,7 +785,7 @@
     try{ await db.collection('books').doc(id).delete(); renderBooks(); }catch(e){ alert('خطأ: '+e.message); }
   }
 
-  // ==================== ترتيب الفخر (مع الميداليات 💎) ====================
+  // ====== ترتيب الفخر (مع الميداليات) ======
   async function renderLeaderboard() {
     const box = document.getElementById('leaderboardList');
     if (!db) { box.innerHTML = '<p style="font-size:13px;color:#9bb3cb">الترتيب يحتاج اتصال بالإنترنت.</p>'; return; }
@@ -752,7 +796,6 @@
       snap.forEach(d => items.push({ id: d.id, ...d.data() }));
       items.sort((a, b) => (b.points || 0) - (a.points || 0));
 
-      // جلب إعدادات الميداليات
       let medalWinners = {};
       let showMedals = false;
       try {
@@ -796,4 +839,4 @@
   }
 </script>
 </body>
-  </html>
+        </html>
