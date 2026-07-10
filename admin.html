@@ -82,6 +82,7 @@
       <button onclick="showTab('folders', this)">📁 المجلدات</button>
       <button onclick="showTab('reports', this)">📊 التقارير</button>
       <button onclick="showTab('quizzes', this)">📝 الكويزات</button>
+      <button onclick="showTab('allowed', this)">📋 الأرقام المسموحة</button>
     </div>
 
     <!-- ===== لوحة الاحصائيات ===== -->
@@ -266,6 +267,23 @@
       </div>
     </div>
 
+    <!-- ===== إدارة الأرقام المسموحة ===== -->
+    <div class="section" id="tab-allowed">
+      <div class="card-box">
+        <b style="display:block;margin-bottom:8px;">➕ إضافة رقم مسموح</b>
+        <div class="form-line">
+          <input type="tel" id="newAllowedPhone" placeholder="01xxxxxxxxx">
+          <input type="text" id="newAllowedName" placeholder="الاسم (اختياري)">
+          <button class="btn btn-approve" onclick="addAllowedNumber()">➕ إضافة</button>
+        </div>
+        <p id="allowedMsg" style="font-size:12px;color:#7a93ad;"></p>
+      </div>
+      <div class="card-box">
+        <b style="display:block;margin-bottom:8px;">📋 الأرقام المسموحة</b>
+        <div id="allowedList">جاري التحميل...</div>
+      </div>
+    </div>
+
     <!-- التنبيهات -->
     <div class="section" id="tab-announce">
       <div class="card-box">
@@ -332,6 +350,7 @@
     if(id === 'folders') loadFolders();
     if(id === 'reports') loadReports();
     if(id === 'quizzes') loadAdminQuizzes();
+    if(id === 'allowed') loadAllowedNumbers();
   }
 
   function loadAll(){
@@ -349,6 +368,7 @@
     loadFolders();
     loadReports();
     loadAdminQuizzes();
+    loadAllowedNumbers();
   }
 
   // ====== لوحة الاحصائيات ======
@@ -700,6 +720,57 @@
     loadAdminQuizzes();
   }
 
+  // ====== إدارة الأرقام المسموحة ======
+  async function loadAllowedNumbers() {
+    const box = document.getElementById('allowedList');
+    if (!db) { box.innerHTML = '<p style="font-size:13px;color:#7a93ad;">لا يوجد اتصال بالإنترنت</p>'; return; }
+    box.innerHTML = 'جاري التحميل...';
+    try {
+      const snap = await db.collection('allowedUsers').orderBy('phone').get();
+      if (snap.empty) { box.innerHTML = '<p style="font-size:13px;color:#7a93ad;">لا توجد أرقام مسموحة</p>'; return; }
+      let html = '';
+      snap.forEach(doc => {
+        const data = doc.data();
+        html += `
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f0f4fa;">
+            <span><b>${data.phone}</b> ${data.name ? '— ' + data.name : ''}</span>
+            <button class="btn btn-reject btn-sm" onclick="removeAllowedNumber('${doc.id}')">🗑 حذف</button>
+          </div>
+        `;
+      });
+      box.innerHTML = html;
+    } catch (e) { box.innerHTML = '<p style="font-size:13px;color:#b00020;">خطأ في التحميل</p>'; }
+  }
+
+  async function addAllowedNumber() {
+    const phone = document.getElementById('newAllowedPhone').value.trim();
+    const name = document.getElementById('newAllowedName').value.trim();
+    const msg = document.getElementById('allowedMsg');
+    if (!phone) { msg.textContent = '⚠️ أدخل رقم الموبايل'; msg.style.color = '#b00020'; return; }
+    if (!/^01[0-9]{9}$/.test(phone)) { msg.textContent = '⚠️ رقم غير صحيح'; msg.style.color = '#b00020'; return; }
+    if (!db) { msg.textContent = '❌ لا يوجد اتصال بالإنترنت'; msg.style.color = '#b00020'; return; }
+    try {
+      await db.collection('allowedUsers').doc(phone).set({
+        phone: phone,
+        name: name || 'بدون اسم',
+        addedAt: Date.now()
+      });
+      msg.textContent = '✅ تمت الإضافة';
+      msg.style.color = '#147a35';
+      document.getElementById('newAllowedPhone').value = '';
+      document.getElementById('newAllowedName').value = '';
+      loadAllowedNumbers();
+    } catch (e) { msg.textContent = '❌ خطأ: ' + e.message; msg.style.color = '#b00020'; }
+  }
+
+  async function removeAllowedNumber(phone) {
+    if (!confirm(`هل تريد حذف الرقم ${phone}؟`)) return;
+    try {
+      await db.collection('allowedUsers').doc(phone).delete();
+      loadAllowedNumbers();
+    } catch (e) { alert('خطأ: ' + e.message); }
+  }
+
   // ====== باقي الدوال ======
   async function loadPending(){
     const box = document.getElementById('pendingList');
@@ -1011,4 +1082,4 @@
   }
 </script>
 </body>
-  </html>
+        </html>
