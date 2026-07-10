@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>الكويزات | قسم علوم ابتدائي</title>
+<style>
+  :root{--blue-deep:#0a2e5c;--blue-main:#1565d8;--blue-bright:#2f9bf0;--ice:#eaf4ff;--gold:#f5a623;}
+  *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Tahoma,Arial,sans-serif;}
+  body{background:var(--ice);color:#0a2e5c;min-height:100vh;}
+  .topbar{background:linear-gradient(135deg,var(--blue-main),var(--blue-deep));color:#fff;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:30;box-shadow:0 4px 14px rgba(10,46,92,0.25);}
+  .topbar a{color:#fff;text-decoration:none;font-size:13px;background:rgba(255,255,255,0.15);padding:8px 14px;border-radius:10px;transition:0.2s;}
+  .topbar a:hover{background:rgba(255,255,255,0.25);}
+  .wrap{max-width:900px;margin:24px auto;padding:0 16px;}
+  .card-box{background:#fff;border-radius:16px;padding:20px;box-shadow:0 6px 18px rgba(10,46,92,0.06);margin-bottom:14px;}
+  .btn{border:none;border-radius:10px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer;}
+  .btn-blue{background:var(--blue-main);color:#fff;}
+  .btn-gold{background:var(--gold);color:#fff;}
+  .btn-reject{background:#b00020;color:#fff;}
+  .btn-approve{background:#147a35;color:#fff;}
+  .btn-sm{padding:4px 12px;font-size:12px;}
+  .quiz-item{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #f0f4fa;flex-wrap:wrap;gap:8px;}
+  .quiz-item .info b{display:block;font-size:15px;color:var(--blue-deep);}
+  .quiz-item .info span{font-size:12px;color:#7a93ad;}
+  .question-box{background:#f8faff;padding:14px;border-radius:10px;margin-bottom:10px;}
+  .question-box .q-text{font-weight:700;font-size:15px;color:var(--blue-deep);margin-bottom:6px;}
+  .question-box .options label{display:block;padding:6px 10px;margin:3px 0;background:#fff;border-radius:8px;border:1.5px solid #e0e8f0;cursor:pointer;transition:0.2s;}
+  .question-box .options label:hover{background:#eaf4ff;border-color:var(--blue-main);}
+  .question-box .options input[type="radio"]{margin-left:8px;}
+  .result-box{text-align:center;padding:20px;background:#e3f7e8;border-radius:12px;margin-top:14px;}
+  .result-box .score{font-size:32px;font-weight:900;color:var(--blue-deep);}
+  .result-box .label{font-size:14px;color:#7a93ad;}
+  .form-line{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
+  .form-line input,.form-line select,.form-line textarea{padding:10px;border-radius:10px;border:1.5px solid #cfe2f7;flex:1;min-width:140px;font-size:14px;}
+  .form-line textarea{min-height:60px;}
+  .option-group{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:4px 0;}
+  .option-group input[type="text"]{flex:1;min-width:120px;padding:6px 10px;border-radius:8px;border:1.5px solid #cfe2f7;}
+  .option-group .correct-badge{background:var(--gold);color:#fff;font-size:11px;padding:2px 8px;border-radius:12px;}
+  .tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
+  .tabs button{padding:8px 16px;border:none;border-radius:10px;background:#fff;color:#4a6585;font-weight:700;font-size:13px;cursor:pointer;}
+  .tabs button.active{background:var(--blue-main);color:#fff;}
+  .section{display:none;}
+  .section.active{display:block;}
+  .footer{text-align:center;font-size:11.5px;color:#9bb3cb;padding:18px 0;}
+  .status-badge{font-size:11px;padding:2px 10px;border-radius:12px;background:#e3f7e8;color:#147a35;}
+  .status-badge.closed{background:#ffe5e5;color:#b00020;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand" style="font-weight:800;font-size:16px;">📝 الكويزات</div>
+  <a href="home.html">🏠 الرجوع للرئيسية</a>
+</div>
+
+<div class="wrap">
+  <div class="tabs" id="quizTabs">
+    <button class="active" onclick="switchQuizTab('list')">📋 الكويزات المتاحة</button>
+    <button onclick="switchQuizTab('my')">📊 نتائجي</button>
+    <button id="adminQuizTab" onclick="switchQuizTab('create')" style="display:none;">➕ إنشاء كويز</button>
+  </div>
+
+  <div class="section active" id="tab-list">
+    <div id="quizzesList"><p style="font-size:13px;color:#7a93ad;">جاري التحميل...</p></div>
+  </div>
+
+  <div class="section" id="tab-my">
+    <div id="myResults"><p style="font-size:13px;color:#7a93ad;">جاري التحميل...</p></div>
+  </div>
+
+  <div class="section" id="tab-create">
+    <div class="card-box">
+      <b style="display:block;margin-bottom:8px;">📝 إنشاء كويز جديد</b>
+      <div class="form-line">
+        <input type="text" id="quizTitle" placeholder="عنوان الكويز (مثال: اختبار كيمياء)">
+        <select id="quizSubject"><option value="">المادة</option><option value="كيمياء">كيمياء</option><option value="فيزياء">فيزياء</option><option value="أحياء">أحياء</option><option value="رياضيات">رياضيات</option><option value="لغة عربية">لغة عربية</option><option value="لغة إنجليزية">لغة إنجليزية</option></select>
+        <input type="number" id="quizTime" placeholder="الوقت (دقائق)" min="1" style="max-width:120px;">
+      </div>
+      <div id="questionsContainer">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin:10px 0;">
+          <b>الأسئلة</b>
+          <button class="btn btn-blue btn-sm" onclick="addQuestion()">➕ إضافة سؤال</button>
+        </div>
+        <div id="questionsList"></div>
+      </div>
+      <button class="btn btn-approve" onclick="saveQuiz()" style="margin-top:12px;padding:10px 30px;">💾 حفظ الكويز</button>
+      <p id="createMsg" style="font-size:12px;color:#7a93ad;margin-top:6px;"></p>
+    </div>
+  </div>
+</div>
+
+<div class="footer">تم إنشاء هذا الموقع بواسطة MF.mo.fayyad</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyBgI8VcLOdQAMgmcpxCzaMS1UCX1vyzSjw",
+    authDomain: "science-e2b52.firebaseapp.com",
+    projectId: "science-e2b52",
+    storageBucket: "science-e2b52.firebasestorage.app",
+    messagingSenderId: "1031434005860",
+    appId: "1:1031434005860:web:e68fccdd746017a5639e71",
+    measurementId: "G-JZ1SFVMM7P"
+  };
+  let db = null;
+  try {
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.firestore();
+  } catch (e) { console.warn('لا يوجد اتصال بالإنترنت', e); }
+
+  function getCurrentUser() {
+    const raw = localStorage.getItem('currentUser');
+    return raw ? JSON.parse(raw) : null;
+  }
+  const user = getCurrentUser();
+  if (!user) window.location.href = 'login.html';
+
+  let currentQuizId = null;
+  let userAnswers = {};
+
+  function switchQuizTab(tab) {
+    document.querySelectorAll('#quizTabs button').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    if (tab === 'list') { document.getElementById('tab-list').classList.add('active'); document.querySelector('#quizTabs button:nth-child(1)').classList.add('active'); loadQuizzes(); }
+    if (tab === 'my') { document.getElementById('tab-my').classList.add('active'); document.querySelector('#quizTabs button:nth-child(2)').classList.add('active'); loadMyResults(); }
+    if (tab === 'create') { document.getElementById('tab-create').classList.add('active'); document.querySelector('#quizTabs button:nth-child(3)').classList.add('active'); }
+  }
+
+  if (user.role === 'admin' || user.role === 'co-admin') {
+    document.getElementById('adminQuizTab').style.display = 'inline-block';
+  }
+
+  async function loadQuizzes() {
+    const box = document.getElementById('quizzesList');
+    if (!db) { box.innerHTML = '<p style="font-size:13px;color:#7a93ad;">لا يوجد اتصال بالإنترنت</p>'; return; }
+    box.innerHTML = 'جاري التحميل...';
+    try {
+      const snap = await db.collection('quizzes').orderBy('createdAt', 'desc').get();
+      if (snap.empty) { box.innerHTML = '<p style="font-size:13px;color:#7a93ad;">لا توجد كويزات حالياً</p>'; return; }
+      let html = '';
+      snap.forEach(doc => {
+        const q = doc.data();
+        const isCompleted = q.results && q.results[user.phone] && q.results[user.phone].completed;
+        const userScore = q.results && q.results[user.phone] ? q.results[user.phone].score : null;
+        html += `
+          <div class="card-box quiz-item">
+            <div class="info">
+              <b>${q.title}</b>
+              <span>📚 ${q.subject || 'بدون مادة'} • ${q.questions ? q.questions.length : 0} أسئلة</span>
+              ${isCompleted ? `<span class="status-badge">✅ تم الإجابة • ${userScore}/${q.questions.length}</span>` : ''}
+            </div>
+            <div>
+              ${isCompleted ? `<span style="font-size:12px;color:#7a93ad;">تم</span>` : `<button class="btn btn-blue btn-sm" onclick="startQuiz('${doc.id}')">▶️ دخول</button>`}
+            </div>
+          </div>
+        `;
+      });
+      box.innerHTML = html;
+    } catch (e) { box.innerHTML = '<p style="font-size:13px;color:#b00020;">خطأ في التحميل</p>'; }
+  }
+
+  async function startQuiz(quizId) {
+    const snap = await db.collection('quizzes').doc(quizId).get();
+    if (!snap.exists) return alert('الكويز غير موجود');
+    const quiz = snap.data();
+    if (quiz.results && quiz.results[user.phone] && quiz.results[user.phone].completed) {
+      return alert('لقد أجبت على هذا الكويز بالفعل');
+    }
+    currentQuizId = quizId;
+    userAnswers = {};
+    showQuizQuestions(quiz);
+  }
+
+  function showQuizQuestions(quiz) {
+    const box = document.getElementById('quizzesList');
+    let html = `<div class="card-box"><b style="display:block;font-size:18px;color:var(--blue-deep);">${quiz.title}</b>
+      <p style="font-size:13px;color:#7a93ad;margin-bottom:12px;">📚 ${quiz.subject || ''} • ${quiz.questions.length} أسئلة</p>`;
+    quiz.questions.forEach((q, i) => {
+      html += `
+        <div class="question-box">
+          <div class="q-text">${i+1}. ${q.question}</div>
+          <div class="options">`;
+      q.options.forEach((opt, oi) => {
+        html += `<label><input type="radio" name="q_${i}" value="${oi}" onchange="userAnswers['${i}']=${oi}"> ${opt}</label>`;
+      });
+      html += `</div></div>`;
+    });
+    html += `<button class="btn btn-approve" onclick="submitQuiz()" style="padding:10px 30px;">📤 تسليم الكويز</button>
+      <button class="btn btn-reject btn-sm" onclick="loadQuizzes()" style="margin-right:8px;">إلغاء</button>
+      <p id="quizResultMsg" style="font-size:12px;color:#7a93ad;margin-top:6px;"></p>
+    </div>`;
+    box.innerHTML = html;
+    box.scrollIntoView({ behavior: 'smooth' });
+  }
+
+  async function submitQuiz() {
+    if (!currentQuizId) return alert('لا يوجد كويز نشط');
+    const snap = await db.collection('quizzes').doc(currentQuizId).get();
+    const quiz = snap.data();
+    const total = quiz.questions.length;
+    let correct = 0;
+    for (let i = 0; i < total; i++) {
+      if (userAnswers[i] !== undefined && userAnswers[i] == quiz.questions[i].correct) correct++;
+    }
+    const score = correct;
+    await db.collection('quizzes').doc(currentQuizId).update({
+      [`results.${user.phone}`]: {
+        score: score,
+        total: total,
+        completed: true,
+        name: user.name,
+        time: Date.now()
+      }
+    });
+    if (score > 0) {
+      await db.collection('users').doc(user.phone).update({
+        points: firebase.firestore.FieldValue.increment(score)
+      });
+    }
+    document.getElementById('quizResultMsg').innerHTML = `
+      <div class="result-box">
+        <div class="label">نتيجتك</div>
+        <div class="score">${score} / ${total}</div>
+        <div style="font-size:14px;color:#7a93ad;">✅ تمت إضافة ${score} نقطة</div>
+      </div>
+    `;
+    loadQuizzes();
+  }
+
+  async function loadMyResults() {
+    const box = document.getElementById('myResults');
+    if (!db) { box.innerHTML = '<p style="font-size:13px;color:#7a93ad;">لا يوجد اتصال بالإنترنت</p>'; return; }
+    box.innerHTML = 'جاري التحميل...';
+    try {
+      const snap = await db.collection('quizzes').get();
+      let results = [];
+      snap.forEach(doc => {
+        const q = doc.data();
+        if (q.results && q.results[user.phone]) {
+          results.push({ title: q.title, subject: q.subject, ...q.results[user.phone] });
+        }
+      });
+      if (results.length === 0) { box.innerHTML = '<p style="font-size:13px;color:#7a93ad;">لم تخض أي كويز بعد</p>'; return; }
+      box.innerHTML = results.map(r => `
+        <div class="card-box" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;">
+          <div><b>${r.title}</b> <span style="font-size:12px;color:#7a93ad;">${r.subject || ''}</span></div>
+          <div><span style="font-weight:700;color:var(--blue-deep);">${r.score}/${r.total}</span> <span style="font-size:12px;color:#7a93ad;">${new Date(r.time).toLocaleDateString('ar')}</span></div>
+        </div>
+      `).join('');
+    } catch (e) { box.innerHTML = '<p style="font-size:13px;color:#b00020;">خطأ في التحميل</p>'; }
+  }
+
+  let questionCount = 0;
+
+  function addQuestion() {
+    const container = document.getElementById('questionsList');
+    const div = document.createElement('div');
+    div.className = 'question-box';
+    div.id = `q_${questionCount}`;
+    div.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-weight:700;">سؤال ${questionCount+1}</span>
+        <button class="btn btn-reject btn-sm" onclick="removeQuestion('q_${questionCount}')">✕</button>
+      </div>
+      <input type="text" class="q-text-input" placeholder="نص السؤال..." style="width:100%;padding:8px;border-radius:8px;border:1.5px solid #cfe2f7;margin:4px 0;">
+      <div class="options-container">
+        <div class="option-group"><input type="text" class="opt-input" placeholder="اختيار 1"><input type="radio" name="correct_${questionCount}" value="0" class="correct-radio"></div>
+        <div class="option-group"><input type="text" class="opt-input" placeholder="اختيار 2"><input type="radio" name="correct_${questionCount}" value="1" class="correct-radio"></div>
+        <div class="option-group"><input type="text" class="opt-input" placeholder="اختيار 3"><input type="radio" name="correct_${questionCount}" value="2" class="correct-radio"></div>
+        <div class="option-group"><input type="text" class="opt-input" placeholder="اختيار 4"><input type="radio" name="correct_${questionCount}" value="3" class="correct-radio"></div>
+      </div>
+      <button class="btn btn-blue btn-sm" onclick="addOption(this)">➕ إضافة اختيار</button>
+    `;
+    container.appendChild(div);
+    questionCount++;
+  }
+
+  function removeQuestion(id) {
+    const el = document.getElementById(id);
+    if (el && confirm('حذف هذا السؤال؟')) el.remove();
+  }
+
+  function addOption(btn) {
+    const container = btn.previousElementSibling;
+    const count = container.querySelectorAll('.option-group').length;
+    const div = document.createElement('div');
+    div.className = 'option-group';
+    div.innerHTML = `<input type="text" class="opt-input" placeholder="اختيار ${count+1}"><input type="radio" name="correct_${container.closest('.question-box').id.replace('q_','')}" value="${count}" class="correct-radio">`;
+    container.appendChild(div);
+  }
+
+  async function saveQuiz() {
+    const title = document.getElementById('quizTitle').value.trim();
+    const subject = document.getElementById('quizSubject').value;
+    const timeLimit = parseInt(document.getElementById('quizTime').value) || 0;
+    if (!title) return alert('أدخل عنوان الكويز');
+    if (!subject) return alert('اختر المادة');
+
+    const questionBoxes = document.querySelectorAll('#questionsList .question-box');
+    if (questionBoxes.length === 0) return alert('أضف سؤالاً واحداً على الأقل');
+
+    const questions = [];
+    let valid = true;
+    questionBoxes.forEach(box => {
+      const qText = box.querySelector('.q-text-input').value.trim();
+      const opts = box.querySelectorAll('.opt-input');
+      const options = [];
+      opts.forEach(o => { if (o.value.trim()) options.push(o.value.trim()); });
+      const correctRadios = box.querySelectorAll('.correct-radio');
+      let correct = -1;
+      correctRadios.forEach((r, i) => { if (r.checked) correct = i; });
+      if (qText && options.length >= 2 && correct >= 0) {
+        questions.push({ question: qText, options: options, correct: correct });
+      } else {
+        valid = false;
+      }
+    });
+
+    if (!valid) return alert('تأكد من أن كل سؤال يحتوي على نص واختيارين على الأقل وإجابة صحيحة محددة');
+
+    await db.collection('quizzes').add({
+      title,
+      subject,
+      timeLimit,
+      questions,
+      createdBy: user.phone,
+      createdAt: Date.now(),
+      results: {}
+    });
+
+    document.getElementById('createMsg').textContent = '✅ تم إنشاء الكويز بنجاح';
+    document.getElementById('createMsg').style.color = '#147a35';
+    document.getElementById('quizTitle').value = '';
+    document.getElementById('quizTime').value = '';
+    document.getElementById('questionsList').innerHTML = '';
+    questionCount = 0;
+    loadQuizzes();
+  }
+
+  loadQuizzes();
+</script>
+</body>
+</html>
