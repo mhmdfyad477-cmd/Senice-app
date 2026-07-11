@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>التقييم الشخصي | قسم علوم ابتدائي</title>
+<style>
+  :root{--blue-deep:#0a2e5c;--blue-main:#1565d8;--blue-bright:#2f9bf0;--ice:#eaf4ff;--gold:#f5a623;}
+  *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Tahoma,Arial,sans-serif;}
+  body{background:var(--ice);color:#0a2e5c;min-height:100vh;}
+  .topbar{background:linear-gradient(135deg,var(--blue-main),var(--blue-deep));color:#fff;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:30;box-shadow:0 4px 14px rgba(10,46,92,0.25);}
+  .topbar a{color:#fff;text-decoration:none;font-size:13px;background:rgba(255,255,255,0.15);padding:8px 14px;border-radius:10px;transition:0.2s;}
+  .topbar a:hover{background:rgba(255,255,255,0.25);}
+  .wrap{max-width:900px;margin:24px auto;padding:0 16px;}
+  .card-box{background:#fff;border-radius:16px;padding:16px;box-shadow:0 6px 18px rgba(10,46,92,0.06);margin-bottom:14px;}
+  .btn{border:none;border-radius:10px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer;}
+  .btn-blue{background:var(--blue-main);color:#fff;}
+  .btn-approve{background:#147a35;color:#fff;}
+  .btn-reject{background:#b00020;color:#fff;}
+  .btn-sm{padding:4px 12px;font-size:12px;}
+  .form-line{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
+  .form-line input,.form-line select{padding:10px;border-radius:10px;border:1.5px solid #cfe2f7;flex:1;min-width:140px;font-size:14px;}
+  .subject-card{border-right:4px solid var(--blue-main);padding:12px;background:#f8faff;border-radius:8px;margin-bottom:8px;}
+  .subject-card .subject-name{font-size:16px;font-weight:700;color:var(--blue-deep);}
+  .lecture-item{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px dashed #e0e8f0;}
+  .lecture-item .status{padding:2px 10px;border-radius:12px;font-size:11px;font-weight:700;}
+  .status.present{background:#e3f7e8;color:#147a35;}
+  .status.absent{background:#ffe5e5;color:#b00020;}
+  .grade-item{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:4px 0;}
+  .grade-item input{width:80px;padding:4px 6px;border-radius:6px;border:1.5px solid #cfe2f7;text-align:center;}
+  .footer{text-align:center;font-size:11.5px;color:#9bb3cb;padding:18px 0;}
+  .tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
+  .tabs button{padding:8px 16px;border:none;border-radius:10px;background:#fff;color:#4a6585;font-weight:700;font-size:13px;cursor:pointer;}
+  .tabs button.active{background:var(--blue-main);color:#fff;}
+  .section{display:none;}
+  .section.active{display:block;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand" style="font-weight:800;font-size:16px;">📊 التقييم الشخصي</div>
+  <a href="home.html">🏠 الرجوع للرئيسية</a>
+</div>
+
+<div class="wrap">
+  <div class="tabs">
+    <button class="active" onclick="switchTab('subjects')">📚 المواد</button>
+    <button onclick="switchTab('addSubject')">➕ إضافة مادة</button>
+  </div>
+
+  <div class="section active" id="tab-subjects">
+    <div id="subjectsList">
+      <p style="font-size:13px;color:#7a93ad;">جاري التحميل...</p>
+    </div>
+  </div>
+
+  <div class="section" id="tab-addSubject">
+    <div class="card-box">
+      <b style="display:block;margin-bottom:8px;">📚 إضافة مادة جديدة</b>
+      <div class="form-line">
+        <input type="text" id="newSubjectName" placeholder="اسم المادة (مثال: كيمياء)">
+        <button class="btn btn-blue" onclick="addSubject()">➕ إضافة</button>
+      </div>
+      <p id="subjectMsg" style="font-size:12px;color:#7a93ad;"></p>
+    </div>
+  </div>
+</div>
+
+<div class="footer">تم إنشاء هذا الموقع بواسطة MF.mo.fayyad</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyBgI8VcLOdQAMgmcpxCzaMS1UCX1vyzSjw",
+    authDomain: "science-e2b52.firebaseapp.com",
+    projectId: "science-e2b52",
+    storageBucket: "science-e2b52.firebasestorage.app",
+    messagingSenderId: "1031434005860",
+    appId: "1:1031434005860:web:e68fccdd746017a5639e71",
+    measurementId: "G-JZ1SFVMM7P"
+  };
+  let db = null;
+  try {
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.firestore();
+  } catch (e) { console.warn('لا يوجد اتصال بالإنترنت', e); }
+
+  function getCurrentUser() {
+    const raw = localStorage.getItem('currentUser');
+    return raw ? JSON.parse(raw) : null;
+  }
+  const user = getCurrentUser();
+  if (!user) window.location.href = 'login.html';
+
+  function switchTab(tab) {
+    document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    if (tab === 'subjects') {
+      document.querySelector('.tabs button:nth-child(1)').classList.add('active');
+      document.getElementById('tab-subjects').classList.add('active');
+      loadSubjects();
+    }
+    if (tab === 'addSubject') {
+      document.querySelector('.tabs button:nth-child(2)').classList.add('active');
+      document.getElementById('tab-addSubject').classList.add('active');
+    }
+  }
+
+  async function addSubject() {
+    const name = document.getElementById('newSubjectName').value.trim();
+    const msg = document.getElementById('subjectMsg');
+    if (!name) { msg.textContent = '⚠️ أدخل اسم المادة'; msg.style.color = '#b00020'; return; }
+    if (!db) { msg.textContent = '❌ لا يوجد اتصال بالإنترنت'; return; }
+    try {
+      const evalRef = db.collection('evaluations').doc(user.phone);
+      const evalSnap = await evalRef.get();
+      let data = evalSnap.exists ? evalSnap.data() : { subjects: [] };
+      if (data.subjects.some(s => s.name === name)) {
+        msg.textContent = '⚠️ هذه المادة موجودة بالفعل'; msg.style.color = '#b00020'; return;
+      }
+      data.subjects.push({ name: name, lectures: [], grades: { midterm: null, practical: null, final: null } });
+      await evalRef.set(data);
+      document.getElementById('newSubjectName').value = '';
+      msg.textContent = '✅ تم إضافة المادة'; msg.style.color = '#147a35';
+      loadSubjects();
+    } catch (e) { msg.textContent = '❌ خطأ: '+e.message; msg.style.color = '#b00020'; }
+  }
+
+  async function loadSubjects() {
+    const box = document.getElementById('subjectsList');
+    if (!db) { box.innerHTML = '<p style="font-size:13px;color:#7a93ad;">لا يوجد اتصال بالإنترنت</p>'; return; }
+    box.innerHTML = 'جاري التحميل...';
+    try {
+      const evalSnap = await db.collection('evaluations').doc(user.phone).get();
+      if (!evalSnap.exists || !evalSnap.data().subjects || evalSnap.data().subjects.length === 0) {
+        box.innerHTML = '<p style="font-size:13px;color:#7a93ad;">لا توجد مواد مسجلة بعد</p>';
+        return;
+      }
+      const subjects = evalSnap.data().subjects;
+      box.innerHTML = subjects.map((s, idx) => `
+        <div class="subject-card">
+          <div class="subject-name">${s.name}</div>
+          <div style="margin:6px 0;">
+            <b style="font-size:13px;">📅 المحاضرات</b>
+            ${s.lectures && s.lectures.length > 0 ? s.lectures.map((l, li) => `
+              <div class="lecture-item">
+                <span>المحاضرة ${li+1}</span>
+                <span class="status ${l.attended ? 'present' : 'absent'}">${l.attended ? '✅ حضر' : '❌ غاب'}</span>
+                <button class="btn btn-sm ${l.attended ? 'btn-reject' : 'btn-approve'}" onclick="toggleLecture('${idx}', ${li})">
+                  ${l.attended ? '❌ غاب' : '✅ حضر'}
+                </button>
+              </div>
+            `).join('') : '<span style="font-size:12px;color:#7a93ad;">لا توجد محاضرات مسجلة</span>'}
+            <button class="btn btn-blue btn-sm" onclick="addLecture(${idx})">➕ إضافة محاضرة</button>
+          </div>
+          <div style="margin:6px 0;">
+            <b style="font-size:13px;">📝 الدرجات</b>
+            <div class="grade-item">
+              <span>ميد ترم:</span>
+              <input type="number" id="midterm_${idx}" value="${s.grades.midterm || ''}" min="0" max="100">
+              <span>عملي:</span>
+              <input type="number" id="practical_${idx}" value="${s.grades.practical || ''}" min="0" max="100">
+              <span>فاينل:</span>
+              <input type="number" id="final_${idx}" value="${s.grades.final || ''}" min="0" max="100">
+              <button class="btn btn-approve btn-sm" onclick="saveGrades(${idx})">💾 حفظ</button>
+            </div>
+          </div>
+          <button class="btn btn-reject btn-sm" onclick="deleteSubject(${idx})">🗑 حذف المادة</button>
+        </div>
+      `).join('');
+    } catch (e) { box.innerHTML = '<p style="font-size:13px;color:#b00020;">خطأ في التحميل</p>'; }
+  }
+
+  async function addLecture(subjectIdx) {
+    if (!db) return alert('لا يوجد اتصال بالإنترنت');
+    try {
+      const evalRef = db.collection('evaluations').doc(user.phone);
+      const evalSnap = await evalRef.get();
+      let data = evalSnap.data();
+      if (!data.subjects[subjectIdx].lectures) data.subjects[subjectIdx].lectures = [];
+      data.subjects[subjectIdx].lectures.push({ attended: true });
+      await evalRef.set(data);
+      loadSubjects();
+    } catch (e) { alert('خطأ: '+e.message); }
+  }
+
+  async function toggleLecture(subjectIdx, lectureIdx) {
+    if (!db) return alert('لا يوجد اتصال بالإنترنت');
+    try {
+      const evalRef = db.collection('evaluations').doc(user.phone);
+      const evalSnap = await evalRef.get();
+      let data = evalSnap.data();
+      data.subjects[subjectIdx].lectures[lectureIdx].attended = !data.subjects[subjectIdx].lectures[lectureIdx].attended;
+      await evalRef.set(data);
+      loadSubjects();
+    } catch (e) { alert('خطأ: '+e.message); }
+  }
+
+  async function saveGrades(subjectIdx) {
+    if (!db) return alert('لا يوجد اتصال بالإنترنت');
+    try {
+      const midterm = parseFloat(document.getElementById(`midterm_${subjectIdx}`).value) || null;
+      const practical = parseFloat(document.getElementById(`practical_${subjectIdx}`).value) || null;
+      const final = parseFloat(document.getElementById(`final_${subjectIdx}`).value) || null;
+      const evalRef = db.collection('evaluations').doc(user.phone);
+      const evalSnap = await evalRef.get();
+      let data = evalSnap.data();
+      data.subjects[subjectIdx].grades = { midterm, practical, final };
+      await evalRef.set(data);
+      loadSubjects();
+    } catch (e) { alert('خطأ: '+e.message); }
+  }
+
+  async function deleteSubject(subjectIdx) {
+    if (!confirm('هل تريد حذف هذه المادة وجميع بياناتها؟')) return;
+    try {
+      const evalRef = db.collection('evaluations').doc(user.phone);
+      const evalSnap = await evalRef.get();
+      let data = evalSnap.data();
+      data.subjects.splice(subjectIdx, 1);
+      await evalRef.set(data);
+      loadSubjects();
+    } catch (e) { alert('خطأ: '+e.message); }
+  }
+
+  loadSubjects();
+</script>
+</body>
+  </html>
