@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>منتدى علوم ابتدائي</title>
+<style>
+  :root{--blue-deep:#0a2e5c;--blue-main:#1565d8;--blue-bright:#2f9bf0;--ice:#eaf4ff;--gold:#f5a623;}
+  *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Tahoma,Arial,sans-serif;}
+  body{background:var(--ice);color:#0a2e5c;min-height:100vh;}
+  .topbar{background:linear-gradient(135deg,var(--blue-main),var(--blue-deep));color:#fff;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:30;box-shadow:0 4px 14px rgba(10,46,92,0.25);}
+  .topbar a{color:#fff;text-decoration:none;font-size:13px;background:rgba(255,255,255,0.15);padding:8px 14px;border-radius:10px;transition:0.2s;}
+  .topbar a:hover{background:rgba(255,255,255,0.25);}
+  .wrap{max-width:900px;margin:24px auto;padding:0 16px;}
+  .card-box{background:#fff;border-radius:16px;padding:20px;box-shadow:0 6px 18px rgba(10,46,92,0.06);margin-bottom:14px;}
+  .post-item{border-bottom:1px solid #f0f4fa;padding:12px 0;}
+  .post-item:last-child{border-bottom:none;}
+  .post-item .post-title{font-size:17px;font-weight:700;color:var(--blue-deep);}
+  .post-item .post-meta{font-size:12px;color:#7a93ad;margin:4px 0;}
+  .post-item .post-body{font-size:14px;color:#1e3a5f;line-height:1.7;}
+  .post-item .post-actions{display:flex;gap:12px;margin-top:6px;}
+  .post-item .post-actions button{background:none;border:none;color:var(--blue-main);cursor:pointer;font-size:12px;}
+  .post-item .post-actions button:hover{text-decoration:underline;}
+  .btn{border:none;border-radius:10px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer;}
+  .btn-blue{background:var(--blue-main);color:#fff;}
+  .btn-approve{background:#147a35;color:#fff;}
+  .btn-reject{background:#b00020;color:#fff;}
+  .btn-sm{padding:4px 12px;font-size:12px;}
+  .form-line{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
+  .form-line input,.form-line select,.form-line textarea{padding:10px;border-radius:10px;border:1.5px solid #cfe2f7;flex:1;min-width:140px;font-size:14px;}
+  .form-line textarea{min-height:80px;}
+  .footer{text-align:center;font-size:11.5px;color:#9bb3cb;padding:18px 0;}
+  .anonymous-badge{background:#eaf4ff;color:var(--blue-main);font-size:11px;padding:2px 10px;border-radius:12px;}
+  .reply-item{font-size:13px;color:#1e3a5f;padding:4px 0;border-bottom:1px dashed #e0e8f0;}
+  .reply-item .reply-meta{font-size:11px;color:#7a93ad;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand" style="font-weight:800;font-size:16px;">🗣️ منتدى علوم ابتدائي</div>
+  <a href="home.html">🏠 الرجوع للرئيسية</a>
+</div>
+
+<div class="wrap">
+  <div class="card-box">
+    <b style="display:block;margin-bottom:8px;">📝 منشور جديد</b>
+    <div class="form-line">
+      <input type="text" id="postTitle" placeholder="عنوان المنشور...">
+    </div>
+    <div class="form-line">
+      <textarea id="postBody" placeholder="محتوى المنشور..."></textarea>
+    </div>
+    <button class="btn btn-blue" onclick="createPost()">📤 نشر</button>
+    <p id="postMsg" style="font-size:12px;color:#7a93ad;margin-top:4px;"></p>
+  </div>
+
+  <div id="postsList">
+    <p style="font-size:13px;color:#7a93ad;">جاري التحميل...</p>
+  </div>
+</div>
+
+<div class="footer">تم إنشاء هذا الموقع بواسطة MF.mo.fayyad</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyBgI8VcLOdQAMgmcpxCzaMS1UCX1vyzSjw",
+    authDomain: "science-e2b52.firebaseapp.com",
+    projectId: "science-e2b52",
+    storageBucket: "science-e2b52.firebasestorage.app",
+    messagingSenderId: "1031434005860",
+    appId: "1:1031434005860:web:e68fccdd746017a5639e71",
+    measurementId: "G-JZ1SFVMM7P"
+  };
+  let db = null;
+  try {
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.firestore();
+  } catch (e) { console.warn('لا يوجد اتصال بالإنترنت', e); }
+
+  function getCurrentUser() {
+    const raw = localStorage.getItem('currentUser');
+    return raw ? JSON.parse(raw) : null;
+  }
+  const user = getCurrentUser();
+  if (!user) window.location.href = 'login.html';
+
+  async function createPost() {
+    const title = document.getElementById('postTitle').value.trim();
+    const body = document.getElementById('postBody').value.trim();
+    const msg = document.getElementById('postMsg');
+    if (!title || !body) { msg.textContent = '⚠️ أدخل العنوان والمحتوى'; msg.style.color = '#b00020'; return; }
+    if (!db) { msg.textContent = '❌ لا يوجد اتصال بالإنترنت'; return; }
+    try {
+      await db.collection('forumPosts').add({
+        title: title,
+        body: body,
+        authorPhone: user.phone,
+        authorName: user.name,
+        createdAt: Date.now(),
+        isAnonymous: true,
+        replies: []
+      });
+      document.getElementById('postTitle').value = '';
+      document.getElementById('postBody').value = '';
+      msg.textContent = '✅ تم النشر';
+      msg.style.color = '#147a35';
+      loadPosts();
+    } catch (e) { msg.textContent = '❌ خطأ: '+e.message; msg.style.color = '#b00020'; }
+  }
+
+  async function loadPosts() {
+    const box = document.getElementById('postsList');
+    if (!db) { box.innerHTML = '<p style="font-size:13px;color:#7a93ad;">لا يوجد اتصال بالإنترنت</p>'; return; }
+    box.innerHTML = 'جاري التحميل...';
+    try {
+      const snap = await db.collection('forumPosts').orderBy('createdAt', 'desc').get();
+      if (snap.empty) { box.innerHTML = '<p style="font-size:13px;color:#7a93ad;">لا توجد منشورات بعد</p>'; return; }
+      let html = '';
+      snap.forEach(doc => {
+        const p = doc.data();
+        const isAdmin = user.role === 'admin' || user.role === 'co-admin';
+        const displayName = isAdmin ? `${p.authorName} (${p.authorPhone})` : 'مجهول';
+        const repliesCount = p.replies ? p.replies.length : 0;
+        html += `
+          <div class="card-box post-item">
+            <div class="post-title">${p.title}</div>
+            <div class="post-meta">
+              ✍️ <span class="anonymous-badge">${displayName}</span>
+              • ${new Date(p.createdAt).toLocaleDateString('ar')}
+              • 💬 ${repliesCount} ردود
+            </div>
+            <div class="post-body">${p.body}</div>
+            <div class="post-actions">
+              <button onclick="showReplyForm('${doc.id}')">💬 رد</button>
+              ${isAdmin ? `<button onclick="deletePost('${doc.id}')" style="color:#b00020;">🗑 حذف</button>` : ''}
+            </div>
+            <div id="replies_${doc.id}" style="margin-top:8px;">
+              ${p.replies ? p.replies.map(r => `
+                <div class="reply-item">
+                  <span>${r.text}</span>
+                  <div class="reply-meta">${isAdmin ? `${r.authorName} (${r.authorPhone})` : 'مجهول'} • ${new Date(r.time).toLocaleDateString('ar')}</div>
+                </div>
+              `).join('') : ''}
+            </div>
+            <div id="replyForm_${doc.id}" style="display:none;margin-top:8px;">
+              <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                <input type="text" id="replyInput_${doc.id}" placeholder="اكتب رد..." style="flex:1;padding:6px 10px;border-radius:8px;border:1.5px solid #cfe2f7;">
+                <button class="btn btn-approve btn-sm" onclick="addReply('${doc.id}')">إرسال</button>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+      box.innerHTML = html;
+    } catch (e) { box.innerHTML = '<p style="font-size:13px;color:#b00020;">خطأ في التحميل</p>'; }
+  }
+
+  function showReplyForm(postId) {
+    const form = document.getElementById(`replyForm_${postId}`);
+    form.style.display = form.style.display === 'none' ? 'block' : 'none';
+    if (form.style.display === 'block') {
+      document.getElementById(`replyInput_${postId}`).focus();
+    }
+  }
+
+  async function addReply(postId) {
+    const input = document.getElementById(`replyInput_${postId}`);
+    const text = input.value.trim();
+    if (!text) return;
+    if (!db) { alert('لا يوجد اتصال بالإنترنت'); return; }
+    try {
+      const reply = { text: text, authorName: user.name, authorPhone: user.phone, time: Date.now() };
+      await db.collection('forumPosts').doc(postId).update({
+        replies: firebase.firestore.FieldValue.arrayUnion(reply)
+      });
+      input.value = '';
+      document.getElementById(`replyForm_${postId}`).style.display = 'none';
+      loadPosts();
+    } catch (e) { alert('خطأ: '+e.message); }
+  }
+
+  async function deletePost(postId) {
+    if (!confirm('هل تريد حذف هذا المنشور وجميع ردوده؟')) return;
+    try {
+      await db.collection('forumPosts').doc(postId).delete();
+      loadPosts();
+    } catch (e) { alert('خطأ: '+e.message); }
+  }
+
+  loadPosts();
+</script>
+</body>
+        </html>
