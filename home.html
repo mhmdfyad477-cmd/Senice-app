@@ -140,6 +140,10 @@
     <button onclick="showSection('books',this)">📚 كتبي</button>
     <button onclick="showSection('leaderboard',this)">🏆 ترتيب الفخر</button>
     <button onclick="window.location.href='quizzes.html'">📝 الكويزات</button>
+    <button onclick="window.location.href='forum.html'">🗣️ المنتدى</button>
+    <button onclick="window.location.href='evaluation.html'">📊 تقييمي</button>
+    <button onclick="window.location.href='contact.html'">📞 تواصل معنا</button>
+    <button onclick="window.location.href='favorites.html'">❤️ مفضلاتي</button>
     <div class="divider"></div>
     <button onclick="window.location.href='account.html'">👤 حسابي</button>
     <button class="small-link" onclick="showSection('summaries',this)">↳ ملخصاتي</button>
@@ -229,16 +233,15 @@
 
     <div class="section" id="sec-about">
       <h2 class="section-title">ℹ️ من نحن</h2>
-      <div class="card-box" style="text-align:center;padding:40px 20px;">
-        <p style="font-size:13px;color:#7a93ad;margin-bottom:10px">تطبيق قسم علوم ابتدائي — بالتوفيق ليكم</p>
-        <h1 style="font-size:30px;color:var(--blue-main);font-weight:900;">محمد أحمد فياض</h1>
+      <div class="card-box" style="text-align:center;padding:40px 20px;" id="aboutContent">
+        <p style="font-size:13px;color:#7a93ad;">جاري التحميل...</p>
       </div>
     </div>
 
     <div class="section" id="sec-privacy">
       <h2 class="section-title">🔒 سياسة الخصوصية</h2>
       <div class="card-box" style="font-size:13.5px;line-height:2;color:#3c5675">
-        نحرص على خصوصية بيانات الطلاب المسجلين بالموقع. بيانات التسجيل تُستخدم فقط لأغراض التحقق وإدارة الحسابات داخل القسم، ولا تتم مشاركتها مع أي جهة خارجية. كلمات المرور مخزّنة في قاعدة بيانات خاصة بالموقع. الملفات والصور التي يرفعها الطلاب تُستخدم فقط داخل نطاق التطبيق بين أعضاء القسم. باستخدامك للموقع فإنك توافق على هذه السياسة.
+        نحرص على خصوصية بيانات الطلاب المسجلين بالموقع. بيانات التسجيل تُستخدم فقط لأغراض التحقق وإدارة الحאסאבات داخل القسم، ولا تتم مشاركتها مع أي جهة خارجية. كلمات المرور مخزّنة في قاعدة بيانات خاصة بالموقع. الملفات والصور التي يرفعها الطلاب تُستخدم فقط داخل نطاق التطبيق بين أعضاء القسم. باستخدامك للموقع فإنك توافق على هذه السياسة.
       </div>
     </div>
 
@@ -315,6 +318,22 @@
   let currentGroupOnlyAdminsCanSend = false;
   let currentGroupCreatedBy = '';
 
+  // تحميل محتوى من نحن
+  async function loadAboutContentHome() {
+    const box = document.getElementById('aboutContent');
+    try {
+      const snap = await db.collection('settings').doc('about').get();
+      if (snap.exists) {
+        const data = snap.data();
+        box.innerHTML = `<div style="color:${data.textColor || '#0a2e5c'};font-size:${data.fontSize || 16}px;line-height:1.8;text-align:center;padding:10px;">${data.content || 'مرحباً بكم في قسم علوم ابتدائي'}</div>`;
+      } else {
+        box.innerHTML = '<p style="font-size:16px;color:#0a2e5c;line-height:1.8;">مرحباً بكم في قسم علوم ابتدائي.<br>هذا القسم مخصص لطلاب العلوم في المرحلة الابتدائية.<br>نتمنى لكم التوفيق والنجاح.</p>';
+      }
+    } catch(e) {
+      box.innerHTML = '<p style="font-size:13px;color:#b00020;">خطأ في التحميل</p>';
+    }
+  }
+
   function showSection(id, btn){
     document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
     document.getElementById('sec-'+id).classList.add('active');
@@ -324,6 +343,7 @@
     if(id==='summaries') { loadFoldersSelect(); renderSummaries(); }
     if(id==='books') renderBooks();
     if(id==='leaderboard') renderLeaderboard();
+    if(id==='about') loadAboutContentHome();
     if(window.innerWidth<=760) document.getElementById('sidebar').classList.remove('open');
   }
   function toggleSidebar(){
@@ -602,7 +622,7 @@
   }
   function closeProfile(){ document.getElementById('profileOverlay').classList.remove('active'); }
 
-  // ====== تحميل المجلدات في القائمة المنسدلة ======
+  // ====== تحميل المجلدات ======
   async function loadFoldersSelect() {
     const select = document.getElementById('summaryFolder');
     if (!db) return;
@@ -617,7 +637,7 @@
   }
   document.addEventListener('DOMContentLoaded', loadFoldersSelect);
 
-  // ====== ملخصاتي (مع المجلدات) ======
+  // ====== ملخصاتي (مع القلب) ======
   let summariesCache={};
   async function getSummaryPoints(){
     if(!db) return 10;
@@ -629,12 +649,41 @@
   }
   getSummaryPoints().then(p=>{ document.getElementById('summaryPointsLabel').textContent=p; });
 
+  async function toggleFavorite(summaryId) {
+    if (!db) return alert('لا يوجد اتصال بالإنترنت');
+    try {
+      const favRef = db.collection('favorites').doc(user.phone);
+      const favSnap = await favRef.get();
+      let ids = favSnap.exists ? favSnap.data().summaryIds || [] : [];
+      const isFav = ids.includes(summaryId);
+      if (isFav) {
+        ids = ids.filter(id => id !== summaryId);
+        await db.collection('summaries').doc(summaryId).update({
+          likes: firebase.firestore.FieldValue.increment(-1)
+        });
+      } else {
+        ids.push(summaryId);
+        await db.collection('summaries').doc(summaryId).update({
+          likes: firebase.firestore.FieldValue.increment(1)
+        });
+      }
+      await favRef.set({ summaryIds: ids, updatedAt: Date.now() });
+      renderSummaries();
+    } catch (e) { alert('خطأ: '+e.message); }
+  }
+
   async function renderSummaries() {
     const q = (document.getElementById('summarySearch').value || '').trim();
     const box = document.getElementById('summariesList');
     if (!db) { box.innerHTML = '<p style="font-size:13px;color:#9bb3cb;">الملخصات تحتاج اتصال بالإنترنت.</p>'; return; }
     box.innerHTML = 'جاري التحميل...';
     try {
+      let userFavorites = [];
+      try {
+        const favSnap = await db.collection('favorites').doc(user.phone).get();
+        if (favSnap.exists) userFavorites = favSnap.data().summaryIds || [];
+      } catch(e) {}
+
       const foldersSnap = await db.collection('folders').orderBy('name', 'asc').get();
       const folders = {};
       foldersSnap.forEach(d => { folders[d.id] = d.data().name; });
@@ -664,12 +713,21 @@
             <span style="font-size:12px;color:#7a93ad;font-weight:400;">${summaryList.length} ملخص</span>
           </div>`;
         summaryList.forEach(i => {
+          const isFav = userFavorites.includes(i.id);
           const canDelete = (user.phone === i.phone) || (user.role === 'admin' || user.role === 'co-admin');
+          const likes = i.likes || 0;
           html += `<div class="card-box file-card" style="margin-bottom:6px;padding:10px 14px;">
-            <div class="meta"><b>${i.title}</b><span>بواسطة <span class="name-link" onclick="openProfile('${i.phone}')">${i.name}</span></span></div>
-            <div style="display:flex;gap:6px;">
+            <div class="meta">
+              <b>${i.title}</b>
+              <span>بواسطة <span class="name-link" onclick="openProfile('${i.phone}')">${i.name}</span></span>
+              <span style="font-size:11px;color:#7a93ad;display:block;">❤️ ${likes} تفضيل</span>
+            </div>
+            <div style="display:flex;gap:6px;align-items:center;">
               <button class="dl" onclick="downloadSummaryFile('${i.id}')">تحميل</button>
-              ${canDelete ? `<button class="dl" style="background:#b00020;color:#fff;" onclick="deleteSummary('${i.id}')">🗑</button>` : ''}
+              <button class="dl" onclick="toggleFavorite('${i.id}')" style="background:${isFav ? '#b00020' : 'var(--blue-main)'};color:#fff;padding:6px 10px;border:none;border-radius:8px;cursor:pointer;font-size:12px;">
+                ${isFav ? '❤️' : '🤍'}
+              </button>
+              ${canDelete ? `<button class="dl" style="background:#b00020;color:#fff;padding:6px 10px;border:none;border-radius:8px;cursor:pointer;font-size:12px;" onclick="deleteSummary('${i.id}')">🗑</button>` : ''}
             </div>
           </div>`;
         });
@@ -785,7 +843,7 @@
     try{ await db.collection('books').doc(id).delete(); renderBooks(); }catch(e){ alert('خطأ: '+e.message); }
   }
 
-  // ====== ترتيب الفخر (مع الميداليات) ======
+  // ====== ترتيب الفخر ======
   async function renderLeaderboard() {
     const box = document.getElementById('leaderboardList');
     if (!db) { box.innerHTML = '<p style="font-size:13px;color:#9bb3cb">الترتيب يحتاج اتصال بالإنترنت.</p>'; return; }
@@ -837,6 +895,9 @@
       }).join('') : '<p style="font-size:13px;color:#9bb3cb">لا يوجد أعضاء بعد</p>';
     } catch (e) { box.innerHTML = '<p style="font-size:13px;color:#9bb3cb">تعذّر تحميل الترتيب</p>'; }
   }
+
+  // تحميل من نحن عند بدء الصفحة
+  loadAboutContentHome();
 </script>
 </body>
-        </html>
+  </html>
