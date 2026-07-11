@@ -29,7 +29,8 @@
   .btn-gold{background:linear-gradient(135deg,#ffd700,#b8860b);color:#fff;box-shadow:0 2px 8px rgba(184,134,11,0.3);}
   .btn-sm{padding:4px 12px;font-size:12px;}
   .form-line{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
-  .form-line input, .form-line select{padding:10px;border-radius:10px;border:1.5px solid #cfe2f7;flex:1;min-width:140px;}
+  .form-line input,.form-line select,.form-line textarea{padding:10px;border-radius:10px;border:1.5px solid #cfe2f7;flex:1;min-width:140px;font-size:14px;}
+  .form-line textarea{min-height:80px;}
   .lock-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;}
   .lock-box{background:#fff;padding:30px;border-radius:18px;text-align:center;width:300px;}
   .lock-box input{width:100%;padding:12px;border-radius:10px;border:1.5px solid #cfe2f7;margin:14px 0;text-align:center;font-size:16px;}
@@ -82,7 +83,10 @@
       <button onclick="showTab('folders', this)">📁 المجلدات</button>
       <button onclick="showTab('reports', this)">📊 التقارير</button>
       <button onclick="showTab('quizzes', this)">📝 الكويزات</button>
-      <button onclick="showTab('allowed', this)">📋 الأرقام المسموحة</button>
+      <button onclick="showTab('contactManage', this)">📞 تواصل معنا</button>
+      <button onclick="showTab('studentEval', this)">📊 تقييم الطلاب</button>
+      <button onclick="showTab('aboutEdit', this)">✏️ تعديل من نحن</button>
+      <button onclick="showTab('forumManage', this)">🗣️ إدارة المنتدى</button>
     </div>
 
     <!-- ===== لوحة الاحصائيات ===== -->
@@ -171,7 +175,6 @@
         <p id="pointsMsg" style="font-size:12px;color:#7a93ad;"></p>
       </div>
       
-      <!-- 💎 إدارة ميداليات الموسم -->
       <div class="card-box" style="border-right:4px solid #f5a623;">
         <b style="display:block;margin-bottom:8px;">💎 ميداليات الموسم (أعلى ٣)</b>
         <div id="medalManagement">
@@ -243,7 +246,6 @@
         </div>
       </div>
 
-      <!-- تقرير نشاط الطلاب -->
       <div class="card-box">
         <b style="display:block;margin-bottom:8px;">📋 نشاط الطلاب</b>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
@@ -267,20 +269,72 @@
       </div>
     </div>
 
-    <!-- ===== إدارة الأرقام المسموحة ===== -->
-    <div class="section" id="tab-allowed">
+    <!-- ===== إدارة تواصل معنا ===== -->
+    <div class="section" id="tab-contactManage">
       <div class="card-box">
-        <b style="display:block;margin-bottom:8px;">➕ إضافة رقم مسموح</b>
+        <b style="display:block;margin-bottom:8px;">📞 إضافة وسيلة تواصل</b>
         <div class="form-line">
-          <input type="tel" id="newAllowedPhone" placeholder="01xxxxxxxxx">
-          <input type="text" id="newAllowedName" placeholder="الاسم (اختياري)">
-          <button class="btn btn-approve" onclick="addAllowedNumber()">➕ إضافة</button>
+          <select id="contactType"><option value="email">إيميل</option><option value="facebook">فيسبوك</option><option value="instagram">إنستاجرام</option><option value="twitter">تويتر</option><option value="whatsapp">واتساب</option><option value="phone">هاتف</option><option value="youtube">يوتيوب</option><option value="telegram">تيليجرام</option></select>
+          <input type="text" id="contactLabel" placeholder="التسمية (مثل: البريد الرسمي)">
+          <input type="text" id="contactUrl" placeholder="الرابط (مثل: https://...)" style="flex:2;">
         </div>
-        <p id="allowedMsg" style="font-size:12px;color:#7a93ad;"></p>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <button class="btn btn-blue" onclick="addContact()">➕ إضافة</button>
+        </div>
+        <p id="contactMsg" style="font-size:12px;color:#7a93ad;margin-top:4px;"></p>
       </div>
       <div class="card-box">
-        <b style="display:block;margin-bottom:8px;">📋 الأرقام المسموحة</b>
-        <div id="allowedList">جاري التحميل...</div>
+        <b style="display:block;margin-bottom:8px;">📋 وسائل التواصل الحالية</b>
+        <div id="contactsList"><p style="font-size:13px;color:#7a93ad;">جاري التحميل...</p></div>
+      </div>
+    </div>
+
+    <!-- ===== تقييم الطلاب ===== -->
+    <div class="section" id="tab-studentEval">
+      <div class="card-box">
+        <b style="display:block;margin-bottom:8px;">🔍 بحث عن طالب</b>
+        <div class="form-line">
+          <input type="text" id="searchStudentEval" placeholder="رقم الموبايل أو اسم الطالب">
+          <button class="btn btn-blue" onclick="searchStudentEval()">🔍 بحث</button>
+          <button class="btn btn-excel" onclick="exportAllStudentsEval()" style="background:#1d6f42;color:#fff;">📊 تحميل تقارير جميع الطلاب (Excel)</button>
+        </div>
+        <div id="studentEvalResult">
+          <p style="font-size:13px;color:#7a93ad;">أدخل رقم الموبايل أو اسم الطالب للبحث</p>
+        </div>
+        <div id="singleExportSection" style="display:none; margin-top:10px; text-align:left;">
+          <button class="btn btn-excel" onclick="exportSingleStudentEval()" style="background:#1d6f42;color:#fff;padding:8px 20px;">📥 تحميل تقرير هذا الطالب (Excel)</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== تعديل من نحن ===== -->
+    <div class="section" id="tab-aboutEdit">
+      <div class="card-box">
+        <b style="display:block;margin-bottom:8px;">✏️ تعديل محتوى صفحة من نحن</b>
+        <div class="form-line">
+          <input type="color" id="aboutTextColor" value="#0a2e5c">
+          <input type="number" id="aboutFontSize" placeholder="حجم الخط" value="16" min="10" max="40">
+        </div>
+        <div class="form-line">
+          <textarea id="aboutContent" placeholder="محتوى صفحة من نحن..." style="min-height:150px;"></textarea>
+        </div>
+        <button class="btn btn-approve" onclick="saveAboutContent()">💾 حفظ</button>
+        <p id="aboutMsg" style="font-size:12px;color:#7a93ad;margin-top:4px;"></p>
+      </div>
+      <div class="card-box">
+        <b style="display:block;margin-bottom:8px;">👁️ معاينة</b>
+        <div id="aboutPreview" style="padding:12px;background:#fff;border-radius:8px;border:1px solid #e0e8f0;"></div>
+      </div>
+    </div>
+
+    <!-- ===== إدارة المنتدى ===== -->
+    <div class="section" id="tab-forumManage">
+      <div class="card-box">
+        <b style="display:block;margin-bottom:8px;">🗣️ إدارة منشورات المنتدى</b>
+        <p style="font-size:12px;color:#7a93ad;margin-bottom:8px;">هنا يمكنك مشاهدة جميع المنشورات ومعرفة أسماء أصحابها الحقيقية (بما أنهم يظهرون كمجهولين للطلاب)</p>
+        <div id="forumAdminList">
+          <p style="font-size:13px;color:#7a93ad;">جاري التحميل...</p>
+        </div>
       </div>
     </div>
 
@@ -350,7 +404,14 @@
     if(id === 'folders') loadFolders();
     if(id === 'reports') loadReports();
     if(id === 'quizzes') loadAdminQuizzes();
-    if(id === 'allowed') loadAllowedNumbers();
+    if(id === 'contactManage') { loadContactsAdmin(); }
+    if(id === 'studentEval') { 
+      document.getElementById('studentEvalResult').innerHTML = '<p style="font-size:13px;color:#7a93ad;">أدخل رقم الموبايل أو اسم الطالب للبحث</p>';
+      document.getElementById('singleExportSection').style.display = 'none';
+      currentSearchedStudentId = null;
+    }
+    if(id === 'aboutEdit') { loadAboutContent(); }
+    if(id === 'forumManage') { loadForumAdmin(); }
   }
 
   function loadAll(){
@@ -368,7 +429,9 @@
     loadFolders();
     loadReports();
     loadAdminQuizzes();
-    loadAllowedNumbers();
+    loadContactsAdmin();
+    loadAboutContent();
+    loadForumAdmin();
   }
 
   // ====== لوحة الاحصائيات ======
@@ -688,7 +751,7 @@
     } catch (e) { alert('خطأ في التصدير: '+e.message); }
   }
 
-  // ====== إدارة الكويزات في الأدمن ======
+  // ====== إدارة الكويزات ======
   async function loadAdminQuizzes() {
     const box = document.getElementById('adminQuizzesList');
     if (!db) { box.innerHTML = '<p style="font-size:13px;color:#7a93ad;">لا يوجد اتصال بالإنترنت</p>'; return; }
@@ -720,55 +783,293 @@
     loadAdminQuizzes();
   }
 
-  // ====== إدارة الأرقام المسموحة ======
-  async function loadAllowedNumbers() {
-    const box = document.getElementById('allowedList');
-    if (!db) { box.innerHTML = '<p style="font-size:13px;color:#7a93ad;">لا يوجد اتصال بالإنترنت</p>'; return; }
-    box.innerHTML = 'جاري التحميل...';
+  // ====== إدارة تواصل معنا ======
+  async function addContact() {
+    const type = document.getElementById('contactType').value;
+    const label = document.getElementById('contactLabel').value.trim();
+    const url = document.getElementById('contactUrl').value.trim();
+    const msg = document.getElementById('contactMsg');
+    if (!label || !url) { msg.textContent = '⚠️ أدخل التسمية والرابط'; msg.style.color = '#b00020'; return; }
     try {
-      const snap = await db.collection('allowedUsers').orderBy('phone').get();
-      if (snap.empty) { box.innerHTML = '<p style="font-size:13px;color:#7a93ad;">لا توجد أرقام مسموحة</p>'; return; }
-      let html = '';
-      snap.forEach(doc => {
-        const data = doc.data();
-        html += `
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f0f4fa;">
-            <span><b>${data.phone}</b> ${data.name ? '— ' + data.name : ''}</span>
-            <button class="btn btn-reject btn-sm" onclick="removeAllowedNumber('${doc.id}')">🗑 حذف</button>
-          </div>
-        `;
-      });
-      box.innerHTML = html;
-    } catch (e) { box.innerHTML = '<p style="font-size:13px;color:#b00020;">خطأ في التحميل</p>'; }
-  }
-
-  async function addAllowedNumber() {
-    const phone = document.getElementById('newAllowedPhone').value.trim();
-    const name = document.getElementById('newAllowedName').value.trim();
-    const msg = document.getElementById('allowedMsg');
-    if (!phone) { msg.textContent = '⚠️ أدخل رقم الموبايل'; msg.style.color = '#b00020'; return; }
-    if (!/^01[0-9]{9}$/.test(phone)) { msg.textContent = '⚠️ رقم غير صحيح'; msg.style.color = '#b00020'; return; }
-    if (!db) { msg.textContent = '❌ لا يوجد اتصال بالإنترنت'; msg.style.color = '#b00020'; return; }
-    try {
-      await db.collection('allowedUsers').doc(phone).set({
-        phone: phone,
-        name: name || 'بدون اسم',
-        addedAt: Date.now()
-      });
+      const ref = db.collection('settings').doc('contacts');
+      const snap = await ref.get();
+      let items = snap.exists ? snap.data().items || [] : [];
+      items.push({ type, label, url, display: label });
+      await ref.set({ items });
+      document.getElementById('contactLabel').value = '';
+      document.getElementById('contactUrl').value = '';
       msg.textContent = '✅ تمت الإضافة';
       msg.style.color = '#147a35';
-      document.getElementById('newAllowedPhone').value = '';
-      document.getElementById('newAllowedName').value = '';
-      loadAllowedNumbers();
-    } catch (e) { msg.textContent = '❌ خطأ: ' + e.message; msg.style.color = '#b00020'; }
+      loadContactsAdmin();
+    } catch (e) { msg.textContent = '❌ خطأ: '+e.message; msg.style.color = '#b00020'; }
   }
 
-  async function removeAllowedNumber(phone) {
-    if (!confirm(`هل تريد حذف الرقم ${phone}؟`)) return;
+  async function loadContactsAdmin() {
+    const box = document.getElementById('contactsList');
     try {
-      await db.collection('allowedUsers').doc(phone).delete();
-      loadAllowedNumbers();
-    } catch (e) { alert('خطأ: ' + e.message); }
+      const snap = await db.collection('settings').doc('contacts').get();
+      if (!snap.exists || !snap.data().items || snap.data().items.length === 0) {
+        box.innerHTML = '<p style="font-size:13px;color:#7a93ad;">لا توجد وسائل تواصل</p>';
+        return;
+      }
+      box.innerHTML = snap.data().items.map((item, i) => `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #f0f4fa;">
+          <span><b>${item.label}</b> - ${item.url}</span>
+          <button class="btn btn-reject btn-sm" onclick="deleteContact(${i})">🗑</button>
+        </div>
+      `).join('');
+    } catch(e) { box.innerHTML = '<p style="font-size:13px;color:#b00020;">خطأ</p>'; }
+  }
+
+  async function deleteContact(index) {
+    if (!confirm('حذف هذه الوسيلة؟')) return;
+    try {
+      const ref = db.collection('settings').doc('contacts');
+      const snap = await ref.get();
+      let items = snap.data().items || [];
+      items.splice(index, 1);
+      await ref.set({ items });
+      loadContactsAdmin();
+    } catch(e) { alert('خطأ: '+e.message); }
+  }
+
+  // ====== تقييم الطلاب ======
+  let currentSearchedStudentId = null;
+
+  async function searchStudentEval() {
+    const query = document.getElementById('searchStudentEval').value.trim();
+    const box = document.getElementById('studentEvalResult');
+    const exportSection = document.getElementById('singleExportSection');
+    if (!query) { 
+      box.innerHTML = '<p style="font-size:13px;color:#7a93ad;">أدخل رقم الموبايل أو اسم الطالب</p>';
+      exportSection.style.display = 'none';
+      return; 
+    }
+    box.innerHTML = 'جاري البحث...';
+    exportSection.style.display = 'none';
+    try {
+      const usersSnap = await db.collection('users').where('approved','==',true).get();
+      let found = null;
+      usersSnap.forEach(doc => {
+        const u = doc.data();
+        if (u.phone === query || (u.name && u.name.includes(query))) {
+          found = { id: doc.id, ...u };
+        }
+      });
+      if (!found) { 
+        box.innerHTML = '<p style="font-size:13px;color:#b00020;">❌ لم يتم العثور على طالب</p>'; 
+        return; 
+      }
+      currentSearchedStudentId = found.id;
+      const evalSnap = await db.collection('evaluations').doc(found.id).get();
+      const evalData = evalSnap.exists ? evalSnap.data() : { subjects: [] };
+      let html = `<div style="background:#f8faff;padding:12px;border-radius:10px;">
+        <b>${found.name}</b> - ${found.phone} - الفرقة ${found.year || '—'}
+        <div style="margin-top:8px;">`;
+      if (evalData.subjects && evalData.subjects.length > 0) {
+        evalData.subjects.forEach(s => {
+          const total = s.grades ? (s.grades.midterm || 0) + (s.grades.practical || 0) + (s.grades.final || 0) : 0;
+          const attendance = s.lectures ? s.lectures.filter(l => l.attended).length : 0;
+          const totalLectures = s.lectures ? s.lectures.length : 0;
+          html += `<div style="border-right:3px solid var(--blue-main);padding:6px 12px;margin:4px 0;background:#fff;border-radius:6px;">
+            <b>${s.name}</b>
+            <span style="font-size:12px;color:#7a93ad;">حضور: ${attendance}/${totalLectures} | درجات: ${total}</span>
+          </div>`;
+        });
+      } else {
+        html += '<p style="font-size:12px;color:#7a93ad;">لا توجد بيانات تقييم</p>';
+      }
+      html += `</div></div>`;
+      box.innerHTML = html;
+      exportSection.style.display = 'block';
+    } catch(e) { 
+      box.innerHTML = '<p style="font-size:13px;color:#b00020;">خطأ: '+e.message+'</p>'; 
+      exportSection.style.display = 'none';
+    }
+  }
+
+  async function exportSingleStudentEval() {
+    if (!currentSearchedStudentId) { alert('لم يتم العثور على طالب، قم بالبحث أولاً'); return; }
+    if (!db) { alert('لا يوجد اتصال بالإنترنت'); return; }
+    try {
+      const userSnap = await db.collection('users').doc(currentSearchedStudentId).get();
+      if (!userSnap.exists) { alert('الطالب غير موجود'); return; }
+      const user = userSnap.data();
+      
+      const evalSnap = await db.collection('evaluations').doc(currentSearchedStudentId).get();
+      const evalData = evalSnap.exists ? evalSnap.data() : { subjects: [] };
+
+      let html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel">
+      <head><meta charset="UTF-8"><title>تقييم الطالب</title></head>
+      <body><table border="1" style="direction:rtl;font-family:Arial;font-size:13px;">
+      <tr style="background:#1565d8;color:#fff;font-weight:bold;">
+        <th>البيان</th><th>القيمة</th>
+      </tr>
+      <tr><td>الاسم</td><td>${user.name || ''}</td></tr>
+      <tr><td>رقم الموبايل</td><td>${user.phone || ''}</td></tr>
+      <tr><td>الفرقة</td><td>${user.year || '—'}</td></tr>
+      <tr style="background:#eaf4ff;"><td colspan="2"><b>المواد الدراسية</b></td></tr>`;
+      
+      if (evalData.subjects && evalData.subjects.length > 0) {
+        evalData.subjects.forEach(s => {
+          const total = s.grades ? (s.grades.midterm || 0) + (s.grades.practical || 0) + (s.grades.final || 0) : 0;
+          const attendance = s.lectures ? s.lectures.filter(l => l.attended).length : 0;
+          const totalLectures = s.lectures ? s.lectures.length : 0;
+          html += `
+            <tr><td colspan="2"><b>${s.name}</b></td></tr>
+            <tr><td>عدد المحاضرات</td><td>${totalLectures}</td></tr>
+            <tr><td>المحاضرات الحضور</td><td>${attendance}</td></tr>
+            <tr><td>درجة الميد ترم</td><td>${s.grades?.midterm || '—'}</td></tr>
+            <tr><td>درجة العملي</td><td>${s.grades?.practical || '—'}</td></tr>
+            <tr><td>درجة الفاينل</td><td>${s.grades?.final || '—'}</td></tr>
+            <tr><td>المجموع الكلي</td><td>${total}</td></tr>
+          `;
+        });
+      } else {
+        html += `<tr><td colspan="2">لا توجد مواد مسجلة</td></tr>`;
+      }
+      html += `</table></body></html>`;
+
+      const blob = new Blob([html], { type: 'application/vnd.ms-excel;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `تقييم_${user.name || 'طالب'}_${user.phone || ''}.xls`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (e) { alert('خطأ في التصدير: '+e.message); }
+  }
+
+  async function exportAllStudentsEval() {
+    if (!db) { alert('لا يوجد اتصال بالإنترنت'); return; }
+    try {
+      const usersSnap = await db.collection('users').where('approved','==',true).get();
+      if (usersSnap.empty) { alert('لا يوجد طلاب'); return; }
+
+      let html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel">
+      <head><meta charset="UTF-8"><title>تقييم جميع الطلاب</title></head>
+      <body><table border="1" style="direction:rtl;font-family:Arial;font-size:12px;">
+      <tr style="background:#1565d8;color:#fff;font-weight:bold;">
+        <th>#</th><th>الاسم</th><th>رقم الموبايل</th><th>الفرقة</th><th>المادة</th><th>عدد المحاضرات</th><th>الحضور</th><th>ميد ترم</th><th>عملي</th><th>فاينل</th><th>المجموع</th>
+      </tr>`;
+
+      let counter = 0;
+      for (const doc of usersSnap.docs) {
+        const user = doc.data();
+        const evalSnap = await db.collection('evaluations').doc(doc.id).get();
+        const evalData = evalSnap.exists ? evalSnap.data() : { subjects: [] };
+        
+        if (evalData.subjects && evalData.subjects.length > 0) {
+          evalData.subjects.forEach(s => {
+            counter++;
+            const total = s.grades ? (s.grades.midterm || 0) + (s.grades.practical || 0) + (s.grades.final || 0) : 0;
+            const attendance = s.lectures ? s.lectures.filter(l => l.attended).length : 0;
+            const totalLectures = s.lectures ? s.lectures.length : 0;
+            html += `<tr>
+              <td>${counter}</td>
+              <td>${user.name || ''}</td>
+              <td>${user.phone || ''}</td>
+              <td>${user.year || '—'}</td>
+              <td>${s.name}</td>
+              <td>${totalLectures}</td>
+              <td>${attendance}</td>
+              <td>${s.grades?.midterm || '—'}</td>
+              <td>${s.grades?.practical || '—'}</td>
+              <td>${s.grades?.final || '—'}</td>
+              <td>${total}</td>
+            </tr>`;
+          });
+        } else {
+          counter++;
+          html += `<tr>
+            <td>${counter}</td>
+            <td>${user.name || ''}</td>
+            <td>${user.phone || ''}</td>
+            <td>${user.year || '—'}</td>
+            <td colspan="7" style="text-align:center;color:#7a93ad;">لا توجد مواد مسجلة</td>
+          </tr>`;
+        }
+      }
+      html += `</table></body></html>`;
+
+      const blob = new Blob([html], { type: 'application/vnd.ms-excel;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `تقييم_جميع_الطلاب_${new Date().toLocaleDateString('ar')}.xls`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (e) { alert('خطأ في التصدير: '+e.message); }
+  }
+
+  // ====== تعديل من نحن ======
+  async function loadAboutContent() {
+    try {
+      const snap = await db.collection('settings').doc('about').get();
+      if (snap.exists) {
+        const data = snap.data();
+        document.getElementById('aboutContent').value = data.content || '';
+        document.getElementById('aboutTextColor').value = data.textColor || '#0a2e5c';
+        document.getElementById('aboutFontSize').value = data.fontSize || 16;
+      } else {
+        document.getElementById('aboutContent').value = 'مرحباً بكم في قسم علوم ابتدائي. هذا القسم مخصص لطلاب العلوم في المرحلة الابتدائية. نتمنى لكم التوفيق والنجاح.';
+      }
+      updateAboutPreview();
+    } catch(e) { console.warn('خطأ في تحميل من نحن'); }
+  }
+
+  function updateAboutPreview() {
+    const content = document.getElementById('aboutContent').value;
+    const color = document.getElementById('aboutTextColor').value;
+    const size = document.getElementById('aboutFontSize').value;
+    document.getElementById('aboutPreview').innerHTML = `<div style="color:${color};font-size:${size}px;text-align:center;padding:10px;">${content}</div>`;
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('aboutContent').addEventListener('input', updateAboutPreview);
+    document.getElementById('aboutTextColor').addEventListener('input', updateAboutPreview);
+    document.getElementById('aboutFontSize').addEventListener('input', updateAboutPreview);
+  });
+
+  async function saveAboutContent() {
+    const content = document.getElementById('aboutContent').value;
+    const textColor = document.getElementById('aboutTextColor').value;
+    const fontSize = parseInt(document.getElementById('aboutFontSize').value) || 16;
+    const msg = document.getElementById('aboutMsg');
+    try {
+      await db.collection('settings').doc('about').set({ content, textColor, fontSize, updatedAt: Date.now() });
+      msg.textContent = '✅ تم حفظ التعديلات';
+      msg.style.color = '#147a35';
+      loadAboutContent();
+    } catch(e) { msg.textContent = '❌ خطأ: '+e.message; msg.style.color = '#b00020'; }
+  }
+
+  // ====== إدارة المنتدى ======
+  async function loadForumAdmin() {
+    const box = document.getElementById('forumAdminList');
+    try {
+      const snap = await db.collection('forumPosts').orderBy('createdAt', 'desc').get();
+      if (snap.empty) { box.innerHTML = '<p style="font-size:13px;color:#7a93ad;">لا توجد منشورات</p>'; return; }
+      box.innerHTML = snap.docs.map(doc => {
+        const p = doc.data();
+        return `<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #f0f4fa;">
+          <div><b>${p.title}</b><br><span style="font-size:11px;color:#7a93ad;">${p.authorName} (${p.authorPhone}) • ${new Date(p.createdAt).toLocaleDateString('ar')}</span></div>
+          <button class="btn btn-reject btn-sm" onclick="deletePostAdmin('${doc.id}')">🗑</button>
+        </div>`;
+      }).join('');
+    } catch(e) { box.innerHTML = '<p style="font-size:13px;color:#b00020;">خطأ</p>'; }
+  }
+
+  async function deletePostAdmin(postId) {
+    if (!confirm('حذف المنشور؟')) return;
+    try {
+      await db.collection('forumPosts').doc(postId).delete();
+      loadForumAdmin();
+    } catch(e) { alert('خطأ: '+e.message); }
   }
 
   // ====== باقي الدوال ======
@@ -1082,4 +1383,4 @@
   }
 </script>
 </body>
-        </html>
+          </html>
