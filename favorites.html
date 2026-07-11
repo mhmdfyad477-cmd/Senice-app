@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>مفضلاتي | قسم علوم ابتدائي</title>
+<style>
+  :root{--blue-deep:#0a2e5c;--blue-main:#1565d8;--blue-bright:#2f9bf0;--ice:#eaf4ff;--gold:#f5a623;}
+  *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Tahoma,Arial,sans-serif;}
+  body{background:var(--ice);color:#0a2e5c;min-height:100vh;}
+  .topbar{background:linear-gradient(135deg,var(--blue-main),var(--blue-deep));color:#fff;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:30;box-shadow:0 4px 14px rgba(10,46,92,0.25);}
+  .topbar a{color:#fff;text-decoration:none;font-size:13px;background:rgba(255,255,255,0.15);padding:8px 14px;border-radius:10px;transition:0.2s;}
+  .topbar a:hover{background:rgba(255,255,255,0.25);}
+  .wrap{max-width:900px;margin:24px auto;padding:0 16px;}
+  .card-box{background:#fff;border-radius:16px;padding:16px;box-shadow:0 6px 18px rgba(10,46,92,0.06);margin-bottom:14px;}
+  .file-card{display:flex;justify-content:space-between;align-items:center;}
+  .file-card .meta b{display:block;font-size:14.5px;}
+  .file-card .meta span{font-size:12px;color:#7a93ad;}
+  .dl{background:var(--blue-main);color:#fff;border:none;border-radius:10px;padding:8px 14px;font-size:12.5px;font-weight:700;cursor:pointer;}
+  .dl-danger{background:#b00020;color:#fff;}
+  .footer{text-align:center;font-size:11.5px;color:#9bb3cb;padding:18px 0;}
+  .empty-state{text-align:center;padding:40px 20px;color:#7a93ad;}
+  .empty-state .icon{font-size:48px;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand" style="font-weight:800;font-size:16px;">❤️ مفضلاتي</div>
+  <a href="home.html">🏠 الرجوع للرئيسية</a>
+</div>
+
+<div class="wrap">
+  <h2 style="font-size:21px;color:var(--blue-deep);margin-bottom:16px;">📚 الملخصات المفضلة</h2>
+  <div id="favoritesList">
+    <p style="font-size:13px;color:#7a93ad;">جاري التحميل...</p>
+  </div>
+</div>
+
+<div class="footer">تم إنشاء هذا الموقع بواسطة MF.mo.fayyad</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyBgI8VcLOdQAMgmcpxCzaMS1UCX1vyzSjw",
+    authDomain: "science-e2b52.firebaseapp.com",
+    projectId: "science-e2b52",
+    storageBucket: "science-e2b52.firebasestorage.app",
+    messagingSenderId: "1031434005860",
+    appId: "1:1031434005860:web:e68fccdd746017a5639e71",
+    measurementId: "G-JZ1SFVMM7P"
+  };
+  let db = null;
+  try {
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.firestore();
+  } catch (e) { console.warn('لا يوجد اتصال بالإنترنت', e); }
+
+  function getCurrentUser() {
+    const raw = localStorage.getItem('currentUser');
+    return raw ? JSON.parse(raw) : null;
+  }
+  const user = getCurrentUser();
+  if (!user) window.location.href = 'login.html';
+
+  async function loadFavorites() {
+    const box = document.getElementById('favoritesList');
+    if (!db) { box.innerHTML = '<p style="font-size:13px;color:#7a93ad;">لا يوجد اتصال بالإنترنت</p>'; return; }
+    box.innerHTML = 'جاري التحميل...';
+    try {
+      const favSnap = await db.collection('favorites').doc(user.phone).get();
+      if (!favSnap.exists || !favSnap.data().summaryIds || favSnap.data().summaryIds.length === 0) {
+        box.innerHTML = `
+          <div class="empty-state">
+            <div class="icon">❤️</div>
+            <p style="font-size:16px;font-weight:700;color:var(--blue-deep);">لا توجد ملخصات مفضلة</p>
+            <p style="font-size:13px;">اذهب إلى قسم الملخصات واضغط على 🤍 لإضافتها إلى مفضلاتك</p>
+            <a href="home.html#sec-summaries" style="display:inline-block;margin-top:12px;background:var(--blue-main);color:#fff;padding:8px 20px;border-radius:10px;text-decoration:none;">📚 الذهاب للملخصات</a>
+          </div>
+        `;
+        return;
+      }
+      const ids = favSnap.data().summaryIds;
+      let summaries = [];
+      for (const id of ids) {
+        const snap = await db.collection('summaries').doc(id).get();
+        if (snap.exists) summaries.push({ id: snap.id, ...snap.data() });
+      }
+      if (summaries.length === 0) {
+        box.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>لم يتم العثور على الملخصات (ربما تم حذفها)</p></div>';
+        return;
+      }
+      box.innerHTML = summaries.map(s => `
+        <div class="card-box file-card">
+          <div class="meta">
+            <b>${s.title}</b>
+            <span>بواسطة ${s.name}</span>
+            <span style="font-size:11px;color:#7a93ad;display:block;">❤️ ${s.likes || 0} تفضيل</span>
+          </div>
+          <div style="display:flex;gap:6px;">
+            <button class="dl" onclick="downloadSummary('${s.id}')">تحميل</button>
+            <button class="dl dl-danger" onclick="removeFavorite('${s.id}')">🗑</button>
+          </div>
+        </div>
+      `).join('');
+    } catch (e) { box.innerHTML = '<p style="font-size:13px;color:#b00020;">خطأ في التحميل: '+e.message+'</p>'; }
+  }
+
+  function downloadSummary(id) {
+    db.collection('summaries').doc(id).get().then(snap => {
+      if (snap.exists && snap.data().fileUrl) {
+        window.open(snap.data().fileUrl, '_blank');
+      }
+    }).catch(() => alert('خطأ في التحميل'));
+  }
+
+  async function removeFavorite(summaryId) {
+    if (!confirm('إزالة هذا الملخص من المفضلات؟')) return;
+    try {
+      const favRef = db.collection('favorites').doc(user.phone);
+      const favSnap = await favRef.get();
+      let ids = favSnap.exists ? favSnap.data().summaryIds || [] : [];
+      ids = ids.filter(id => id !== summaryId);
+      await favRef.set({ summaryIds: ids, updatedAt: Date.now() });
+      await db.collection('summaries').doc(summaryId).update({
+        likes: firebase.firestore.FieldValue.increment(-1)
+      });
+      loadFavorites();
+    } catch (e) { alert('خطأ: '+e.message); }
+  }
+
+  loadFavorites();
+</script>
+</body>
+</html>
