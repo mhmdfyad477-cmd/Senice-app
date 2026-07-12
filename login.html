@@ -91,7 +91,7 @@
       <div class="field">
         <label>تأكيد كلمة المرور</label>
         <input type="password" id="suPass2" placeholder="••••••••" required>
-        <div class="hint">📌 إذا كنت في القائمة المسموحة → تدخل فوراً. وإلا → تنتظر موافقة الأدمن.</div>
+        <div class="hint">سيتم مراجعة طلبك من قِبل الأدمن قبل تفعيل الدخول (إلا لو رقمك في القائمة البيضاء).</div>
       </div>
       <button type="submit" class="submit-btn" id="signupBtn">إنشاء الحساب</button>
       <div class="msg" id="signupMsg"></div>
@@ -102,12 +102,15 @@
 
 <div class="footer-credit">تم إنشاء هذا الموقع بواسطة MF.mo.fayyad</div>
 
+<!-- Firebase compat SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script>
+  // منع الريفرش فورًا بغض النظر عن أي حاجة تانية
   document.getElementById('loginForm').addEventListener('submit', e => e.preventDefault());
   document.getElementById('signupForm').addEventListener('submit', e => e.preventDefault());
 
+  // تأكيد إن مكتبة Firebase اتحملت فعلاً من الإنترنت
   if(typeof firebase === 'undefined'){
     document.querySelectorAll('.submit-btn').forEach(b=>{
       b.addEventListener('click', ()=> alert('تعذّر تحميل مكتبة Firebase. تأكد إن جهازك متصل بالإنترنت وحاول تاني.'));
@@ -145,16 +148,6 @@
           points: 0, createdAt: Date.now()
         });
       }
-      // إضافة الأدمن تلقائياً في القائمة المسموحة
-      const allowedRef = db.collection('allowedUsers').doc(ADMIN_PHONE);
-      const allowedSnap = await allowedRef.get();
-      if(!allowedSnap.exists){
-        await allowedRef.set({
-          phone: ADMIN_PHONE,
-          name: "المسؤول العام",
-          addedAt: Date.now()
-        });
-      }
     }catch(e){ console.warn('لا يوجد اتصال بالإنترنت', e); }
   }
   ensureAdmin();
@@ -174,18 +167,6 @@
     el.textContent = text; el.className = 'msg ' + type; el.style.display='block';
   }
 
-  // ====== التحقق من الرقم في القائمة المسموحة ======
-  async function isPhoneAllowed(phone) {
-    if(!db) return false;
-    try {
-      const snap = await db.collection('allowedUsers').doc(phone).get();
-      return snap.exists;
-    } catch(e) {
-      return false;
-    }
-  }
-
-  // ====== تسجيل الدخول ======
   document.getElementById('loginForm').addEventListener('submit', async (e)=>{
     e.preventDefault();
     const phone = document.getElementById('loginPhone').value.trim();
@@ -198,48 +179,30 @@
     btn.disabled = true; btn.textContent='جاري التحقق...';
 
     try{
-      // 1. التحقق من وجود الحساب
       const ref = db.collection('users').doc(phone);
       const snap = await ref.get();
       if(!snap.exists){
         showMsg(msg,'لا يوجد حساب بهذا الرقم','error');
-        btn.disabled=false; btn.textContent='دخول';
-        return;
+      } else {
+        const data = snap.data();
+        if(data.password !== pass){
+          showMsg(msg,'كلمة المرور غير صحيحة','error');
+        } else if(!data.approved){
+          showMsg(msg,'حسابك لسه في انتظار موافقة الأدمن','info');
+        } else if(data.activeSession && data.role !== 'admin' && (Date.now() - (data.lastLogin||0) < 1000*60*60*6)){
+          showMsg(msg,'الحساب مسجل دخول بالفعل من جهاز آخر','error');
+        } else {
+          await ref.update({activeSession:true, lastLogin:Date.now()});
+          const userObj = {phone, name:data.name, role:data.role||'student', year:data.year};
+          localStorage.setItem('currentUser', JSON.stringify(userObj));
+          const params = new URLSearchParams(userObj).toString();
+          const targetUrl = 'home.html?' + params;
+          msg.innerHTML = 'تم تسجيل الدخول بنجاح. <a href="'+targetUrl+'" style="color:#0a2e5c;font-weight:800;text-decoration:underline;">اضغط هنا للمتابعة</a> لو ملحولكش تلقائيًا';
+          msg.className = 'msg success';
+          msg.style.display = 'block';
+          setTimeout(()=>{ window.location.href = targetUrl; }, 700);
+        }
       }
-      
-      const data = snap.data();
-      if(data.password !== pass){
-        showMsg(msg,'كلمة المرور غير صحيحة','error');
-        btn.disabled=false; btn.textContent='دخول';
-        return;
-      }
-
-      // 2. التحقق من الموافقة (إما مسموح أو موافق عليه)
-      const isAllowed = await isPhoneAllowed(phone);
-      if(!isAllowed && !data.approved){
-        showMsg(msg,'حسابك لسه في انتظار موافقة الأدمن','info');
-        btn.disabled=false; btn.textContent='دخول';
-        return;
-      }
-
-      // 3. التحقق من الجلسة المزدوجة
-      if(data.activeSession && data.role !== 'admin' && (Date.now() - (data.lastLogin||0) < 1000*60*60*6)){
-        showMsg(msg,'الحساب مسجل دخول بالفعل من جهاز آخر','error');
-        btn.disabled=false; btn.textContent='دخول';
-        return;
-      }
-
-      // 4. تسجيل الدخول
-      await ref.update({activeSession:true, lastLogin:Date.now()});
-      const userObj = {phone, name:data.name, role:data.role||'student', year:data.year};
-      localStorage.setItem('currentUser', JSON.stringify(userObj));
-      const params = new URLSearchParams(userObj).toString();
-      const targetUrl = 'home.html?' + params;
-      msg.innerHTML = 'تم تسجيل الدخول بنجاح. <a href="'+targetUrl+'" style="color:#0a2e5c;font-weight:800;text-decoration:underline;">اضغط هنا للمتابعة</a> لو ملحولكش تلقائيًا';
-      msg.className = 'msg success';
-      msg.style.display = 'block';
-      setTimeout(()=>{ window.location.href = targetUrl; }, 700);
-
     }catch(err){
       console.error(err);
       showMsg(msg,'حدث خطأ في الاتصال: '+err.message,'error');
@@ -247,7 +210,6 @@
     btn.disabled=false; btn.textContent='دخول';
   });
 
-  // ====== إنشاء حساب ======
   document.getElementById('signupForm').addEventListener('submit', async (e)=>{
     e.preventDefault();
     const name = document.getElementById('suName').value.trim();
@@ -271,27 +233,32 @@
       const existing = await ref.get();
       if(existing.exists){
         showMsg(msg,'يوجد حساب بالفعل بهذا الرقم','error');
-        btn.disabled=false; btn.textContent='إنشاء الحساب';
-        return;
-      }
-
-      // التحقق من الرقم في القائمة المسموحة
-      const isAllowed = await isPhoneAllowed(phone);
-      const approved = isAllowed ? true : false; // لو مسموح → موافق عليه فوراً
-
-      await ref.set({
-        name, phone, password: pass, year,
-        role:'student', approved: approved, activeSession:false,
-        points:0, createdAt: Date.now()
-      });
-
-      if(approved){
-        showMsg(msg,'✅ رقمك مسموح، تم تفعيل حسابك فوراً! يمكنك تسجيل الدخول الآن.','success');
       } else {
-        showMsg(msg,'📌 تم إرسال طلبك بنجاح، انتظر موافقة الأدمن لتفعيل الدخول.','info');
-      }
-      document.getElementById('signupForm').reset();
+        // ✅ التحقق من القائمة البيضاء
+        let isWhitelisted = false;
+        try {
+          const whiteSnap = await db.collection('settings').doc('whitelist').get();
+          if (whiteSnap.exists && whiteSnap.data().numbers && whiteSnap.data().numbers.includes(phone)) {
+            isWhitelisted = true;
+          }
+        } catch(e) { console.warn('خطأ في التحقق من القائمة البيضاء', e); }
 
+        await ref.set({
+          name, phone, password: pass, year,
+          role:'student',
+          approved: isWhitelisted, // ✅ لو الرقم في القائمة البيضاء، يتفعّل تلقائياً
+          activeSession:false,
+          points:0,
+          createdAt: Date.now()
+        });
+
+        if (isWhitelisted) {
+          showMsg(msg, '✅ تم إنشاء الحساب وتفعيله تلقائياً (رقمك مسموح). يمكنك تسجيل الدخول الآن.', 'success');
+        } else {
+          showMsg(msg, 'تم إرسال طلبك بنجاح، انتظر موافقة الأدمن لتفعيل الدخول', 'success');
+        }
+        document.getElementById('signupForm').reset();
+      }
     }catch(err){
       console.error(err);
       showMsg(msg,'حدث خطأ: '+err.message,'error');
@@ -299,7 +266,6 @@
     btn.disabled=false; btn.textContent='إنشاء الحساب';
   });
 
-  // ====== الخلفية المتحركة ======
   document.addEventListener('DOMContentLoaded', function(){
     const bg = document.getElementById('labBg');
     for(let i=0;i<22;i++){
@@ -322,4 +288,4 @@
   });
 </script>
 </body>
-  </html>
+</html>
