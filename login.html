@@ -102,15 +102,12 @@
 
 <div class="footer-credit">تم إنشاء هذا الموقع بواسطة MF.mo.fayyad</div>
 
-<!-- Firebase compat SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script>
-  // منع الريفرش فورًا بغض النظر عن أي حاجة تانية
   document.getElementById('loginForm').addEventListener('submit', e => e.preventDefault());
   document.getElementById('signupForm').addEventListener('submit', e => e.preventDefault());
 
-  // تأكيد إن مكتبة Firebase اتحملت فعلاً من الإنترنت
   if(typeof firebase === 'undefined'){
     document.querySelectorAll('.submit-btn').forEach(b=>{
       b.addEventListener('click', ()=> alert('تعذّر تحميل مكتبة Firebase. تأكد إن جهازك متصل بالإنترنت وحاول تاني.'));
@@ -175,7 +172,7 @@
     const msg = document.getElementById('loginMsg');
 
     if(!/^01[0-9]{9}$/.test(phone)){ showMsg(msg,'رقم الموبايل غير صحيح','error'); return; }
-    if(!db){ showMsg(msg,'لا يوجد اتصال بالإنترنت، تأكد من الاتصال وحاول مرة أخرى','error'); return; }
+    if(!db){ showMsg(msg,'لا يوجد اتصال بالإنترنت','error'); return; }
     btn.disabled = true; btn.textContent='جاري التحقق...';
 
     try{
@@ -189,8 +186,9 @@
           showMsg(msg,'كلمة المرور غير صحيحة','error');
         } else if(!data.approved){
           showMsg(msg,'حسابك لسه في انتظار موافقة الأدمن','info');
-        } else if(data.activeSession && data.role !== 'admin' && (Date.now() - (data.lastLogin||0) < 1000*60*60*6)){
-          showMsg(msg,'الحساب مسجل دخول بالفعل من جهاز آخر','error');
+        } else if(data.activeSession && data.role !== 'admin'){
+          // ✅ منع تسجيل الدخول نهائياً من جهاز آخر
+          showMsg(msg,'⚠️ الحساب مسجل دخول بالفعل من جهاز آخر. يرجى تسجيل الخروج من الجهاز الآخر أولاً','error');
         } else {
           await ref.update({activeSession:true, lastLogin:Date.now()});
           const userObj = {phone, name:data.name, role:data.role||'student', year:data.year};
@@ -225,7 +223,7 @@
     if(!year){ showMsg(msg,'من فضلك اختر الفرقة الدراسية','error'); return; }
     if(pass.length < 6){ showMsg(msg,'كلمة المرور يجب ألا تقل عن 6 أحرف','error'); return; }
     if(pass !== pass2){ showMsg(msg,'كلمتا المرور غير متطابقتين','error'); return; }
-    if(!db){ showMsg(msg,'لا يوجد اتصال بالإنترنت، تأكد من الاتصال وحاول مرة أخرى','error'); return; }
+    if(!db){ showMsg(msg,'لا يوجد اتصال بالإنترنت','error'); return; }
 
     btn.disabled = true; btn.textContent='جاري الإنشاء...';
     try{
@@ -246,7 +244,7 @@
         await ref.set({
           name, phone, password: pass, year,
           role:'student',
-          approved: isWhitelisted, // ✅ لو الرقم في القائمة البيضاء، يتفعّل تلقائياً
+          approved: isWhitelisted,
           activeSession:false,
           points:0,
           createdAt: Date.now()
