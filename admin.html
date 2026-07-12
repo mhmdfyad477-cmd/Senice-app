@@ -50,6 +50,7 @@
   .stat-card.orange{border-top-color:#e67e22;}
   .stat-card .sub{font-size:11px;color:#9bb3cb;margin-top:2px;}
   .medal-winner-item{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #f0f4fa;}
+  .admin-only{color:#b00020;font-size:11px;}
 </style>
 </head>
 <body>
@@ -121,7 +122,7 @@
 
     <!-- المشرفون -->
     <div class="section" id="tab-admins">
-      <div class="card-box" style="font-size:13px;color:#7a93ad;margin-bottom:10px;">يمكن للمشرفين الدخول للوحة الأدمن بنفس كلمة المرور وإدارة كل شيء ماعدا حذف المشرفين الآخرين.</div>
+      <div class="card-box" style="font-size:13px;color:#7a93ad;margin-bottom:10px;">يمكن للمشرفين الدخول للوحة الأدمن بنفس كلمة المرور وإدارة كل شيء ماعدا حذف المشرفين الآخرين أو ترقية أعضاء جدد.</div>
       <div id="adminsList"></div>
     </div>
 
@@ -717,57 +718,105 @@
     loadStudentReport(filter);
   }
 
+  // ====== تصدير تقرير شامل (Excel) ======
   async function exportFullReport() {
     if (!db) { alert('لا يوجد اتصال بالإنترنت'); return; }
     try {
-      const snap = await db.collection('users').where('approved','==',true).get();
-      if (snap.empty) { alert('لا يوجد أعضاء'); return; }
+      const snap = await db.collection('users').where('approved', '==', true).get();
+      if (snap.empty) { alert('لا يوجد أعضاء لتصديرهم'); return; }
+      
       let rows = [];
+      let counter = 0;
+      
       for (const doc of snap.docs) {
         const u = doc.data();
         let msgCount = 0, summaryCount = 0;
+        
         try {
           const groupsSnap = await db.collection('groups').where('members', 'array-contains', u.phone).get();
           for (const g of groupsSnap.docs) {
-            const msgs = await db.collection('groups').doc(g.id).collection('messages').where('phone','==',u.phone).get();
+            const msgs = await db.collection('groups').doc(g.id).collection('messages').where('phone', '==', u.phone).get();
             msgCount += msgs.size;
           }
-        } catch(e) {}
+        } catch(e) { console.warn('خطأ في جلب رسائل:', u.phone); }
+        
         try {
-          const sumSnap = await db.collection('summaries').where('phone','==',u.phone).get();
+          const sumSnap = await db.collection('summaries').where('phone', '==', u.phone).get();
           summaryCount = sumSnap.size;
-        } catch(e) {}
+        } catch(e) { console.warn('خطأ في جلب ملخصات:', u.phone); }
+        
+        counter++;
         rows.push({
+          id: counter,
           name: u.name || '',
           phone: u.phone || '',
           year: u.year || '',
           points: u.points || 0,
           messages: msgCount,
           summaries: summaryCount,
-          active: u.activeSession ? 'متصل' : 'غير متصل',
+          active: u.activeSession ? '🟢 متصل' : '🔴 غير متصل',
           lastLogin: u.lastLogin ? new Date(u.lastLogin).toLocaleDateString('ar') : '—'
         });
       }
-      let html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel">
-      <head><meta charset="UTF-8"><title>تقرير شامل</title></head>
-      <body><table border="1" style="direction:rtl;font-family:Arial;font-size:13px;">
-      <tr style="background:#1565d8;color:#fff;font-weight:bold;">
-        <th>#</th><th>الاسم</th><th>رقم الموبايل</th><th>الفرقة</th><th>النقاط</th><th>الرسائل</th><th>الملخصات</th><th>الحالة</th><th>آخر دخول</th>
-      </tr>`;
-      rows.forEach((u, i) => {
-        html += `<tr><td>${i+1}</td><td>${u.name}</td><td>${u.phone}</td><td>${u.year}</td><td>${u.points}</td><td>${u.messages}</td><td>${u.summaries}</td><td>${u.active}</td><td>${u.lastLogin}</td></tr>`;
+      
+      if (rows.length === 0) {
+        alert('لا توجد بيانات للتصدير');
+        return;
+      }
+      
+      let html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" 
+                       xmlns:x="urn:schemas-microsoft-com:office:excel">
+      <head><meta charset="UTF-8">
+      <!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>تقرير</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]-->
+      <style>
+        table { direction: rtl; font-family: Arial, sans-serif; font-size: 12px; border-collapse: collapse; }
+        th { background: #1565d8; color: #ffffff; font-weight: bold; padding: 6px 10px; border: 1px solid #0a2e5c; }
+        td { padding: 4px 10px; border: 1px solid #cfe2f7; }
+        .header { background: #1565d8; color: #fff; font-size: 16px; font-weight: bold; text-align: center; padding: 10px; }
+      </style>
+      </head>
+      <body>
+      <table>
+        <tr><td colspan="9" class="header">📊 تقرير شامل - قسم علوم ابتدائي</td></tr>
+        <tr>
+          <th>#</th><th>الاسم</th><th>رقم الموبايل</th><th>الفرقة</th>
+          <th>النقاط</th><th>الرسائل</th><th>الملخصات</th>
+          <th>الحالة</th><th>آخر دخول</th>
+        </tr>`;
+      
+      rows.forEach((u) => {
+        html += `<tr>
+          <td>${u.id}</td>
+          <td>${u.name}</td>
+          <td>${u.phone}</td>
+          <td>${u.year}</td>
+          <td>${u.points}</td>
+          <td>${u.messages}</td>
+          <td>${u.summaries}</td>
+          <td>${u.active}</td>
+          <td>${u.lastLogin}</td>
+        </tr>`;
       });
+      
       html += `</table></body></html>`;
-      const blob = new Blob([html], { type: 'application/vnd.ms-excel;charset=utf-8' });
+      
+      const blob = new Blob([html], { 
+        type: 'application/vnd.ms-excel;charset=utf-8' 
+      });
+      
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `تقرير_الأعضاء_${new Date().toLocaleDateString('ar')}.xls`;
+      a.download = `تقرير_شامل_${new Date().toLocaleDateString('ar').replace(/\//g, '-')}.xls`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-    } catch (e) { alert('خطأ في التصدير: '+e.message); }
+      
+    } catch (e) {
+      console.error('خطأ في التصدير:', e);
+      alert('❌ حدث خطأ أثناء التصدير: ' + e.message);
+    }
   }
 
   // ====== إدارة الكويزات ======
@@ -855,6 +904,7 @@
   // ====== تقييم الطلاب ======
   let currentSearchedStudentId = null;
 
+  // ====== البحث عن طالب ======
   async function searchStudentEval() {
     const query = document.getElementById('searchStudentEval').value.trim();
     const box = document.getElementById('studentEvalResult');
@@ -907,6 +957,7 @@
     }
   }
 
+  // ====== تحميل تقرير طالب واحد ======
   async function exportSingleStudentEval() {
     if (!currentSearchedStudentId) { alert('لم يتم العثور على طالب، قم بالبحث أولاً'); return; }
     if (!db) { alert('لا يوجد اتصال بالإنترنت'); return; }
@@ -961,6 +1012,7 @@
     } catch (e) { alert('خطأ في التصدير: '+e.message); }
   }
 
+  // ====== تحميل تقارير جميع الطلاب ======
   async function exportAllStudentsEval() {
     if (!db) { alert('لا يوجد اتصال بالإنترنت'); return; }
     try {
@@ -1178,18 +1230,35 @@
     box.innerHTML='جاري التحميل...';
     const snap = await db.collection('users').where('approved','==',true).get();
     box.innerHTML='';
+    const currentUserSnap = await db.collection('users').doc(ADMIN_PHONE).get();
+    const currentUser = currentUserSnap.exists ? currentUserSnap.data() : null;
+    const isAdmin = currentUser && currentUser.role === 'admin';
+
     snap.forEach(doc=>{
       const u = doc.data();
       const el = document.createElement('div');
       el.className='card-box';
       const roleLabel = u.role==='admin'?'👑 أدمن':u.role==='co-admin'?'🔑 مشرف':'طالب';
-      el.innerHTML = `<div class="row">
-        <div class="meta"><b>${u.name} — ${roleLabel}</b><span>${u.phone} — الفرقة ${u.year} ${u.activeSession?'— 🟢 متصل':''}</span></div>
-        <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+      
+      let actionsHtml = '';
+      if (isAdmin) {
+        actionsHtml = `
           ${u.activeSession ? `<button class="btn btn-blue" onclick="forceLogout('${doc.id}')">إنهاء الجلسة</button>` : ''}
           ${u.role==='student' ? `<button class="btn btn-approve" onclick="makeCoAdmin('${doc.id}')">ترقية لمشرف</button>` : ''}
           ${u.role==='co-admin' ? `<button class="btn btn-blue" onclick="removeCoAdmin('${doc.id}')">إزالة الإشراف</button>` : ''}
           ${u.role!=='admin' ? `<button class="btn btn-reject" onclick="removeUser('${doc.id}')">حذف</button>` : ''}
+        `;
+      } else {
+        actionsHtml = `
+          ${u.activeSession ? `<span class="admin-only">🟢 متصل (لا يمكنك إنهاء الجلسة)</span>` : ''}
+          <span class="admin-only">⛔ غير مسموح لك بتعديل الصلاحيات</span>
+        `;
+      }
+
+      el.innerHTML = `<div class="row">
+        <div class="meta"><b>${u.name} — ${roleLabel}</b><span>${u.phone} — الفرقة ${u.year} ${u.activeSession?'— 🟢 متصل':''}</span></div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+          ${actionsHtml}
         </div>
       </div>
       <div style="margin-top:8px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; background:#f8faff; padding:6px 10px; border-radius:8px;">
@@ -1201,6 +1270,7 @@
       box.appendChild(el);
     });
   }
+
   async function updateUserPoints(phone){
     const input = document.getElementById('points_input_'+phone);
     const msg = document.getElementById('points_msg_'+phone);
@@ -1229,10 +1299,50 @@
       box.appendChild(el);
     });
   }
-  async function makeCoAdmin(phone){ await db.collection('users').doc(phone).update({role:'co-admin'}); loadUsers(); loadAdmins(); }
-  async function removeCoAdmin(phone){ await db.collection('users').doc(phone).update({role:'student'}); loadUsers(); loadAdmins(); }
-  async function removeUser(phone){ if(!confirm('حذف العضو؟')) return; await db.collection('users').doc(phone).delete(); loadUsers(); loadDashboard(); }
-  async function forceLogout(phone){ await db.collection('users').doc(phone).update({activeSession:false}); loadUsers(); }
+  
+  async function makeCoAdmin(phone){ 
+    const currentUserSnap = await db.collection('users').doc(ADMIN_PHONE).get();
+    if (!currentUserSnap.exists || currentUserSnap.data().role !== 'admin') {
+      alert('⛔ فقط الأدمن يمكنه ترقية الأعضاء');
+      return;
+    }
+    await db.collection('users').doc(phone).update({role:'co-admin'}); 
+    loadUsers(); 
+    loadAdmins(); 
+  }
+  
+  async function removeCoAdmin(phone){ 
+    const currentUserSnap = await db.collection('users').doc(ADMIN_PHONE).get();
+    if (!currentUserSnap.exists || currentUserSnap.data().role !== 'admin') {
+      alert('⛔ فقط الأدمن يمكنه إزالة المشرفين');
+      return;
+    }
+    await db.collection('users').doc(phone).update({role:'student'}); 
+    loadUsers(); 
+    loadAdmins(); 
+  }
+  
+  async function removeUser(phone){ 
+    const currentUserSnap = await db.collection('users').doc(ADMIN_PHONE).get();
+    if (!currentUserSnap.exists || currentUserSnap.data().role !== 'admin') {
+      alert('⛔ فقط الأدمن يمكنه حذف الأعضاء');
+      return;
+    }
+    if(!confirm('حذف العضو؟')) return; 
+    await db.collection('users').doc(phone).delete(); 
+    loadUsers(); 
+    loadDashboard(); 
+  }
+  
+  async function forceLogout(phone){ 
+    const currentUserSnap = await db.collection('users').doc(ADMIN_PHONE).get();
+    if (!currentUserSnap.exists || currentUserSnap.data().role !== 'admin') {
+      alert('⛔ فقط الأدمن يمكنه إنهاء الجلسات');
+      return;
+    }
+    await db.collection('users').doc(phone).update({activeSession:false}); 
+    loadUsers(); 
+  }
 
   async function createGroup(){
     const name = document.getElementById('newGroupName').value.trim();
@@ -1464,4 +1574,4 @@
   }
 </script>
 </body>
-  </html>
+                                                                                 </html>
