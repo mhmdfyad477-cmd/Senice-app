@@ -107,6 +107,7 @@
   .admin-tag{background:var(--blue-main);color:#fff;font-size:11px;padding:2px 10px;border-radius:12px;display:inline-flex;align-items:center;gap:4px;}
   .admin-tag button{background:transparent;border:none;color:#fff;cursor:pointer;font-weight:bold;}
   .group-settings-label{display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;}
+  .admin-only-msg{font-size:11px;color:#b00020;margin-top:4px;display:block;}
   
   @media(max-width:760px){
     .sidebar{position:fixed;right:-240px;top:58px;z-index:40;box-shadow:0 0 30px rgba(0,0,0,0.15);}
@@ -180,12 +181,13 @@
               </label>
             </div>
             <div id="adminsList" style="margin-top:8px; display:flex; flex-wrap:wrap; gap:6px;"></div>
-            <div style="margin-top:8px; display:flex; gap:6px; flex-wrap:wrap;">
+            <div id="adminControls" style="margin-top:8px; display:flex; gap:6px; flex-wrap:wrap;">
               <select id="memberSelect" style="padding:6px 10px; border-radius:8px; border:1.5px solid #cfe2f7; flex:1; min-width:120px;">
                 <option value="">اختر عضو لترقيته...</option>
               </select>
               <button class="dl" style="background:var(--blue-deep); color:#fff; padding:6px 14px; border:none; border-radius:8px; cursor:pointer;" onclick="addAdmin()">➕ ترقية</button>
             </div>
+            <span id="adminOnlyMsg" class="admin-only-msg" style="display:none;">⛔ فقط الأدمن يمكنه تعديل المشرفين</span>
             <p id="groupSettingsMsg" style="font-size:11px; color:#7a93ad; margin-top:4px;"></p>
           </div>
 
@@ -241,7 +243,7 @@
     <div class="section" id="sec-privacy">
       <h2 class="section-title">🔒 سياسة الخصوصية</h2>
       <div class="card-box" style="font-size:13.5px;line-height:2;color:#3c5675">
-        نحرص على خصوصية بيانات الطلاب المسجلين بالموقع. بيانات التسجيل تُستخدم فقط لأغراض التحقق وإدارة الحאסאבات داخل القسم، ولا تتم مشاركتها مع أي جهة خارجية. كلمات المرور مخزّنة في قاعدة بيانات خاصة بالموقع. الملفات والصور التي يرفعها الطلاب تُستخدم فقط داخل نطاق التطبيق بين أعضاء القسم. باستخدامك للموقع فإنك توافق على هذه السياسة.
+        نحرص على خصوصية بيانات الطلاب المسجلين بالموقع. بيانات التسجيل تُستخدم فقط لأغراض التحقق وإدارة الحسابات داخل القسم، ولا تتم مشاركتها مع أي جهة خارجية. كلمات المرور مخزّنة في قاعدة بيانات خاصة بالموقع. الملفات والصور التي يرفعها الطلاب تُستخدم فقط داخل نطاق التطبيق بين أعضاء القسم. باستخدامك للموقع فإنك توافق على هذه السياسة.
       </div>
     </div>
 
@@ -287,6 +289,7 @@
 
   const CLOUD_NAME = 'dgbuovcf';
   const UPLOAD_PRESET = 'Science_app';
+  const ADMIN_PHONE = "01229914072";
 
   function getCurrentUser(){
     const urlParams = new URLSearchParams(window.location.search);
@@ -317,22 +320,6 @@
   let currentGroupAdmins = [];
   let currentGroupOnlyAdminsCanSend = false;
   let currentGroupCreatedBy = '';
-
-  // تحميل محتوى من نحن
-  async function loadAboutContentHome() {
-    const box = document.getElementById('aboutContent');
-    try {
-      const snap = await db.collection('settings').doc('about').get();
-      if (snap.exists) {
-        const data = snap.data();
-        box.innerHTML = `<div style="color:${data.textColor || '#0a2e5c'};font-size:${data.fontSize || 16}px;line-height:1.8;text-align:center;padding:10px;">${data.content || 'مرحباً بكم في قسم علوم ابتدائي'}</div>`;
-      } else {
-        box.innerHTML = '<p style="font-size:16px;color:#0a2e5c;line-height:1.8;">مرحباً بكم في قسم علوم ابتدائي.<br>هذا القسم مخصص لطلاب العلوم في المرحلة الابتدائية.<br>نتمنى لكم التوفيق والنجاح.</p>';
-      }
-    } catch(e) {
-      box.innerHTML = '<p style="font-size:13px;color:#b00020;">خطأ في التحميل</p>';
-    }
-  }
 
   function showSection(id, btn){
     document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
@@ -414,6 +401,7 @@
     window.open(item.fileUrl, '_blank');
   }
 
+  // ==================== إدارة الجروب (للمشرفين - فقط الأدمن) ====================
   async function loadGroupSettings(groupId){
     if(!db) return;
     try{
@@ -425,8 +413,22 @@
       currentGroupCreatedBy=data.createdBy||user.phone;
 
       const settingsDiv=document.getElementById('groupSettings');
-      const isAdmin=currentGroupAdmins.includes(user.phone);
-      settingsDiv.style.display=isAdmin?'block':'none';
+      const isRealAdmin = user.phone === ADMIN_PHONE;
+      const isGroupAdmin = currentGroupAdmins.includes(user.phone);
+      
+      // إظهار الإعدادات للمشرفين العاديين (لكن بدون أزرار التعديل)
+      settingsDiv.style.display = isGroupAdmin ? 'block' : 'none';
+
+      // التحكم في إظهار أزرار التعديل فقط للأدمن الحقيقي
+      const controlsDiv = document.getElementById('adminControls');
+      const msgSpan = document.getElementById('adminOnlyMsg');
+      if (isRealAdmin) {
+        controlsDiv.style.display = 'flex';
+        msgSpan.style.display = 'none';
+      } else {
+        controlsDiv.style.display = 'none';
+        msgSpan.style.display = 'block';
+      }
 
       document.getElementById('onlyAdminsCanSend').checked=currentGroupOnlyAdminsCanSend;
       await renderAdminsList(groupId);
@@ -439,12 +441,14 @@
     const container=document.getElementById('adminsList');
     if(!currentGroupAdmins.length){ container.innerHTML='<span style="font-size:12px; color:#7a93ad;">لا يوجد مشرفين</span>'; return; }
     let html='';
+    const isRealAdmin = user.phone === ADMIN_PHONE;
     for(const phone of currentGroupAdmins){
       let name=phone;
       try{ const snap=await db.collection('users').doc(phone).get(); if(snap.exists) name=snap.data().name||phone; }catch(e){}
       const isSelf=phone===user.phone;
       const isCreator=phone===currentGroupCreatedBy;
-      html+=`<span class="admin-tag">${name} ${isCreator?'👑':''} ${!isSelf&&!isCreator?`<button onclick="removeAdmin('${phone}')">✕</button>`:''}</span>`;
+      const canRemove = isRealAdmin && !isSelf && !isCreator;
+      html+=`<span class="admin-tag">${name} ${isCreator?'👑':''} ${canRemove?`<button onclick="removeAdmin('${phone}')">✕</button>`:''}</span>`;
     }
     container.innerHTML=html;
   }
@@ -464,21 +468,37 @@
     }catch(e){}
   }
 
+  // ✅ فقط الأدمن الحقيقي يمكنه ترقية أو إزالة مشرفين الجروب
   async function addAdmin(){
-    const select=document.getElementById('memberSelect');
-    const phone=select.value;
+    const phone = document.getElementById('memberSelect').value;
     if(!phone) return alert('اختر عضواً أولاً');
+    
+    // التحقق من أن المستخدم الحالي هو الأدمن الحقيقي
+    if (user.phone !== ADMIN_PHONE) {
+      alert('⛔ فقط الأدمن يمكنه ترقية المشرفين');
+      return;
+    }
+    
     try{
-      await db.collection('groups').doc(currentGroupId).update({ admins: firebase.firestore.FieldValue.arrayUnion(phone) });
+      await db.collection('groups').doc(currentGroupId).update({ 
+        admins: firebase.firestore.FieldValue.arrayUnion(phone) 
+      });
       document.getElementById('groupSettingsMsg').textContent='✅ تمت الترقية';
       loadGroupSettings(currentGroupId);
     }catch(e){ alert('خطأ: '+e.message); }
   }
 
   async function removeAdmin(phone){
+    // التحقق من أن المستخدم الحالي هو الأدمن الحقيقي
+    if (user.phone !== ADMIN_PHONE) {
+      alert('⛔ فقط الأدمن يمكنه إزالة المشرفين');
+      return;
+    }
     if(!confirm('هل تريد إزالة هذا المشرف؟')) return;
     try{
-      await db.collection('groups').doc(currentGroupId).update({ admins: firebase.firestore.FieldValue.arrayRemove(phone) });
+      await db.collection('groups').doc(currentGroupId).update({ 
+        admins: firebase.firestore.FieldValue.arrayRemove(phone) 
+      });
       loadGroupSettings(currentGroupId);
     }catch(e){ alert('خطأ: '+e.message); }
   }
@@ -492,6 +512,7 @@
     }catch(e){ alert('خطأ: '+e.message); }
   }
 
+  // ==================== فتح الجروب ====================
   function openGroup(id,name,el){
     currentGroupId=id;
     document.querySelectorAll('.group-item').forEach(g=>g.classList.remove('active'));
@@ -897,7 +918,22 @@
   }
 
   // تحميل من نحن عند بدء الصفحة
+  async function loadAboutContentHome() {
+    const box = document.getElementById('aboutContent');
+    try {
+      const snap = await db.collection('settings').doc('about').get();
+      if (snap.exists) {
+        const data = snap.data();
+        box.innerHTML = `<div style="color:${data.textColor || '#0a2e5c'};font-size:${data.fontSize || 16}px;line-height:1.8;text-align:center;padding:10px;">${data.content || 'مرحباً بكم في قسم علوم ابتدائي'}</div>`;
+      } else {
+        box.innerHTML = '<p style="font-size:16px;color:#0a2e5c;line-height:1.8;">مرحباً بكم في قسم علوم ابتدائي.<br>هذا القسم مخصص لطلاب العلوم في المرحلة الابتدائية.<br>نتمنى لكم التوفيق والنجاح.</p>';
+      }
+    } catch(e) {
+      box.innerHTML = '<p style="font-size:13px;color:#b00020;">خطأ في التحميل</p>';
+    }
+  }
+
   loadAboutContentHome();
 </script>
 </body>
-  </html>
+      </html>
