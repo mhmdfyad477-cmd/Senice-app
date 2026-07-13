@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>كتبي | قسم علوم ابتدائي</title>
+  <style>
+    :root{--blue-deep:#0a2e5c;--blue-main:#1565d8;--blue-bright:#2f9bf0;--ice:#eaf4ff;--gold:#f5a623;}
+    *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Tahoma,Arial,sans-serif;}
+    body{background:var(--ice);color:#0a2e5c;min-height:100vh;}
+    .topbar{background:linear-gradient(135deg,var(--blue-main),var(--blue-deep));color:#fff;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:30;box-shadow:0 4px 14px rgba(10,46,92,0.25);}
+    .topbar a{color:#fff;text-decoration:none;font-size:13px;background:rgba(255,255,255,0.15);padding:8px 14px;border-radius:10px;transition:0.2s;}
+    .topbar a:hover{background:rgba(255,255,255,0.25);}
+    .wrap{max-width:1000px;margin:24px auto;padding:0 16px;}
+    .search-bar{display:flex;gap:8px;margin-bottom:14px;}
+    .search-bar input{flex:1;padding:11px 14px;border-radius:12px;border:1.5px solid #cfe2f7;font-size:14px;}
+    .card-box{background:#fff;border-radius:16px;padding:16px;box-shadow:0 6px 18px rgba(10,46,92,0.06);margin-bottom:14px;}
+    .file-card{display:flex;justify-content:space-between;align-items:center;}
+    .file-card .meta b{display:block;font-size:14.5px;}
+    .file-card .meta span{font-size:12px;color:#7a93ad;}
+    .dl{background:var(--blue-main);color:#fff;border:none;border-radius:10px;padding:8px 14px;font-size:12.5px;font-weight:700;cursor:pointer;text-decoration:none;}
+    .dl-danger{background:#b00020;color:#fff;}
+    .points-badge{background:var(--gold);color:#fff;font-size:11px;font-weight:800;padding:3px 8px;border-radius:8px;}
+    .footer-credit{text-align:center;font-size:11.5px;color:#9bb3cb;padding:18px 0;}
+    .folder-header{font-size:16px;font-weight:700;color:var(--blue-deep);padding:6px 12px;background:#eaf4ff;border-radius:8px;margin-bottom:6px;display:flex;justify-content:space-between;}
+    .folder-header span{font-size:12px;color:#7a93ad;font-weight:400;}
+    .name-link{cursor:pointer;color:var(--blue-main);}
+    .name-link:hover{text-decoration:underline;}
+    @media(max-width:600px){.file-card{flex-direction:column;align-items:flex-start;gap:8px;}}
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="brand" style="font-weight:800;font-size:16px;">📚 كتبي</div>
+    <a href="home.html">🏠 الرجوع للرئيسية</a>
+  </div>
+  <div class="wrap">
+    <div class="search-bar">
+      <input type="text" id="bookSearch" placeholder="ابحث عن كتاب..." oninput="renderBooks()">
+    </div>
+    <div id="booksList">
+      <p style="font-size:13px;color:#7a93ad;">جاري التحميل...</p>
+    </div>
+  </div>
+  <div class="footer-credit">تم إنشاء هذا الموقع بواسطة MF.mo.fayyad</div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBgI8VcLOdQAMgmcpxCzaMS1UCX1vyzSjw",
+      authDomain: "science-e2b52.firebaseapp.com",
+      projectId: "science-e2b52",
+      storageBucket: "science-e2b52.firebasestorage.app",
+      messagingSenderId: "1031434005860",
+      appId: "1:1031434005860:web:e68fccdd746017a5639e71",
+      measurementId: "G-JZ1SFVMM7P"
+    };
+    let db = null;
+    try {
+      firebase.initializeApp(firebaseConfig);
+      db = firebase.firestore();
+    } catch(e){ console.warn('لا يوجد اتصال بالإنترنت', e); }
+
+    function getCurrentUser() {
+      const raw = localStorage.getItem('currentUser');
+      return raw ? JSON.parse(raw) : null;
+    }
+    const user = getCurrentUser();
+    if (!user) window.location.href = 'login.html';
+
+    async function renderBooks() {
+      const q = (document.getElementById('bookSearch').value || '').trim();
+      const box = document.getElementById('booksList');
+      if (!db) { box.innerHTML = '<p style="font-size:13px;color:#9bb3cb">الكتب تحتاج اتصال بالإنترنت.</p>'; return; }
+      box.innerHTML = 'جاري التحميل...';
+      try {
+        const foldersSnap = await db.collection('folders').orderBy('name', 'asc').get();
+        const folders = {};
+        foldersSnap.forEach(d => { folders[d.id] = d.data().name; });
+
+        const snap = await db.collection('books').orderBy('time', 'desc').get();
+        let items = [];
+        snap.forEach(d => items.push({ id: d.id, ...d.data() }));
+        if (q) items = items.filter(i => i.title.includes(q));
+
+        const grouped = {};
+        items.forEach(item => {
+          const folderId = item.folderId || 'uncategorized';
+          if (!grouped[folderId]) grouped[folderId] = [];
+          grouped[folderId].push(item);
+        });
+
+        let html = '';
+        const folderNames = { uncategorized: '📂 بدون مجلد' };
+        Object.keys(folders).forEach(k => { folderNames[k] = '📁 ' + folders[k]; });
+
+        for (const [folderId, bookList] of Object.entries(grouped)) {
+          const folderName = folderNames[folderId] || '📂 بدون مجلد';
+          html += `<div style="margin-bottom:16px;">
+            <div class="folder-header"><span>${folderName}</span><span>${bookList.length} كتاب</span></div>`;
+          bookList.forEach(i => {
+            const allowed = !i.locked || (i.allowedPhones||[]).includes(user.phone);
+            const canDelete = (user.phone === i.phone) || (user.role === 'admin' || user.role === 'co-admin');
+            html += `<div class="card-box file-card">
+              <div class="meta">
+                <b>${i.title}</b>
+                <span>${i.locked ? '🔒 مقفول' : 'متاح للجميع'}</span>
+              </div>
+              <div style="display:flex;gap:6px;align-items:center;">
+                ${allowed ? `<button class="dl" onclick="downloadBookFile('${i.id}')">تحميل</button>` : `<span class="points-badge">غير متاح</span>`}
+                ${canDelete ? `<button class="dl dl-danger" onclick="deleteBookFile('${i.id}')">🗑 حذف</button>` : ''}
+              </div>
+            </div>`;
+          });
+          html += `</div>`;
+        }
+        box.innerHTML = html || '<p style="font-size:13px;color:#9bb3cb;">لا توجد كتب بعد</p>';
+      } catch(e) { box.innerHTML = '<p style="font-size:13px;color:#b00020;">خطأ في التحميل</p>'; }
+    }
+
+    async function downloadBookFile(id) {
+      const snap = await db.collection('books').doc(id).get();
+      if (snap.exists && snap.data().fileUrl) {
+        window.open(snap.data().fileUrl, '_blank');
+      } else {
+        alert('الكتاب غير موجود');
+      }
+    }
+
+    async function deleteBookFile(id) {
+      if (!confirm('حذف الكتاب نهائياً؟')) return;
+      try {
+        await db.collection('books').doc(id).delete();
+        renderBooks();
+      } catch(e) { alert('خطأ: '+e.message); }
+    }
+
+    renderBooks();
+  </script>
+</body>
+</html>
