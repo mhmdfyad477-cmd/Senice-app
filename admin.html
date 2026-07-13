@@ -51,6 +51,9 @@
   .stat-card .sub{font-size:11px;color:#9bb3cb;margin-top:2px;}
   .medal-winner-item{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #f0f4fa;}
   .admin-only{color:#b00020;font-size:11px;}
+  .user-checkbox{width:18px;height:18px;cursor:pointer;flex-shrink:0;}
+  .batch-tools{background:#f8faff;border-right:4px solid var(--gold);padding:12px 14px;border-radius:10px;margin-bottom:10px;display:flex;flex-wrap:wrap;align-items:center;gap:8px;}
+  .batch-tools .btn{margin:2px;}
 </style>
 </head>
 <body>
@@ -115,8 +118,24 @@
       <div id="pendingList"></div>
     </div>
 
-    <!-- كل الأعضاء -->
+    <!-- ===== كل الأعضاء (مع التعديل الجماعي) ===== -->
     <div class="section" id="tab-users">
+      <!-- أدوات التعديل الجماعي -->
+      <div class="batch-tools">
+        <span style="font-weight:700;color:var(--blue-deep);font-size:13px;">🛠️ تعديل جماعي</span>
+        <button class="btn btn-blue btn-sm" onclick="selectAllUsers()">✅ تحديد الكل</button>
+        <button class="btn btn-reject btn-sm" onclick="deselectAllUsers()">❌ إلغاء الكل</button>
+        <span style="color:#7a93ad;font-size:12px;">|</span>
+        <select id="batchYear" style="padding:6px 10px;border-radius:8px;border:1.5px solid #cfe2f7;font-size:13px;">
+          <option value="">تعديل الفرقة...</option>
+          <option value="الأولى">الفرقة الأولى</option>
+          <option value="الثانية">الفرقة الثانية</option>
+          <option value="الثالثة">الفرقة الثالثة</option>
+          <option value="الرابعة">الفرقة الرابعة</option>
+        </select>
+        <button class="btn btn-approve btn-sm" onclick="batchUpdateUsers()">💾 تطبيق</button>
+        <span id="batchMsg" style="font-size:12px;color:#7a93ad;"></span>
+      </div>
       <div id="usersList"></div>
     </div>
 
@@ -151,23 +170,19 @@
       <div id="scheduleAdminList"></div>
     </div>
 
-    <!-- ===== الكتب (مع المجلدات وتوريث الإعدادات) ===== -->
+    <!-- ===== الكتب ===== -->
     <div class="section" id="tab-books">
       <div class="card-box">
         <div class="form-line">
           <input type="text" id="bookTitle" placeholder="عنوان الكتاب">
           <input type="file" id="bookFile" accept="application/pdf,image/*" style="flex:1;min-width:160px;">
           <select id="bookLocked"><option value="no">متاح للجميع</option><option value="yes">مقفول (تحديد أسماء)</option></select>
-          <!-- ✅ اختيار المجلد للكتب -->
-          <select id="bookFolder">
-            <option value="">بدون مجلد</option>
-          </select>
+          <select id="bookFolder"><option value="">بدون مجلد</option></select>
           <button class="btn btn-blue" id="addBookBtn" onclick="addBook()">إضافة كتاب</button>
         </div>
-        <!-- ✅ أزرار توريث الإعدادات -->
-        <div style="margin-top:8px; display:flex; gap:6px; flex-wrap:wrap;">
+        <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">
           <button class="btn btn-sm btn-blue" onclick="applyPreviousBookSettings()">📋 استخدم إعدادات الكتاب السابق</button>
-          <button class="btn btn-sm btn-approve" onclick="saveCurrentBookAsDefault()">💾 حفظ كافتراضي للكتاب القادم</button>
+          <button class="btn btn-sm btn-approve" onclick="saveCurrentBookAsDefault()">💾 حفظ كافتراضي</button>
         </div>
         <p id="uploadProgress" style="font-size:12px;color:#7a93ad;"></p>
         <p style="font-size:11.5px;color:#9bb3cb;margin-top:2px;">📎 الملفات بتترفع على سحابة Cloudinary.</p>
@@ -1362,6 +1377,52 @@
 
   async function deleteBook(id){ if(!confirm('حذف الكتاب؟')) return; await db.collection('books').doc(id).delete(); loadBooks(); loadDashboard(); }
 
+  // ====== التعديل الجماعي للطلاب ======
+  function selectAllUsers() {
+    document.querySelectorAll('.user-checkbox').forEach(cb => cb.checked = true);
+    const count = document.querySelectorAll('.user-checkbox:checked').length;
+    document.getElementById('batchMsg').textContent = `✅ تم تحديد ${count} طالب`;
+  }
+
+  function deselectAllUsers() {
+    document.querySelectorAll('.user-checkbox').forEach(cb => cb.checked = false);
+    document.getElementById('batchMsg').textContent = '';
+  }
+
+  async function batchUpdateUsers() {
+    const year = document.getElementById('batchYear').value;
+    if (!year) {
+      alert('⚠️ اختر الفرقة الجديدة أولاً');
+      return;
+    }
+    const selected = document.querySelectorAll('.user-checkbox:checked');
+    if (selected.length === 0) {
+      alert('⚠️ لم تقم بتحديد أي طالب');
+      return;
+    }
+    if (!confirm(`هل أنت متأكد من تغيير فرقة ${selected.length} طالب إلى "${year}"؟`)) return;
+    
+    const msg = document.getElementById('batchMsg');
+    msg.textContent = 'جاري التحديث...';
+    msg.style.color = '#f5a623';
+    
+    try {
+      const batch = db.batch();
+      selected.forEach(cb => {
+        const phone = cb.dataset.phone;
+        const ref = db.collection('users').doc(phone);
+        batch.update(ref, { year: year });
+      });
+      await batch.commit();
+      msg.textContent = `✅ تم تحديث فرقة ${selected.length} طالب إلى "${year}"`;
+      msg.style.color = '#147a35';
+      loadUsers();
+    } catch (e) {
+      msg.textContent = '❌ خطأ: '+e.message;
+      msg.style.color = '#b00020';
+    }
+  }
+
   // ====== باقي الدوال ======
   async function loadPending(){
     const box = document.getElementById('pendingList');
@@ -1382,6 +1443,7 @@
   async function approveUser(phone){ await db.collection('users').doc(phone).update({approved:true}); loadPending(); loadUsers(); loadDashboard(); }
   async function rejectUser(phone){ if(!confirm('حذف الطلب؟')) return; await db.collection('users').doc(phone).delete(); loadPending(); }
 
+  // ====== loadUsers (مع مربعات الاختيار) ======
   async function loadUsers(){
     const box = document.getElementById('usersList');
     box.innerHTML='جاري التحميل...';
@@ -1415,18 +1477,24 @@
         `;
       }
 
-      el.innerHTML = `<div class="row">
-        <div class="meta"><b>${u.name} — ${roleLabel}</b><span>${u.phone} — الفرقة ${u.year} ${u.activeSession?'— 🟢 متصل':''}</span></div>
-        <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
-          ${actionsHtml}
+      el.innerHTML = `
+        <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+          <input type="checkbox" class="user-checkbox" data-phone="${u.id}" style="width:18px;height:18px;cursor:pointer;flex-shrink:0;">
+          <div class="meta" style="flex:1;min-width:150px;">
+            <b>${u.name} — ${roleLabel}</b>
+            <span>${u.phone} — الفرقة ${u.year} ${u.activeSession?'— 🟢 متصل':''}</span>
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+            ${actionsHtml}
+          </div>
         </div>
-      </div>
-      <div style="margin-top:8px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; background:#f8faff; padding:6px 10px; border-radius:8px;">
-        <span style="font-size:12px; font-weight:bold; color:var(--blue-deep);">⭐ النقاط:</span>
-        <input type="number" id="points_input_${u.id}" value="${u.points||0}" class="points-input" min="0">
-        <button class="btn btn-points" style="padding:4px 12px; font-size:12px;" onclick="updateUserPoints('${u.id}')">💾 حفظ</button>
-        <span id="points_msg_${u.id}" style="font-size:11px; color:#7a93ad;"></span>
-      </div>`;
+        <div style="margin-top:8px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; background:#f8faff; padding:6px 10px; border-radius:8px;">
+          <span style="font-size:12px; font-weight:bold; color:var(--blue-deep);">⭐ النقاط:</span>
+          <input type="number" id="points_input_${u.id}" value="${u.points||0}" class="points-input" min="0">
+          <button class="btn btn-points" style="padding:4px 12px; font-size:12px;" onclick="updateUserPoints('${u.id}')">💾 حفظ</button>
+          <span id="points_msg_${u.id}" style="font-size:11px; color:#7a93ad;"></span>
+        </div>
+      `;
       box.appendChild(el);
     });
   }
@@ -1683,4 +1751,4 @@
   }
 </script>
 </body>
-  </html>
+      </html>
