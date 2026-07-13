@@ -13,26 +13,40 @@
   .topbar a:hover{background:rgba(255,255,255,0.25);}
   .wrap{max-width:900px;margin:24px auto;padding:0 16px;}
   .card-box{background:#fff;border-radius:16px;padding:20px;box-shadow:0 6px 18px rgba(10,46,92,0.06);margin-bottom:14px;}
-  .post-item{border-bottom:1px solid #f0f4fa;padding:12px 0;}
-  .post-item:last-child{border-bottom:none;}
-  .post-item .post-title{font-size:17px;font-weight:700;color:var(--blue-deep);}
-  .post-item .post-meta{font-size:12px;color:#7a93ad;margin:4px 0;}
-  .post-item .post-body{font-size:14px;color:#1e3a5f;line-height:1.7;}
-  .post-item .post-actions{display:flex;gap:12px;margin-top:6px;}
-  .post-item .post-actions button{background:none;border:none;color:var(--blue-main);cursor:pointer;font-size:12px;}
-  .post-item .post-actions button:hover{text-decoration:underline;}
+  .post-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+  .post-author{font-weight:700;color:var(--blue-deep);font-size:15px;}
+  .post-author .admin-badge{font-size:11px;color:#b00020;font-weight:400;}
+  .post-author .anonymous-badge{font-size:11px;color:#7a93ad;font-weight:400;}
+  .post-time{font-size:11px;color:#7a93ad;}
+  .post-title{font-size:18px;font-weight:700;color:var(--blue-deep);margin-bottom:4px;}
+  .post-body{font-size:14px;color:#1e3a5f;line-height:1.7;margin-bottom:8px;}
+  .post-actions{display:flex;gap:12px;margin:6px 0;flex-wrap:wrap;border-top:1px solid #f0f4fa;padding-top:6px;}
+  .post-actions button{background:transparent;border:none;color:var(--blue-main);cursor:pointer;font-size:12px;display:flex;align-items:center;gap:4px;padding:4px 8px;border-radius:6px;transition:0.2s;}
+  .post-actions button:hover{background:#eaf4ff;}
+  .post-actions button.liked{color:#b00020;}
+  .post-delete-btn{color:#b00020;font-size:11px;background:transparent;border:none;cursor:pointer;padding:4px 8px;border-radius:6px;}
+  .post-delete-btn:hover{background:#ffe5e5;}
+  .comment-box{background:#f8faff;padding:8px 12px;border-radius:10px;margin-top:6px;display:none;}
+  .comment-box textarea{width:100%;padding:8px;border-radius:8px;border:1.5px solid #cfe2f7;font-size:13px;min-height:50px;margin-bottom:4px;}
+  .comment-item{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px dashed #e0e8f0;font-size:13px;}
+  .comment-item .comment-author{font-weight:600;color:var(--blue-deep);}
+  .comment-item .comment-text{color:#1e3a5f;}
+  .comment-item .comment-time{font-size:10px;color:#7a93ad;}
+  .comment-item .comment-delete{color:#b00020;font-size:11px;background:transparent;border:none;cursor:pointer;}
+  .comment-item .comment-delete:hover{text-decoration:underline;}
   .btn{border:none;border-radius:10px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer;}
   .btn-blue{background:var(--blue-main);color:#fff;}
   .btn-approve{background:#147a35;color:#fff;}
   .btn-reject{background:#b00020;color:#fff;}
   .btn-sm{padding:4px 12px;font-size:12px;}
   .form-line{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
-  .form-line input,.form-line select,.form-line textarea{padding:10px;border-radius:10px;border:1.5px solid #cfe2f7;flex:1;min-width:140px;font-size:14px;}
-  .form-line textarea{min-height:80px;}
+  .form-line input,.form-line textarea{padding:10px;border-radius:10px;border:1.5px solid #cfe2f7;flex:1;min-width:140px;font-size:14px;}
+  .form-line textarea{min-height:70px;}
   .footer{text-align:center;font-size:11.5px;color:#9bb3cb;padding:18px 0;}
-  .anonymous-badge{background:#eaf4ff;color:var(--blue-main);font-size:11px;padding:2px 10px;border-radius:12px;}
-  .reply-item{font-size:13px;color:#1e3a5f;padding:4px 0;border-bottom:1px dashed #e0e8f0;}
-  .reply-item .reply-meta{font-size:11px;color:#7a93ad;}
+  .likes-count{font-size:11px;color:#7a93ad;}
+  .comments-count{font-size:11px;color:#7a93ad;}
+  .stats-row{display:flex;gap:12px;font-size:11px;color:#7a93ad;}
+  @media(max-width:600px){.post-title{font-size:16px;}.post-body{font-size:13px;}}
 </style>
 </head>
 <body>
@@ -43,8 +57,10 @@
 </div>
 
 <div class="wrap">
+  <!-- إنشاء منشور جديد -->
   <div class="card-box">
     <b style="display:block;margin-bottom:8px;">📝 منشور جديد</b>
+    <div style="font-size:12px;color:#7a93ad;margin-bottom:8px;">🔒 سيظهر اسمك للأدمن فقط، وللطلاب ستظهر كمجهول</div>
     <div class="form-line">
       <input type="text" id="postTitle" placeholder="عنوان المنشور...">
     </div>
@@ -55,6 +71,7 @@
     <p id="postMsg" style="font-size:12px;color:#7a93ad;margin-top:4px;"></p>
   </div>
 
+  <!-- قائمة المنشورات -->
   <div id="postsList">
     <p style="font-size:13px;color:#7a93ad;">جاري التحميل...</p>
   </div>
@@ -88,6 +105,9 @@
   const user = getCurrentUser();
   if (!user) window.location.href = 'login.html';
 
+  const isAdmin = user.role === 'admin' || user.role === 'co-admin';
+
+  // ====== إنشاء منشور ======
   async function createPost() {
     const title = document.getElementById('postTitle').value.trim();
     const body = document.getElementById('postBody').value.trim();
@@ -96,13 +116,13 @@
     if (!db) { msg.textContent = '❌ لا يوجد اتصال بالإنترنت'; return; }
     try {
       await db.collection('forumPosts').add({
-        title: title,
-        body: body,
+        title,
+        body,
         authorPhone: user.phone,
         authorName: user.name,
         createdAt: Date.now(),
-        isAnonymous: true,
-        replies: []
+        likes: [],
+        comments: []
       });
       document.getElementById('postTitle').value = '';
       document.getElementById('postBody').value = '';
@@ -112,6 +132,7 @@
     } catch (e) { msg.textContent = '❌ خطأ: '+e.message; msg.style.color = '#b00020'; }
   }
 
+  // ====== تحميل المنشورات ======
   async function loadPosts() {
     const box = document.getElementById('postsList');
     if (!db) { box.innerHTML = '<p style="font-size:13px;color:#7a93ad;">لا يوجد اتصال بالإنترنت</p>'; return; }
@@ -122,36 +143,69 @@
       let html = '';
       snap.forEach(doc => {
         const p = doc.data();
-        const isAdmin = user.role === 'admin' || user.role === 'co-admin';
-        const displayName = isAdmin ? `${p.authorName} (${p.authorPhone})` : 'مجهول';
-        const repliesCount = p.replies ? p.replies.length : 0;
-        html += `
-          <div class="card-box post-item">
-            <div class="post-title">${p.title}</div>
-            <div class="post-meta">
-              ✍️ <span class="anonymous-badge">${displayName}</span>
-              • ${new Date(p.createdAt).toLocaleDateString('ar')}
-              • 💬 ${repliesCount} ردود
-            </div>
-            <div class="post-body">${p.body}</div>
-            <div class="post-actions">
-              <button onclick="showReplyForm('${doc.id}')">💬 رد</button>
-              ${isAdmin ? `<button onclick="deletePost('${doc.id}')" style="color:#b00020;">🗑 حذف</button>` : ''}
-            </div>
-            <div id="replies_${doc.id}" style="margin-top:8px;">
-              ${p.replies ? p.replies.map(r => `
-                <div class="reply-item">
-                  <span>${r.text}</span>
-                  <div class="reply-meta">${isAdmin ? `${r.authorName} (${r.authorPhone})` : 'مجهول'} • ${new Date(r.time).toLocaleDateString('ar')}</div>
+        const postId = doc.id;
+        const isLiked = p.likes && p.likes.includes(user.phone);
+        const likesCount = p.likes ? p.likes.length : 0;
+        const commentsCount = p.comments ? p.comments.length : 0;
+
+        // ✅ اسم الناشر: مجهول للطلاب، ظاهر للأدمن
+        let authorDisplay = 'مجهول';
+        let authorBadge = '🔒';
+        if (isAdmin) {
+          authorDisplay = `${p.authorName} (${p.authorPhone})`;
+          authorBadge = '👤';
+        }
+
+        // بناء التعليقات
+        let commentsHtml = '';
+        if (p.comments && p.comments.length > 0) {
+          commentsHtml = p.comments.map(c => {
+            let commentAuthor = 'مجهول';
+            if (isAdmin) {
+              commentAuthor = `${c.authorName} (${c.authorPhone})`;
+            }
+            const isCommentOwner = c.authorPhone === user.phone;
+            const canDeleteComment = isAdmin || isCommentOwner;
+            return `
+              <div class="comment-item">
+                <div>
+                  <span class="comment-author">${commentAuthor}</span>
+                  <span class="comment-text">${c.text}</span>
+                  <span class="comment-time">${new Date(c.time).toLocaleString('ar')}</span>
                 </div>
-              `).join('') : ''}
-            </div>
-            <div id="replyForm_${doc.id}" style="display:none;margin-top:8px;">
-              <div style="display:flex;gap:6px;flex-wrap:wrap;">
-                <input type="text" id="replyInput_${doc.id}" placeholder="اكتب رد..." style="flex:1;padding:6px 10px;border-radius:8px;border:1.5px solid #cfe2f7;">
-                <button class="btn btn-approve btn-sm" onclick="addReply('${doc.id}')">إرسال</button>
+                ${canDeleteComment ? `<button class="comment-delete" onclick="deleteComment('${postId}', ${p.comments.indexOf(c)})">🗑</button>` : ''}
               </div>
+            `;
+          }).join('');
+        }
+
+        html += `
+          <div class="card-box" id="post_${postId}">
+            <div class="post-header">
+              <div>
+                <span class="post-author">${authorDisplay} <span class="${isAdmin ? 'admin-badge' : 'anonymous-badge'}">${authorBadge}</span></span>
+                <span class="post-time">${new Date(p.createdAt).toLocaleString('ar')}</span>
+              </div>
+              ${isAdmin ? `<button class="post-delete-btn" onclick="deletePost('${postId}')">🗑 حذف المنشور</button>` : ''}
             </div>
+            <div class="post-title">${p.title}</div>
+            <div class="post-body">${p.body}</div>
+            <div class="stats-row">
+              <span class="likes-count">❤️ ${likesCount} إعجاب</span>
+              <span class="comments-count">💬 ${commentsCount} تعليق</span>
+            </div>
+            <div class="post-actions">
+              <button class="${isLiked ? 'liked' : ''}" onclick="toggleLike('${postId}')">
+                ${isLiked ? '❤️' : '🤍'} ${isLiked ? 'إلغاء الإعجاب' : 'إعجاب'}
+              </button>
+              <button onclick="toggleCommentBox('${postId}')">💬 تعليق</button>
+            </div>
+            <div class="comment-box" id="commentBox_${postId}">
+              <textarea id="commentInput_${postId}" placeholder="اكتب تعليقك..."></textarea>
+              <button class="btn btn-approve btn-sm" onclick="addComment('${postId}')">إرسال</button>
+              <button class="btn btn-reject btn-sm" onclick="toggleCommentBox('${postId}')">إلغاء</button>
+            </div>
+            ${commentsHtml ? `<div style="margin-top:8px;">${commentsHtml}</div>` : ''}
           </div>
         `;
       });
@@ -159,32 +213,80 @@
     } catch (e) { box.innerHTML = '<p style="font-size:13px;color:#b00020;">خطأ في التحميل</p>'; }
   }
 
-  function showReplyForm(postId) {
-    const form = document.getElementById(`replyForm_${postId}`);
-    form.style.display = form.style.display === 'none' ? 'block' : 'none';
-    if (form.style.display === 'block') {
-      document.getElementById(`replyInput_${postId}`).focus();
-    }
-  }
-
-  async function addReply(postId) {
-    const input = document.getElementById(`replyInput_${postId}`);
-    const text = input.value.trim();
-    if (!text) return;
-    if (!db) { alert('لا يوجد اتصال بالإنترنت'); return; }
+  // ====== إعجاب / إلغاء إعجاب ======
+  async function toggleLike(postId) {
+    if (!db) return alert('لا يوجد اتصال بالإنترنت');
     try {
-      const reply = { text: text, authorName: user.name, authorPhone: user.phone, time: Date.now() };
-      await db.collection('forumPosts').doc(postId).update({
-        replies: firebase.firestore.FieldValue.arrayUnion(reply)
-      });
-      input.value = '';
-      document.getElementById(`replyForm_${postId}`).style.display = 'none';
+      const ref = db.collection('forumPosts').doc(postId);
+      const snap = await ref.get();
+      const p = snap.data();
+      let likes = p.likes || [];
+      if (likes.includes(user.phone)) {
+        likes = likes.filter(phone => phone !== user.phone);
+      } else {
+        likes.push(user.phone);
+      }
+      await ref.update({ likes });
       loadPosts();
     } catch (e) { alert('خطأ: '+e.message); }
   }
 
+  // ====== إظهار/إخفاء صندوق التعليق ======
+  function toggleCommentBox(postId) {
+    const box = document.getElementById(`commentBox_${postId}`);
+    if (box.style.display === 'block') {
+      box.style.display = 'none';
+    } else {
+      box.style.display = 'block';
+      document.getElementById(`commentInput_${postId}`).focus();
+    }
+  }
+
+  // ====== إضافة تعليق ======
+  async function addComment(postId) {
+    const input = document.getElementById(`commentInput_${postId}`);
+    const text = input.value.trim();
+    if (!text) return alert('اكتب تعليقاً');
+    if (!db) return alert('لا يوجد اتصال بالإنترنت');
+    try {
+      const comment = {
+        authorPhone: user.phone,
+        authorName: user.name,
+        text: text,
+        time: Date.now()
+      };
+      await db.collection('forumPosts').doc(postId).update({
+        comments: firebase.firestore.FieldValue.arrayUnion(comment)
+      });
+      input.value = '';
+      document.getElementById(`commentBox_${postId}`).style.display = 'none';
+      loadPosts();
+    } catch (e) { alert('خطأ: '+e.message); }
+  }
+
+  // ====== حذف تعليق (للأدمن أو صاحب التعليق) ======
+  async function deleteComment(postId, commentIndex) {
+    if (!confirm('هل تريد حذف هذا التعليق؟')) return;
+    try {
+      const ref = db.collection('forumPosts').doc(postId);
+      const snap = await ref.get();
+      const p = snap.data();
+      let comments = p.comments || [];
+      if (commentIndex < comments.length) {
+        const comment = comments[commentIndex];
+        if (!isAdmin && comment.authorPhone !== user.phone) {
+          return alert('⛔ غير مسموح لك بحذف هذا التعليق');
+        }
+        comments.splice(commentIndex, 1);
+        await ref.update({ comments });
+        loadPosts();
+      }
+    } catch (e) { alert('خطأ: '+e.message); }
+  }
+
+  // ====== حذف منشور (للأدمن فقط) ======
   async function deletePost(postId) {
-    if (!confirm('هل تريد حذف هذا المنشور وجميع ردوده؟')) return;
+    if (!confirm('هل تريد حذف هذا المنشور وجميع تعليقاته نهائياً؟')) return;
     try {
       await db.collection('forumPosts').doc(postId).delete();
       loadPosts();
@@ -194,4 +296,4 @@
   loadPosts();
 </script>
 </body>
-        </html>
+</html>
