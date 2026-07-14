@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>الإرشاد الأكاديمي | قسم علوم ابتدائي</title>
+<style>
+  :root{--blue-deep:#0a2e5c;--blue-main:#1565d8;--blue-bright:#2f9bf0;--ice:#eaf4ff;--gold:#f5a623;}
+  *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Tahoma,Arial,sans-serif;}
+  body{background:var(--ice);color:#0a2e5c;min-height:100vh;}
+  .topbar{background:linear-gradient(135deg,var(--blue-main),var(--blue-deep));color:#fff;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:30;box-shadow:0 4px 14px rgba(10,46,92,0.25);}
+  .topbar a{color:#fff;text-decoration:none;font-size:13px;background:rgba(255,255,255,0.15);padding:8px 14px;border-radius:10px;}
+  .wrap{max-width:800px;margin:22px auto;padding:0 16px;}
+  .card-box{background:#fff;border-radius:16px;padding:20px;box-shadow:0 6px 18px rgba(10,46,92,0.06);margin-bottom:16px;}
+  h2.section-title{font-size:17px;color:var(--blue-deep);margin-bottom:12px;}
+  .stat-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:6px;}
+  .stat-chip{flex:1;min-width:120px;background:var(--ice);border-radius:12px;padding:12px;text-align:center;}
+  .stat-chip .num{font-size:24px;font-weight:900;color:var(--blue-deep);}
+  .stat-chip.warn{background:#ffe5e5;}
+  .stat-chip.warn .num{color:#b00020;}
+  .stat-chip .label{font-size:11.5px;color:#7a93ad;margin-top:2px;}
+  .field{margin-bottom:12px;}
+  .field label{display:block;font-size:12.5px;font-weight:700;color:var(--blue-deep);margin-bottom:5px;}
+  .field select, .field input{width:100%;padding:10px 12px;border-radius:10px;border:1.5px solid #cfe2f7;font-size:14px;}
+  table{width:100%;border-collapse:collapse;margin-top:8px;font-size:13.5px;}
+  th{background:var(--ice);padding:8px;font-size:12.5px;color:var(--blue-deep);}
+  td{padding:6px;border-bottom:1px solid #f0f4fa;}
+  td input, td select{width:100%;padding:6px 8px;border-radius:8px;border:1.5px solid #cfe2f7;font-size:13px;}
+  .btn{border:none;border-radius:10px;padding:9px 16px;font-size:13.5px;font-weight:700;cursor:pointer;}
+  .btn-blue{background:var(--blue-main);color:#fff;}
+  .btn-approve{background:#147a35;color:#fff;}
+  .btn-reject{background:#b00020;color:#fff;}
+  .btn-gold{background:linear-gradient(135deg,#ffd700,#b8860b);color:#fff;}
+  .btn-sm{padding:5px 10px;font-size:12px;}
+  .msg{margin-top:10px;padding:10px 12px;border-radius:10px;font-size:13px;display:none;}
+  .msg.error{background:#ffe5e5;color:#b00020;display:block;}
+  .msg.success{background:#e3f7e8;color:#147a35;display:block;}
+  .msg.info{background:#e8f1fc;color:#0a2e5c;display:block;}
+  .failed-item{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:#fff5f5;border-radius:10px;margin-bottom:6px;font-size:13.5px;flex-wrap:wrap;gap:6px;}
+  .term-card{border:1.5px solid #eaf4ff;border-radius:12px;padding:12px;margin-bottom:10px;}
+  .term-card .head{display:flex;justify-content:space-between;align-items:center;font-weight:700;color:var(--blue-deep);}
+  .ocr-box{background:#f8faff;border-radius:10px;padding:10px;font-size:12px;color:#5c7a9c;max-height:150px;overflow:auto;white-space:pre-wrap;margin-top:8px;}
+  .footer{text-align:center;font-size:11.5px;color:#9bb3cb;padding:18px 0;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div style="font-weight:800;font-size:16px;">🎓 الإرشاد الأكاديمي</div>
+  <a href="home.html">🏠 الرجوع للرئيسية</a>
+</div>
+
+<div class="wrap">
+
+  <div class="card-box">
+    <h2 class="section-title">📌 حالتي الأكاديمية</h2>
+    <div class="stat-row">
+      <div class="stat-chip"><div class="num" id="statGpa">—</div><div class="label">آخر GPA مسجل</div></div>
+      <div class="stat-chip warn"><div class="num" id="statWarnings">0</div><div class="label">⚠️ عدد الإنذارات</div></div>
+      <div class="stat-chip"><div class="num" id="statFailedCount">0</div><div class="label">المواد الراسبة</div></div>
+    </div>
+    <p style="font-size:12px;color:#7a93ad;margin-top:6px;">تنبيه: لو الـ GPA أقل من 1.4 هيتضاف لك إنذار تلقائي. لو رفعت نتيجة تانية بـ GPA أعلى من 1.4، هيتم حذف كل الإنذارات السابقة.</p>
+  </div>
+
+  <div class="card-box">
+    <h2 class="section-title">📤 رفع نتيجة ترم جديد</h2>
+    <div class="field">
+      <label>الترم</label>
+      <select id="termSelect">
+        <option value="1">الترم الأول</option>
+        <option value="2">الترم الثاني</option>
+        <option value="3">الترم الثالث</option>
+        <option value="4">الترم الرابع</option>
+        <option value="5">الترم الخامس</option>
+        <option value="6">الترم السادس</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>صورة كشف النتيجة (اختياري — تُستخدم كمرجع وقراءة تلقائية مبدئية)</label>
+      <input type="file" id="resultImage" accept="image/*" onchange="handleResultImage()">
+      <p id="ocrStatus" style="font-size:11.5px;color:#7a93ad;margin-top:4px;"></p>
+      <div id="ocrBox" class="ocr-box" style="display:none;"></div>
+    </div>
+
+    <p style="font-size:12px;color:#b00020;margin-bottom:8px;">⚠️ راجع وعدّل المواد والتقديرات تحت قبل الحفظ — القراءة التلقائية للصورة قد تحتوي أخطاء.</p>
+
+    <table id="subjectsTable">
+      <thead><tr><th style="width:45%">اسم المادة</th><th>التقدير</th><th></th></tr></thead>
+      <tbody id="subjectsBody"></tbody>
+    </table>
+    <button class="btn btn-blue btn-sm" style="margin-top:8px;" onclick="addSubjectRow()">➕ إضافة مادة</button>
+
+    <div style="margin-top:16px;">
+      <button class="btn btn-approve" onclick="saveTermResult()">💾 حفظ النتيجة وحساب الـ GPA</button>
+    </div>
+    <div class="msg" id="saveMsg"></div>
+  </div>
+
+  <div class="card-box">
+    <h2 class="section-title">❌ المواد الراسبة (مرجع دائم)</h2>
+    <div id="failedList"><p style="font-size:13px;color:#7a93ad;">لا توجد مواد راسبة 🎉</p></div>
+  </div>
+
+  <div class="card-box">
+    <h2 class="section-title">📚 سجل الترمات</h2>
+    <div id="termsHistory"><p style="font-size:13px;color:#7a93ad;">لا يوجد ترمات مرفوعة بعد</p></div>
+    <button class="btn btn-gold" style="margin-top:10px;" onclick="downloadExcel()">📊 تحميل السجل كامل (Excel)</button>
+  </div>
+
+</div>
+
+<div class="footer">تم إنشاء هذا الموقع بواسطة MF.mo.fayyad</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyBgI8VcLOdQAMgmcpxCzaMS1UCX1vyzSjw",
+    authDomain: "science-e2b52.firebaseapp.com",
+    projectId: "science-e2b52",
+    storageBucket: "science-e2b52.firebasestorage.app",
+    messagingSenderId: "1031434005860",
+    appId: "1:1031434005860:web:e68fccdd746017a5639e71",
+    measurementId: "G-JZ1SFVMM7P"
+  };
+  let db = null;
+  try { firebase.initializeApp(firebaseConfig); db = firebase.firestore(); } catch(e) { console.warn('لا يوجد اتصال بالإنترنت', e); }
+
+  const CLOUD_NAME = 'dgbuovcf';
+  const UPLOAD_PRESET = 'Science_app';
+  const WARNING_THRESHOLD = 1.4;
+
+  // مقياس التقديرات ← نقاط الـ GPA (من 4)
+  const GRADE_SCALE = {
+    'ممتاز': 4.0, 'جيد جدًا': 3.3, 'جيد': 2.7, 'مقبول': 2.0, 'ضعيف': 1.0, 'راسب': 0.0
+  };
+
+  function getCurrentUser(){
+    const raw = localStorage.getItem('currentUser');
+    return raw ? JSON.parse(raw) : null;
+  }
+  function requireLogin(){
+    const u = getCurrentUser();
+    if(!u){ window.location.href='login.html'; return null; }
+    return u;
+  }
+  const user = requireLogin();
+  if(!user) throw new Error('no user');
+
+  let userData = {};
+
+  function addSubjectRow(name='', grade=''){
+    const tbody = document.getElementById('subjectsBody');
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><input type="text" class="subj-name" value="${name}" placeholder="اسم المادة"></td>
+      <td>
+        <select class="subj-grade">
+          <option value="">اختر التقدير</option>
+          ${Object.keys(GRADE_SCALE).map(g=>`<option value="${g}" ${g===grade?'selected':''}>${g}</option>`).join('')}
+        </select>
+      </td>
+      <td><button class="btn btn-reject btn-sm" onclick="this.closest('tr').remove()">حذف</button></td>
+    `;
+    tbody.appendChild(tr);
+  }
+  // صف افتراضي واحد عند فتح الصفحة
+  addSubjectRow();
+
+  async function handleResultImage(){
+    const file = document.getElementById('resultImage').files[0];
+    if(!file) return;
+    const status = document.getElementById('ocrStatus');
+    const box = document.getElementById('ocrBox');
+    if(typeof Tesseract === 'undefined'){
+      status.textContent = 'تعذر تحميل مكتبة قراءة الصور. تقدر تكتب الدرجات يدويًا تحت.';
+      return;
+    }
+    status.textContent = '⏳ جاري قراءة الصورة... قد يستغرق دقيقة';
+    box.style.display = 'none';
+    try{
+      const { data: { text } } = await Tesseract.recognize(file, 'ara+eng');
+      box.style.display = 'block';
+      box.textContent = text || '(لم يتم استخراج نص واضح)';
+      status.textContent = '✅ تم استخراج النص — راجع الجدول تحت وعدّله يدويًا حسب الصورة';
+      prefillFromOcrText(text);
+    }catch(e){
+      status.textContent = 'تعذرت قراءة الصورة تلقائيًا، من فضلك أدخل الدرجات يدويًا.';
+      console.warn(e);
+    }
+  }
+
+  function prefillFromOcrText(text){
+    if(!text) return;
+    const lines = text.split('\n').map(l=>l.trim()).filter(l=>l.length>2);
+    const gradeKeys = Object.keys(GRADE_SCALE);
+    let addedAny = false;
+    lines.forEach(line=>{
+      const foundGrade = gradeKeys.find(g => line.includes(g));
+      if(foundGrade){
+        const subjectGuess = line.replace(foundGrade,'').replace(/[:\-–_]/g,' ').trim();
+        if(subjectGuess.length > 1){
+          addSubjectRow(subjectGuess, foundGrade);
+          addedAny = true;
+        }
+      }
+    });
+    if(addedAny){
+      // نشيل الصف الفاضي الأول لو كل الصفوف اتملت أوتوماتيك
+      const rows = document.querySelectorAll('#subjectsBody tr');
+      if(rows.length > 1 && !rows[0].querySelector('.subj-name').value){
+        rows[0].remove();
+      }
+    }
+  }
+
+  async function uploadResultImageToCloud(file){
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', UPLOAD_PRESET);
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/upload`, { method:'POST', body: formData });
+    const data = await res.json();
+    return data.secure_url || '';
+  }
+
+  async function saveTermResult(){
+    const msg = document.getElementById('saveMsg');
+    if(!db){ msg.className='msg error'; msg.textContent='محتاج اتصال بالإنترنت'; return; }
+    const term = document.getElementById('termSelect').value;
+    const rows = document.querySelectorAll('#subjectsBody tr');
+    const subjects = [];
+    let hasError = false;
+    rows.forEach(r=>{
+      const name = r.querySelector('.subj-name').value.trim();
+      const grade = r.querySelector('.subj-grade').value;
+      if(name && grade){
+        subjects.push({ name, grade, points: GRADE_SCALE[grade], passed: GRADE_SCALE[grade] > 0 });
+      } else if(name || grade){
+        hasError = true;
+      }
+    });
+    if(hasError){ msg.className='msg error'; msg.textContent='فيه صف ناقص (اسم مادة بدون تقدير أو العكس)'; return; }
+    if(!subjects.length){ msg.className='msg error'; msg.textContent='أضف مادة واحدة على الأقل'; return; }
+
+    msg.className='msg info'; msg.textContent='جاري الحفظ...';
+
+    let imageUrl = '';
+    const file = document.getElementById('resultImage').files[0];
+    if(file){
+      try{ imageUrl = await uploadResultImageToCloud(file); }catch(e){ console.warn('تعذر رفع الصورة', e); }
+    }
+
+    const gpa = +(subjects.reduce((s,x)=>s+x.points,0) / subjects.length).toFixed(2);
+
+    try{
+      const ref = db.collection('users').doc(user.phone);
+      const snap = await ref.get();
+      const data = snap.data() || {};
+      const terms = data.terms || {};
+      terms[term] = { subjects, gpa, imageUrl, savedAt: Date.now() };
+
+      // حساب الإنذارات
+      let warnings = data.warnings || 0;
+      if(gpa < WARNING_THRESHOLD){
+        warnings = warnings + 1;
+      } else {
+        warnings = 0; // حذف كل الإنذارات السابقة
+      }
+
+      // تحديث المواد الراسبة (مرجع دائم)
+      let failedSubjects = data.failedSubjects || [];
+      subjects.forEach(s=>{
+        const idx = failedSubjects.findIndex(f => (typeof f==='string'?f:f.name) === s.name);
+        if(!s.passed){
+          if(idx === -1) failedSubjects.push({ name: s.name, term });
+        } else {
+          if(idx !== -1) failedSubjects.splice(idx,1); // نجح فيها فعلاً → تتشال من القايمة
+        }
+      });
+
+      await ref.update({ terms, warnings, failedSubjects, lastGpa: gpa });
+
+      msg.className='msg success';
+      msg.textContent = `✅ تم الحفظ. الـ GPA لهذا الترم: ${gpa}` + (gpa < WARNING_THRESHOLD ? ' ⚠️ تم إضافة إنذار' : '');
+      document.getElementById('resultImage').value='';
+      document.getElementById('ocrBox').style.display='none';
+      document.getElementById('ocrStatus').textContent='';
+      loadUserAdvisingData();
+    }catch(e){
+      msg.className='msg error'; msg.textContent='حدث خطأ: '+e.message;
+    }
+  }
+
+  async function loadUserAdvisingData(){
+    if(!db) return;
+    const snap = await db.collection('users').doc(user.phone).get();
+    userData = snap.data() || {};
+    document.getElementById('statGpa').textContent = userData.lastGpa != null ? userData.lastGpa : '—';
+    document.getElementById('statWarnings').textContent = userData.warnings || 0;
+    document.getElementById('statFailedCount').textContent = (userData.failedSubjects||[]).length;
+
+    // المواد الراسبة
+    const summerSnap = await db.collection('settings').doc('summerCourses').get();
+    const summerCourses = summerSnap.exists ? (summerSnap.data().subjects||[]) : [];
+    const failedBox = document.getElementById('failedList');
+    const failed = userData.failedSubjects || [];
+    if(!failed.length){
+      failedBox.innerHTML = '<p style="font-size:13px;color:#7a93ad;">لا توجد مواد راسبة 🎉</p>';
+    } else {
+      failedBox.innerHTML = failed.map(f=>{
+        const name = typeof f==='string' ? f : f.name;
+        const hasSummer = summerCourses.includes(name);
+        return `<div class="failed-item">
+          <span>❌ ${name}</span>
+          ${hasSummer ? `<button class="btn btn-approve btn-sm" onclick="passSummerCourse('${name.replace(/'/g,"\\'")}')">اجتزت السمر كورس ✅</button>` : `<span style="font-size:11px;color:#9bb3cb;">لا يوجد سمر كورس مفتوح لهذه المادة حاليًا</span>`}
+        </div>`;
+      }).join('');
+    }
+
+    // سجل الترمات
+    const termsBox = document.getElementById('termsHistory');
+    const terms = userData.terms || {};
+    const keys = Object.keys(terms).sort((a,b)=>a-b);
+    if(!keys.length){
+      termsBox.innerHTML = '<p style="font-size:13px;color:#7a93ad;">لا يوجد ترمات مرفوعة بعد</p>';
+    } else {
+      termsBox.innerHTML = keys.map(k=>{
+        const t = terms[k];
+        return `<div class="term-card">
+          <div class="head"><span>الترم ${k}</span><span>GPA: ${t.gpa}</span></div>
+          <div style="font-size:12.5px;color:#3c5675;margin-top:6px;">
+            ${t.subjects.map(s=>`${s.name}: ${s.grade}`).join(' — ')}
+          </div>
+          ${t.imageUrl ? `<a href="${t.imageUrl}" target="_blank" style="font-size:11.5px;color:var(--blue-main);">📎 عرض صورة النتيجة</a>` : ''}
+        </div>`;
+      }).join('');
+    }
+  }
+
+  async function passSummerCourse(subjectName){
+    if(!confirm(`تأكيد أنك اجتزت "${subjectName}" في السمر كورس؟`)) return;
+    const ref = db.collection('users').doc(user.phone);
+    const snap = await ref.get();
+    const data = snap.data() || {};
+    let failedSubjects = data.failedSubjects || [];
+    failedSubjects = failedSubjects.filter(f => (typeof f==='string'?f:f.name) !== subjectName);
+    await ref.update({ failedSubjects });
+    alert('✅ تم تحديث حالتك، المادة بقت ناجحة');
+    loadUserAdvisingData();
+  }
+
+  function downloadExcel(){
+    if(typeof XLSX === 'undefined'){ alert('تعذر تحميل مكتبة Excel'); return; }
+    const terms = userData.terms || {};
+    const rows = [];
+    Object.keys(terms).sort((a,b)=>a-b).forEach(k=>{
+      terms[k].subjects.forEach(s=>{
+        rows.push({ 'الترم': k, 'المادة': s.name, 'التقدير': s.grade, 'النقاط': s.points, 'الحالة': s.passed?'ناجح':'راسب' });
+      });
+      rows.push({ 'الترم': k, 'المادة': '— GPA الترم —', 'التقدير':'', 'النقاط': terms[k].gpa, 'الحالة':'' });
+    });
+    if(!rows.length){ alert('لا يوجد بيانات بعد'); return; }
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'سجلي الأكاديمي');
+    XLSX.writeFile(wb, 'سجلي_الأكاديمي.xlsx');
+  }
+
+  loadUserAdvisingData();
+</script>
+</body>
+</html>

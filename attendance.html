@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>دفتر الغياب | قسم علوم ابتدائي</title>
+<style>
+  :root{--blue-deep:#0a2e5c;--blue-main:#1565d8;--blue-bright:#2f9bf0;--ice:#eaf4ff;--gold:#f5a623;}
+  *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Tahoma,Arial,sans-serif;}
+  body{background:var(--ice);color:#0a2e5c;min-height:100vh;}
+  .topbar{background:linear-gradient(135deg,var(--blue-main),var(--blue-deep));color:#fff;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:30;box-shadow:0 4px 14px rgba(10,46,92,0.25);}
+  .topbar a{color:#fff;text-decoration:none;font-size:13px;background:rgba(255,255,255,0.15);padding:8px 14px;border-radius:10px;}
+  .wrap{max-width:820px;margin:22px auto;padding:0 16px;}
+  .tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
+  .tabs button{padding:9px 16px;border:none;border-radius:12px;background:#fff;color:#4a6585;font-weight:700;font-size:13.5px;cursor:pointer;}
+  .tabs button.active{background:var(--blue-main);color:#fff;}
+  .section{display:none;}
+  .section.active{display:block;}
+  .card-box{background:#fff;border-radius:16px;padding:20px;box-shadow:0 6px 18px rgba(10,46,92,0.06);margin-bottom:16px;}
+  h2.section-title{font-size:17px;color:var(--blue-deep);margin-bottom:12px;}
+  .field{margin-bottom:12px;}
+  .field label{display:block;font-size:12.5px;font-weight:700;color:var(--blue-deep);margin-bottom:5px;}
+  .field select, .field input{width:100%;padding:10px 12px;border-radius:10px;border:1.5px solid #cfe2f7;font-size:14px;}
+  .row2{display:flex;gap:10px;flex-wrap:wrap;}
+  .row2 .field{flex:1;min-width:140px;}
+  .btn{border:none;border-radius:10px;padding:9px 16px;font-size:13.5px;font-weight:700;cursor:pointer;}
+  .btn-blue{background:var(--blue-main);color:#fff;}
+  .btn-approve{background:#147a35;color:#fff;}
+  .btn-reject{background:#b00020;color:#fff;}
+  .btn-excel{background:#1d6f42;color:#fff;}
+  .btn-pdf{background:#b0201f;color:#fff;}
+  .btn-sm{padding:5px 10px;font-size:12px;}
+  .student-row{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-bottom:1px solid #f0f4fa;font-size:13.5px;}
+  .student-row label{display:flex;align-items:center;gap:8px;cursor:pointer;}
+  .msg{margin-top:10px;padding:10px 12px;border-radius:10px;font-size:13px;display:none;}
+  .msg.error{background:#ffe5e5;color:#b00020;display:block;}
+  .msg.success{background:#e3f7e8;color:#147a35;display:block;}
+  .msg.info{background:#e8f1fc;color:#0a2e5c;display:block;}
+  .record-item{padding:10px;border-radius:10px;margin-bottom:6px;font-size:13.5px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;}
+  .record-item.present{background:#e3f7e8;}
+  .record-item.absent{background:#ffe5e5;}
+  .locked{text-align:center;padding:40px 20px;color:#7a93ad;}
+  .footer{text-align:center;font-size:11.5px;color:#9bb3cb;padding:18px 0;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div style="font-weight:800;font-size:16px;">🗓️ دفتر الغياب</div>
+  <a href="home.html">🏠 الرجوع للرئيسية</a>
+</div>
+
+<div class="wrap">
+  <div class="tabs" id="tabsBar">
+    <button class="active" id="tabBtnMine" onclick="showTab('mine')">👤 غيابي</button>
+    <button id="tabBtnRecord" onclick="showTab('record')" style="display:none;">✅ تسجيل حضور محاضرة</button>
+  </div>
+
+  <!-- غيابي -->
+  <div class="section active" id="sec-mine">
+    <div class="card-box">
+      <h2 class="section-title">🔍 غيابي في مادة معينة</h2>
+      <div class="field">
+        <label>اسم المادة</label>
+        <input type="text" id="mySubjectInput" placeholder="اكتب اسم المادة بالظبط زي ما مسجلة">
+      </div>
+      <button class="btn btn-blue" onclick="loadMyAttendance()">بحث</button>
+      <div class="msg" id="myMsg"></div>
+    </div>
+    <div class="card-box" id="myResultsBox" style="display:none;">
+      <h2 class="section-title">📋 سجل الحضور والغياب</h2>
+      <div id="myAttendanceStats" style="margin-bottom:10px;font-size:14px;"></div>
+      <div id="myAttendanceList"></div>
+      <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
+        <button class="btn btn-excel" onclick="exportMyAttendanceExcel()">📊 تحميل Excel</button>
+        <button class="btn btn-pdf" onclick="exportMyAttendancePdf()">📄 تحميل PDF</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- تسجيل حضور -->
+  <div class="section" id="sec-record">
+    <div class="card-box">
+      <h2 class="section-title">✅ تسجيل حضور محاضرة</h2>
+      <div class="row2">
+        <div class="field">
+          <label>الفرقة</label>
+          <select id="recYear"><option value="">اختر الفرقة</option><option>الأولى</option><option>الثانية</option><option>الثالثة</option><option>الرابعة</option></select>
+        </div>
+        <div class="field">
+          <label>الشعبة</label>
+          <select id="recDivision"><option value="">الكل</option></select>
+        </div>
+        <div class="field">
+          <label>القسم</label>
+          <select id="recDepartment"><option value="">اختر القسم</option></select>
+        </div>
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label>المادة</label>
+          <input type="text" id="recSubject" placeholder="اسم المادة">
+        </div>
+        <div class="field">
+          <label>رقم المحاضرة</label>
+          <input type="number" id="recLecture" min="1" placeholder="مثال: 3">
+        </div>
+        <div class="field">
+          <label>التاريخ</label>
+          <input type="date" id="recDate">
+        </div>
+      </div>
+      <button class="btn btn-blue" onclick="loadStudentsForAttendance()">📥 تحميل قائمة الطلاب</button>
+      <div class="msg" id="recMsg"></div>
+    </div>
+
+    <div class="card-box" id="studentsBox" style="display:none;">
+      <h2 class="section-title">👥 حدد الحاضرين</h2>
+      <div style="margin-bottom:8px;">
+        <button class="btn btn-sm btn-approve" onclick="toggleAll(true)">تحديد الكل حاضر</button>
+        <button class="btn btn-sm btn-reject" onclick="toggleAll(false)">تحديد الكل غائب</button>
+      </div>
+      <div id="studentsList"></div>
+      <button class="btn btn-approve" style="margin-top:14px;" onclick="saveAttendance()">💾 حفظ الحضور</button>
+      <div class="msg" id="saveAttMsg"></div>
+    </div>
+
+    <div class="card-box">
+      <h2 class="section-title">📜 آخر المحاضرات المسجلة</h2>
+      <div id="recentSessionsList"><p style="font-size:13px;color:#7a93ad;">لا توجد محاضرات مسجلة بعد</p></div>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">تم إنشاء هذا الموقع بواسطة MF.mo.fayyad</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyBgI8VcLOdQAMgmcpxCzaMS1UCX1vyzSjw",
+    authDomain: "science-e2b52.firebaseapp.com",
+    projectId: "science-e2b52",
+    storageBucket: "science-e2b52.firebasestorage.app",
+    messagingSenderId: "1031434005860",
+    appId: "1:1031434005860:web:e68fccdd746017a5639e71",
+    measurementId: "G-JZ1SFVMM7P"
+  };
+  let db = null;
+  try { firebase.initializeApp(firebaseConfig); db = firebase.firestore(); } catch(e) { console.warn('لا يوجد اتصال بالإنترنت', e); }
+
+  function getCurrentUser(){
+    const raw = localStorage.getItem('currentUser');
+    return raw ? JSON.parse(raw) : null;
+  }
+  function requireLogin(){
+    const u = getCurrentUser();
+    if(!u){ window.location.href='login.html'; return null; }
+    return u;
+  }
+  const user = requireLogin();
+  if(!user) throw new Error('no user');
+
+  let fullUserData = {};
+  let currentStudentsForAttendance = [];
+
+  function showTab(id){
+    document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+    document.getElementById('sec-'+id).classList.add('active');
+    document.querySelectorAll('.tabs button').forEach(b=>b.classList.remove('active'));
+    document.getElementById(id==='mine'?'tabBtnMine':'tabBtnRecord').classList.add('active');
+  }
+
+  async function initPage(){
+    if(!db) return;
+    const snap = await db.collection('users').doc(user.phone).get();
+    fullUserData = snap.data() || {};
+    const canRecord = fullUserData.role==='admin' || fullUserData.role==='co-admin' || fullUserData.collegeSupervisor || fullUserData.subjectDoctorOf || fullUserData.departmentLeaderOf;
+    if(canRecord){
+      document.getElementById('tabBtnRecord').style.display='inline-block';
+      if(fullUserData.subjectDoctorOf) document.getElementById('recSubject').value = fullUserData.subjectDoctorOf;
+      if(fullUserData.departmentLeaderOf){
+        // هنملى قايمة الأقسام بعدين ونحدد القيمة
+        setTimeout(()=>{ document.getElementById('recDepartment').value = fullUserData.departmentLeaderOf; }, 400);
+      }
+      loadRecentSessions();
+    }
+    // تعبئة قوائم الشعب/الأقسام
+    const scopeSnap = await db.collection('settings').doc('academicScope').get();
+    const scope = scopeSnap.exists ? scopeSnap.data() : {divisions:[],departments:[]};
+    document.getElementById('recDivision').innerHTML = '<option value="">الكل</option>' + (scope.divisions||[]).map(d=>`<option value="${d}">${d}</option>`).join('');
+    document.getElementById('recDepartment').innerHTML = '<option value="">اختر القسم</option>' + (scope.departments||[]).map(d=>`<option value="${d}">${d}</option>`).join('');
+    if(fullUserData.departmentLeaderOf) document.getElementById('recDepartment').value = fullUserData.departmentLeaderOf;
+    document.getElementById('recDate').value = new Date().toISOString().slice(0,10);
+  }
+  initPage();
+
+  // ==================== تسجيل الحضور ====================
+  async function loadStudentsForAttendance(){
+    const msg = document.getElementById('recMsg');
+    const year = document.getElementById('recYear').value;
+    const department = document.getElementById('recDepartment').value;
+    const subject = document.getElementById('recSubject').value.trim();
+    if(!year || !department || !subject || !document.getElementById('recLecture').value || !document.getElementById('recDate').value){
+      msg.className='msg error'; msg.textContent='من فضلك أكمل كل الحقول (الفرقة، القسم، المادة، رقم المحاضرة، التاريخ)';
+      return;
+    }
+    // لو الدكتور معين لمادة محددة، تأكد إن ده هو نفس اسم المادة
+    if(fullUserData.subjectDoctorOf && fullUserData.role==='student' && fullUserData.subjectDoctorOf !== subject){
+      msg.className='msg error'; msg.textContent='أنت مسموح لك بتسجيل حضور مادتك المحددة فقط: '+fullUserData.subjectDoctorOf;
+      return;
+    }
+    msg.className='msg info'; msg.textContent='جاري تحميل الطلاب...';
+    let query = db.collection('users').where('year','==',year).where('department','==',department);
+    const division = document.getElementById('recDivision').value;
+    try{
+      let snap;
+      if(division){
+        snap = await db.collection('users').where('year','==',year).where('department','==',department).where('division','==',division).get();
+      } else {
+        snap = await query.get();
+      }
+      currentStudentsForAttendance = [];
+      snap.forEach(doc=>{
+        const d = doc.data();
+        if(d.role==='student' || !d.role) currentStudentsForAttendance.push({ phone: doc.id, name: d.name||doc.id });
+      });
+      currentStudentsForAttendance.sort((a,b)=>a.name.localeCompare(b.name));
+      if(!currentStudentsForAttendance.length){
+        msg.className='msg error'; msg.textContent='لا يوجد طلاب مطابقين لهذه الفرقة/الشعبة/القسم';
+        document.getElementById('studentsBox').style.display='none';
+        return;
+      }
+      msg.className='msg success'; msg.textContent=`تم تحميل ${currentStudentsForAttendance.length} طالب`;
+      renderStudentsList();
+      document.getElementById('studentsBox').style.display='block';
+    }catch(e){
+      msg.className='msg error'; msg.textContent='حدث خطأ: '+e.message;
+    }
+  }
+
+  function renderStudentsList(){
+    const box = document.getElementById('studentsList');
+    box.innerHTML = currentStudentsForAttendance.map(s=>`
+      <div class="student-row">
+        <label><input type="checkbox" class="present-check" data-phone="${s.phone}" checked> ${s.name} <span style="color:#9bb3cb;font-size:11px;">(${s.phone})</span></label>
+      </div>
+    `).join('');
+  }
+  function toggleAll(present){
+    document.querySelectorAll('.present-check').forEach(c=>c.checked=present);
+  }
+
+  async function saveAttendance(){
+    const msg = document.getElementById('saveAttMsg');
+    const year = document.getElementById('recYear').value;
+    const division = document.getElementById('recDivision').value;
+    const department = document.getElementById('recDepartment').value;
+    const subject = document.getElementById('recSubject').value.trim();
+    const lecture = document.getElementById('recLecture').value;
+    const date = document.getElementById('recDate').value;
+
+    const presentPhones = [];
+    const absentPhones = [];
+    document.querySelectorAll('.present-check').forEach(c=>{
+      if(c.checked) presentPhones.push(c.dataset.phone); else absentPhones.push(c.dataset.phone);
+    });
+
+    msg.className='msg info'; msg.textContent='جاري الحفظ...';
+    try{
+      await db.collection('attendance').add({
+        year, division, department, subject, lecture: Number(lecture), date,
+        presentPhones, absentPhones,
+        createdBy: user.phone, createdAt: Date.now()
+      });
+      msg.className='msg success'; msg.textContent='✅ تم حفظ الحضور بنجاح';
+      loadRecentSessions();
+    }catch(e){
+      msg.className='msg error'; msg.textContent='حدث خطأ: '+e.message;
+    }
+  }
+
+  async function loadRecentSessions(){
+    const box = document.getElementById('recentSessionsList');
+    try{
+      const snap = await db.collection('attendance').orderBy('createdAt','desc').limit(15).get();
+      if(snap.empty){ box.innerHTML = '<p style="font-size:13px;color:#7a93ad;">لا توجد محاضرات مسجلة بعد</p>'; return; }
+      let html = '';
+      snap.forEach(doc=>{
+        const d = doc.data();
+        html += `<div class="record-item present" style="background:#f8faff;">
+          <span>${d.subject} — محاضرة ${d.lecture} — ${d.date} — ${d.year} ${d.division||''} ${d.department||''}</span>
+          <div style="display:flex;gap:6px;">
+            <span style="font-size:11.5px;color:#147a35;">حاضر: ${(d.presentPhones||[]).length}</span>
+            <span style="font-size:11.5px;color:#b00020;">غايب: ${(d.absentPhones||[]).length}</span>
+            <button class="btn btn-excel btn-sm" onclick='exportSessionExcel(${JSON.stringify(JSON.stringify(d))})'>Excel</button>
+          </div>
+        </div>`;
+      });
+      box.innerHTML = html;
+    }catch(e){ box.innerHTML = '<p style="font-size:12px;color:#b00020;">تعذر تحميل المحاضرات الأخيرة</p>'; }
+  }
+
+  async function exportSessionExcel(dJson){
+    const d = JSON.parse(dJson);
+    if(typeof XLSX === 'undefined'){ alert('تعذر تحميل مكتبة Excel'); return; }
+    // نجيب أسماء الطلاب
+    const rows = [];
+    for(const phone of (d.presentPhones||[])){
+      const s = await db.collection('users').doc(phone).get();
+      rows.push({ 'الاسم': s.exists ? s.data().name : phone, 'الموبايل': phone, 'الحالة': 'حاضر' });
+    }
+    for(const phone of (d.absentPhones||[])){
+      const s = await db.collection('users').doc(phone).get();
+      rows.push({ 'الاسم': s.exists ? s.data().name : phone, 'الموبايل': phone, 'الحالة': 'غائب' });
+    }
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'الحضور');
+    XLSX.writeFile(wb, `حضور_${d.subject}_محاضرة${d.lecture}.xlsx`);
+  }
+
+  // ==================== غيابي ====================
+  let myAttendanceRecords = [];
+  async function loadMyAttendance(){
+    const subject = document.getElementById('mySubjectInput').value.trim();
+    const msg = document.getElementById('myMsg');
+    if(!subject){ msg.className='msg error'; msg.textContent='اكتب اسم المادة'; return; }
+    msg.className='msg info'; msg.textContent='جاري البحث...';
+    try{
+      const snap = await db.collection('attendance').where('subject','==',subject).get();
+      myAttendanceRecords = [];
+      snap.forEach(doc=>{
+        const d = doc.data();
+        const present = (d.presentPhones||[]).includes(user.phone);
+        const absent = (d.absentPhones||[]).includes(user.phone);
+        if(present || absent){
+          myAttendanceRecords.push({ lecture: d.lecture, date: d.date, status: present ? 'حاضر' : 'غائب' });
+        }
+      });
+      myAttendanceRecords.sort((a,b)=>a.lecture-b.lecture);
+      if(!myAttendanceRecords.length){
+        msg.className='msg error'; msg.textContent='لا يوجد سجل حضور لهذه المادة باسمك';
+        document.getElementById('myResultsBox').style.display='none';
+        return;
+      }
+      msg.style.display='none';
+      const presentCount = myAttendanceRecords.filter(r=>r.status==='حاضر').length;
+      const absentCount = myAttendanceRecords.filter(r=>r.status==='غائب').length;
+      document.getElementById('myAttendanceStats').innerHTML = `✅ حضور: <b>${presentCount}</b> &nbsp; | &nbsp; ❌ غياب: <b>${absentCount}</b> &nbsp; | &nbsp; الإجمالي: ${myAttendanceRecords.length}`;
+      document.getElementById('myAttendanceList').innerHTML = myAttendanceRecords.map(r=>`
+        <div class="record-item ${r.status==='حاضر'?'present':'absent'}">
+          <span>محاضرة ${r.lecture} — ${r.date}</span><span>${r.status==='حاضر'?'✅ حاضر':'❌ غائب'}</span>
+        </div>`).join('');
+      document.getElementById('myResultsBox').style.display='block';
+      window.currentAttendanceSubject = subject;
+    }catch(e){
+      msg.className='msg error'; msg.textContent='حدث خطأ: '+e.message;
+    }
+  }
+
+  function exportMyAttendanceExcel(){
+    if(typeof XLSX === 'undefined'){ alert('تعذر تحميل مكتبة Excel'); return; }
+    const rows = myAttendanceRecords.map(r=>({ 'المحاضرة': r.lecture, 'التاريخ': r.date, 'الحالة': r.status }));
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'غيابي');
+    XLSX.writeFile(wb, `غيابي_${window.currentAttendanceSubject||''}.xlsx`);
+  }
+
+  function exportMyAttendancePdf(){
+    if(typeof window.jspdf === 'undefined'){ alert('تعذر تحميل مكتبة PDF'); return; }
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    doc.text(`Attendance Record - ${window.currentAttendanceSubject||''} - ${user.name}`, 10, 12);
+    const rows = myAttendanceRecords.map(r=>[r.lecture, r.date, r.status==='حاضر' ? 'Present' : 'Absent']);
+    doc.autoTable({ head: [['Lecture','Date','Status']], body: rows, startY: 20 });
+    doc.save(`attendance_${window.currentAttendanceSubject||''}.pdf`);
+  }
+</script>
+</body>
+</html>
