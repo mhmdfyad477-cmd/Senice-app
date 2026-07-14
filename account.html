@@ -147,7 +147,7 @@
       const rows = [];
       Object.keys(terms).sort((a,b)=>a-b).forEach(termNum => {
         (terms[termNum].subjects || []).forEach(s => {
-          rows.push({ 'الترم': termNum, 'المادة': s.name, 'التقدير': s.grade, 'النقاط': s.points, 'الحالة': s.passed ? 'ناجح' : 'راسب' });
+          rows.push({ 'الترم': termNum, 'المادة': s.name, 'عدد الساعات': s.hours||'', 'الدرجة': s.score!=null?s.score:'', 'التقدير': s.grade, 'النقاط': s.points, 'الحالة': s.passed ? 'ناجح' : 'راسب' });
         });
         rows.push({ 'الترم': termNum, 'المادة': '— GPA الترم —', 'التقدير': '', 'النقاط': terms[termNum].gpa, 'الحالة': '' });
       });

@@ -75,19 +75,11 @@
         <option value="6">الترم السادس</option>
       </select>
     </div>
-    <div class="field">
-      <label>صورة كشف النتيجة (اختياري — تُستخدم كمرجع وقراءة تلقائية مبدئية)</label>
-      <input type="file" id="resultImage" accept="image/*" onchange="handleResultImage()">
-      <p id="ocrStatus" style="font-size:11.5px;color:#7a93ad;margin-top:4px;"></p>
-      <div id="ocrBox" class="ocr-box" style="display:none;"></div>
-    </div>
-
-    <p style="font-size:12px;color:#b00020;margin-bottom:8px;">⚠️ راجع وعدّل المواد والتقديرات تحت قبل الحفظ — القراءة التلقائية للصورة قد تحتوي أخطاء.</p>
-
     <table id="subjectsTable">
-      <thead><tr><th style="width:45%">اسم المادة</th><th>التقدير</th><th></th></tr></thead>
+      <thead><tr><th style="width:30%">اسم المادة</th><th>عدد الساعات</th><th>الدرجة (من 100)</th><th>التقدير</th><th></th></tr></thead>
       <tbody id="subjectsBody"></tbody>
     </table>
+    <p style="font-size:11.5px;color:#7a93ad;margin-top:6px;">درجة النجاح: المواد بساعتين النجاح من 60، والمواد بساعة واحدة النجاح من 35.</p>
     <button class="btn btn-blue btn-sm" style="margin-top:8px;" onclick="addSubjectRow()">➕ إضافة مادة</button>
 
     <div style="margin-top:16px;">
@@ -114,7 +106,6 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
 <script>
   const firebaseConfig = {
@@ -129,14 +120,17 @@
   let db = null;
   try { firebase.initializeApp(firebaseConfig); db = firebase.firestore(); } catch(e) { console.warn('لا يوجد اتصال بالإنترنت', e); }
 
-  const CLOUD_NAME = 'dgbuovcf';
-  const UPLOAD_PRESET = 'Science_app';
   const WARNING_THRESHOLD = 1.4;
 
-  // مقياس التقديرات ← نقاط الـ GPA (من 4)
+  // مقياس التقديرات بالنظام الإنجليزي (زي الجامعات) ← نقاط الـ GPA (من 4)
   const GRADE_SCALE = {
-    'ممتاز': 4.0, 'جيد جدًا': 3.3, 'جيد': 2.7, 'مقبول': 2.0, 'ضعيف': 1.0, 'راسب': 0.0
+    'A+': 4.0, 'A': 3.7, 'A-': 3.5, 'B+': 3.3, 'B': 3.0, 'B-': 2.7,
+    'C+': 2.3, 'C': 2.0, 'C-': 1.7, 'D+': 1.3, 'D': 1.0, 'F': 0.0
   };
+  // درجة النجاح حسب عدد ساعات المادة
+  function passThreshold(hours){
+    return String(hours) === '2' ? 60 : 35;
+  }
 
   function getCurrentUser(){
     const raw = localStorage.getItem('currentUser');
@@ -152,11 +146,18 @@
 
   let userData = {};
 
-  function addSubjectRow(name='', grade=''){
+  function addSubjectRow(name='', hours='2', score='', grade=''){
     const tbody = document.getElementById('subjectsBody');
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td><input type="text" class="subj-name" value="${name}" placeholder="اسم المادة"></td>
+      <td>
+        <select class="subj-hours">
+          <option value="2" ${String(hours)==='2'?'selected':''}>2 ساعة</option>
+          <option value="1" ${String(hours)==='1'?'selected':''}>1 ساعة</option>
+        </select>
+      </td>
+      <td><input type="number" class="subj-score" min="0" max="100" value="${score}" placeholder="0-100"></td>
       <td>
         <select class="subj-grade">
           <option value="">اختر التقدير</option>
@@ -170,62 +171,6 @@
   // صف افتراضي واحد عند فتح الصفحة
   addSubjectRow();
 
-  async function handleResultImage(){
-    const file = document.getElementById('resultImage').files[0];
-    if(!file) return;
-    const status = document.getElementById('ocrStatus');
-    const box = document.getElementById('ocrBox');
-    if(typeof Tesseract === 'undefined'){
-      status.textContent = 'تعذر تحميل مكتبة قراءة الصور. تقدر تكتب الدرجات يدويًا تحت.';
-      return;
-    }
-    status.textContent = '⏳ جاري قراءة الصورة... قد يستغرق دقيقة';
-    box.style.display = 'none';
-    try{
-      const { data: { text } } = await Tesseract.recognize(file, 'ara+eng');
-      box.style.display = 'block';
-      box.textContent = text || '(لم يتم استخراج نص واضح)';
-      status.textContent = '✅ تم استخراج النص — راجع الجدول تحت وعدّله يدويًا حسب الصورة';
-      prefillFromOcrText(text);
-    }catch(e){
-      status.textContent = 'تعذرت قراءة الصورة تلقائيًا، من فضلك أدخل الدرجات يدويًا.';
-      console.warn(e);
-    }
-  }
-
-  function prefillFromOcrText(text){
-    if(!text) return;
-    const lines = text.split('\n').map(l=>l.trim()).filter(l=>l.length>2);
-    const gradeKeys = Object.keys(GRADE_SCALE);
-    let addedAny = false;
-    lines.forEach(line=>{
-      const foundGrade = gradeKeys.find(g => line.includes(g));
-      if(foundGrade){
-        const subjectGuess = line.replace(foundGrade,'').replace(/[:\-–_]/g,' ').trim();
-        if(subjectGuess.length > 1){
-          addSubjectRow(subjectGuess, foundGrade);
-          addedAny = true;
-        }
-      }
-    });
-    if(addedAny){
-      // نشيل الصف الفاضي الأول لو كل الصفوف اتملت أوتوماتيك
-      const rows = document.querySelectorAll('#subjectsBody tr');
-      if(rows.length > 1 && !rows[0].querySelector('.subj-name').value){
-        rows[0].remove();
-      }
-    }
-  }
-
-  async function uploadResultImageToCloud(file){
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('upload_preset', UPLOAD_PRESET);
-    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/upload`, { method:'POST', body: formData });
-    const data = await res.json();
-    return data.secure_url || '';
-  }
-
   async function saveTermResult(){
     const msg = document.getElementById('saveMsg');
     if(!db){ msg.className='msg error'; msg.textContent='محتاج اتصال بالإنترنت'; return; }
@@ -235,23 +180,21 @@
     let hasError = false;
     rows.forEach(r=>{
       const name = r.querySelector('.subj-name').value.trim();
+      const hours = r.querySelector('.subj-hours').value;
+      const scoreVal = r.querySelector('.subj-score').value;
       const grade = r.querySelector('.subj-grade').value;
-      if(name && grade){
-        subjects.push({ name, grade, points: GRADE_SCALE[grade], passed: GRADE_SCALE[grade] > 0 });
-      } else if(name || grade){
+      const hasAny = name || scoreVal !== '' || grade;
+      if(name && grade && scoreVal !== ''){
+        const score = +scoreVal;
+        subjects.push({ name, hours, score, grade, points: GRADE_SCALE[grade], passed: score >= passThreshold(hours) });
+      } else if(hasAny){
         hasError = true;
       }
     });
-    if(hasError){ msg.className='msg error'; msg.textContent='فيه صف ناقص (اسم مادة بدون تقدير أو العكس)'; return; }
+    if(hasError){ msg.className='msg error'; msg.textContent='فيه صف ناقص (لازم اسم المادة والدرجة والتقدير مكتملين)'; return; }
     if(!subjects.length){ msg.className='msg error'; msg.textContent='أضف مادة واحدة على الأقل'; return; }
 
     msg.className='msg info'; msg.textContent='جاري الحفظ...';
-
-    let imageUrl = '';
-    const file = document.getElementById('resultImage').files[0];
-    if(file){
-      try{ imageUrl = await uploadResultImageToCloud(file); }catch(e){ console.warn('تعذر رفع الصورة', e); }
-    }
 
     const gpa = +(subjects.reduce((s,x)=>s+x.points,0) / subjects.length).toFixed(2);
 
@@ -260,7 +203,7 @@
       const snap = await ref.get();
       const data = snap.data() || {};
       const terms = data.terms || {};
-      terms[term] = { subjects, gpa, imageUrl, savedAt: Date.now() };
+      terms[term] = { subjects, gpa, savedAt: Date.now() };
 
       // حساب الإنذارات
       let warnings = data.warnings || 0;
@@ -285,9 +228,6 @@
 
       msg.className='msg success';
       msg.textContent = `✅ تم الحفظ. الـ GPA لهذا الترم: ${gpa}` + (gpa < WARNING_THRESHOLD ? ' ⚠️ تم إضافة إنذار' : '');
-      document.getElementById('resultImage').value='';
-      document.getElementById('ocrBox').style.display='none';
-      document.getElementById('ocrStatus').textContent='';
       loadUserAdvisingData();
     }catch(e){
       msg.className='msg error'; msg.textContent='حدث خطأ: '+e.message;
@@ -303,8 +243,6 @@
     document.getElementById('statFailedCount').textContent = (userData.failedSubjects||[]).length;
 
     // المواد الراسبة
-    const summerSnap = await db.collection('settings').doc('summerCourses').get();
-    const summerCourses = summerSnap.exists ? (summerSnap.data().subjects||[]) : [];
     const failedBox = document.getElementById('failedList');
     const failed = userData.failedSubjects || [];
     if(!failed.length){
@@ -312,11 +250,7 @@
     } else {
       failedBox.innerHTML = failed.map(f=>{
         const name = typeof f==='string' ? f : f.name;
-        const hasSummer = summerCourses.includes(name);
-        return `<div class="failed-item">
-          <span>❌ ${name}</span>
-          ${hasSummer ? `<button class="btn btn-approve btn-sm" onclick="passSummerCourse('${name.replace(/'/g,"\\'")}')">اجتزت السمر كورس ✅</button>` : `<span style="font-size:11px;color:#9bb3cb;">لا يوجد سمر كورس مفتوح لهذه المادة حاليًا</span>`}
-        </div>`;
+        return `<div class="failed-item"><span>❌ ${name}</span></div>`;
       }).join('');
     }
 
@@ -332,24 +266,11 @@
         return `<div class="term-card">
           <div class="head"><span>الترم ${k}</span><span>GPA: ${t.gpa}</span></div>
           <div style="font-size:12.5px;color:#3c5675;margin-top:6px;">
-            ${t.subjects.map(s=>`${s.name}: ${s.grade}`).join(' — ')}
+            ${t.subjects.map(s=>`${s.name} (${s.hours||'—'} س، ${s.score!=null?s.score:'—'}/100): ${s.grade}`).join(' — ')}
           </div>
-          ${t.imageUrl ? `<a href="${t.imageUrl}" target="_blank" style="font-size:11.5px;color:var(--blue-main);">📎 عرض صورة النتيجة</a>` : ''}
         </div>`;
       }).join('');
     }
-  }
-
-  async function passSummerCourse(subjectName){
-    if(!confirm(`تأكيد أنك اجتزت "${subjectName}" في السمر كورس؟`)) return;
-    const ref = db.collection('users').doc(user.phone);
-    const snap = await ref.get();
-    const data = snap.data() || {};
-    let failedSubjects = data.failedSubjects || [];
-    failedSubjects = failedSubjects.filter(f => (typeof f==='string'?f:f.name) !== subjectName);
-    await ref.update({ failedSubjects });
-    alert('✅ تم تحديث حالتك، المادة بقت ناجحة');
-    loadUserAdvisingData();
   }
 
   function downloadExcel(){
@@ -358,7 +279,7 @@
     const rows = [];
     Object.keys(terms).sort((a,b)=>a-b).forEach(k=>{
       terms[k].subjects.forEach(s=>{
-        rows.push({ 'الترم': k, 'المادة': s.name, 'التقدير': s.grade, 'النقاط': s.points, 'الحالة': s.passed?'ناجح':'راسب' });
+        rows.push({ 'الترم': k, 'المادة': s.name, 'عدد الساعات': s.hours||'', 'الدرجة': s.score!=null?s.score:'', 'التقدير': s.grade, 'النقاط': s.points, 'الحالة': s.passed?'ناجح':'راسب' });
       });
       rows.push({ 'الترم': k, 'المادة': '— GPA الترم —', 'التقدير':'', 'النقاط': terms[k].gpa, 'الحالة':'' });
     });
