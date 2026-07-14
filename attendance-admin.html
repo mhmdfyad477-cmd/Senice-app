@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>دفتر الغياب | قسم علوم ابتدائي</title>
+    <style>
+        :root {
+            --blue-deep: #0a2e5c;
+            --blue-main: #1565d8;
+            --blue-bright: #2f9bf0;
+            --ice: #eaf4ff;
+            --gold: #f5a623;
+            --success: #147a35;
+            --danger: #b00020;
+            --gray: #7a93ad;
+            --light-gray: #f0f4fa;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+        }
+        body {
+            background: var(--ice);
+            color: var(--blue-deep);
+            min-height: 100vh;
+        }
+
+        .topbar {
+            background: linear-gradient(135deg, var(--blue-main), var(--blue-deep));
+            color: #fff;
+            padding: 14px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 30;
+            box-shadow: 0 4px 14px rgba(10, 46, 92, 0.25);
+        }
+        .topbar .brand {
+            font-weight: 800;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .topbar .brand svg {
+            width: 26px;
+            height: 26px;
+            fill: #fff;
+        }
+        .topbar a {
+            color: #fff;
+            text-decoration: none;
+            font-size: 13px;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 8px 14px;
+            border-radius: 10px;
+            transition: 0.2s;
+        }
+        .topbar a:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .wrap {
+            max-width: 1100px;
+            margin: 24px auto;
+            padding: 0 16px;
+        }
+
+        .section-title {
+            font-size: 21px;
+            color: var(--blue-deep);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-box {
+            background: #fff;
+            border-radius: 16px;
+            padding: 18px 20px;
+            box-shadow: 0 4px 14px rgba(10, 46, 92, 0.05);
+            margin-bottom: 14px;
+            transition: 0.2s;
+        }
+        .card-box:hover {
+            box-shadow: 0 6px 20px rgba(10, 46, 92, 0.08);
+        }
+
+        .form-line {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+        .form-line select,
+        .form-line input {
+            padding: 10px 14px;
+            border-radius: 10px;
+            border: 1.5px solid #cfe2f7;
+            font-size: 14px;
+            flex: 1;
+            min-width: 140px;
+            background: #fff;
+            transition: 0.2s;
+        }
+        .form-line select:focus,
+        .form-line input:focus {
+            border-color: var(--blue-main);
+            box-shadow: 0 0 0 3px rgba(21, 101, 216, 0.1);
+            outline: none;
+        }
+        .form-line label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--blue-deep);
+            white-space: nowrap;
+        }
+        .form-line .btn {
+            flex: 0 0 auto;
+        }
+
+        .btn {
+            border: none;
+            border-radius: 10px;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .btn-blue {
+            background: var(--blue-main);
+            color: #fff;
+        }
+        .btn-blue:hover {
+            background: var(--blue-deep);
+        }
+        .btn-approve {
+            background: var(--success);
+            color: #fff;
+        }
+        .btn-approve:hover {
+            background: #0f5e2a;
+        }
+        .btn-reject {
+            background: var(--danger);
+            color: #fff;
+        }
+        .btn-reject:hover {
+            background: #8a0018;
+        }
+        .btn-gold {
+            background: linear-gradient(135deg, #ffd700, #b8860b);
+            color: #fff;
+        }
+        .btn-excel {
+            background: #1d6f42;
+            color: #fff;
+        }
+        .btn-excel:hover {
+            background: #14532d;
+        }
+        .btn-sm {
+            padding: 6px 14px;
+            font-size: 12px;
+        }
+        .btn-xs {
+            padding: 3px 10px;
+            font-size: 11px;
+        }
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .lecture-card {
+            border-right: 4px solid var(--blue-main);
+            padding: 12px 16px;
+            background: #f8faff;
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+        .lecture-card .lecture-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .lecture-card .lecture-header b {
+            font-size: 15px;
+            color: var(--blue-deep);
+        }
+        .lecture-card .students-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 8px;
+        }
+        .lecture-card .students-grid label {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            background: #f0f4fa;
+            transition: 0.2s;
+        }
+        .lecture-card .students-grid label.present {
+            background: #e3f7e8;
+        }
+        .lecture-card .students-grid label.absent {
+            background: #ffe5e5;
+        }
+        .lecture-card .students-grid label input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--blue-main);
+            cursor: pointer;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .stat-card {
+            background: #f8faff;
+            padding: 12px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .stat-card .num {
+            font-size: 22px;
+            font-weight: 900;
+            color: var(--blue-deep);
+        }
+        .stat-card .label {
+            font-size: 11px;
+            color: var(--gray);
+        }
+        .stat-card.good .num {
+            color: var(--success);
+        }
+        .stat-card.bad .num {
+            color: var(--danger);
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border: 3px solid var(--light-gray);
+            border-top-color: var(--blue-main);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .alert {
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-size: 13px;
+            margin-bottom: 10px;
+        }
+        .alert-info {
+            background: #e8f1fc;
+            color: var(--blue-deep);
+        }
+        .alert-success {
+            background: #e3f7e8;
+            color: var(--success);
+        }
+        .alert-danger {
+            background: #ffe5e5;
+            color: var(--danger);
+        }
+        .alert-warning {
+            background: #fff3e0;
+            color: #b76e00;
+        }
+
+        .footer-credit {
+            text-align: center;
+            font-size: 11.5px;
+            color: #9bb3cb;
+            padding: 18px 0;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 30px 20px;
+            color: var(--gray);
+        }
+        .empty-state .icon {
+            font-size: 40px;
+            margin-bottom: 8px;
+        }
+
+        .section-toggle {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+        .section-toggle button {
+            padding: 8px 18px;
+            border: none;
+            border-radius: 10px;
+            background: #fff;
+            color: var(--gray);
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .section-toggle button.active {
+            background: var(--blue-main);
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(21, 101, 216, 0.3);
+        }
+        .section-toggle button:hover:not(.active) {
+            background: var(--light-gray);
+        }
+
+        .section-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        .section-content.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media(max-width:768px) {
+            .form-line {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .form-line select,
+            .form-line input {
+                min-width: auto;
+            }
+            .form-line .btn {
+                flex: 1;
+            }
+            .lecture-card .students-grid label {
+                font-size: 11px;
+                padding: 2px 6px;
+            }
+            .stats-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        @media(max-width:480px) {
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            .lecture-card .lecture-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== الشريط العلوي ===== -->
+    <div class="topbar">
+        <div class="brand">
+            <svg viewBox="0 0 24 24"><path d="M9 2v6.3L4.3 17a2 2 0 0 0 1.8 3h11.8a2 2 0 0 0 1.8-3L15 8.3V2H9z"/></svg>
+            دفتر الغياب
+        </div>
+        <a href="home.html">🏠 الرجوع للرئيسية</a>
+    </div>
+
+    <!-- ===== الحاوية ===== -->
+    <div class="wrap">
+
+        <!-- ===== اختيار القسم والمادة ===== -->
+        <div class="card-box">
+            <h2 class="section-title" style="font-size:18px;">📋 إدارة الغياب</h2>
+
+            <div class="form-line">
+                <label>الشعبة:</label>
+                <select id="attDept" onchange="updateAttSections()">
+                    <option value="">-- اختر --</option>
+                </select>
+                <label>القسم:</label>
+                <select id="attSection" onchange="updateAttSubjects()">
+                    <option value="">-- اختر --</option>
+                </select>
+                <label>المادة:</label>
+                <select id="attSubject" onchange="loadAttendance()">
+                    <option value="">-- اختر --</option>
+                </select>
+            </div>
+
+            <div class="form-line" style="margin-top:6px;">
+                <label>تاريخ المحاضرة:</label>
+                <input type="date" id="attDate">
+                <button class="btn btn-approve" onclick="addLecture()">➕ تسجيل محاضرة</button>
+                <button class="btn btn-gold" onclick="exportLectureExcel()">📊 تحميل كشف محاضرة</button>
+                <button class="btn btn-excel" onclick="exportSummaryExcel()">📊 تقرير مجمع (4 محاضرات)</button>
+            </div>
+
+            <div id="attStats" style="margin-top:8px;"></div>
+        </div>
+
+        <!-- ===== المحاضرات ===== -->
+        <div id="attendanceList">
+            <div class="empty-state">
+                <div class="icon">📋</div>
+                <p>اختر الشعبة والقسم والمادة لعرض المحاضرات</p>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="footer-credit">تم إنشاء هذا الموقع بواسطة MF.mo.fayyad</div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+    <script>
+        // ================================================================
+        // ===== FIREBASE CONFIG =====
+        // ================================================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyBgI8VcLOdQAMgmcpxCzaMS1UCX1vyzSjw",
+            authDomain: "science-e2b52.firebaseapp.com",
+            projectId: "science-e2b52",
+            storageBucket: "science-e2b52.firebasestorage.app",
+            messagingSenderId: "1031434005860",
+            appId: "1:1031434005860:web:e68fccdd746017a5639e71",
+            measurementId: "G-JZ1SFVMM7P"
+        };
+        let db = null;
+        try {
+            firebase.initializeApp(firebaseConfig);
+            db = firebase.firestore();
+        } catch (e) { console.warn('Firebase error', e); }
+
+        // ================================================================
+        // ===== GET CURRENT USER =====
+        // ================================================================
+        function getCurrentUser() {
+            const raw = localStorage.getItem('currentUser');
+            return raw ? JSON.parse(raw) : null;
+        }
+        const user = getCurrentUser();
+        if (!user) window.location.href = 'login.html';
+
+        const isAdmin = user.role === 'admin' || user.role === 'co-admin' || user.role === 'college-admin';
+        const isSectionLeader = user.role === 'section-leader';
+
+        // ================================================================
+        // ===== LOAD DEPARTMENTS =====
+        // ================================================================
+        async function loadAttDepts() {
+            const select = document.getElementById('attDept');
+            if (!db) { select.innerHTML = '<option value="">لا يوجد اتصال</option>'; return; }
+
+            try {
+                const snap = await db.collection('settings').doc('departments').get();
+                const depts = snap.exists ? snap.data().departments || {} : {};
+                select.innerHTML = '<option value="">-- اختر الشعبة --</option>';
+                for (const [key, val] of Object.entries(depts)) {
+                    select.innerHTML += `<option value="${key}">${val.name}</option>`;
+                }
+                if (isSectionLeader && user.department) {
+                    select.value = user.department;
+                    updateAttSections();
+                }
+            } catch (e) {
+                select.innerHTML = '<option value="">خطأ في التحميل</option>';
+                console.warn(e);
+            }
+        }
+
+        // ================================================================
+        // ===== UPDATE SECTIONS =====
+        // ================================================================
+        async function updateAttSections() {
+            const deptKey = document.getElementById('attDept').value;
+            const select = document.getElementById('attSection');
+            select.innerHTML = '<option value="">-- اختر القسم --</option>';
+            if (!deptKey) return;
+
+            try {
+                const snap = await db.collection('settings').doc('departments').get();
+                if (snap.exists) {
+                    const depts = snap.data().departments || {};
+                    const dept = depts[deptKey];
+                    if (dept && dept.sections) {
+                        dept.sections.forEach(s => {
+                            select.innerHTML += `<option value="${s}">${s}</option>`;
+                        });
+                        if (isSectionLeader && user.section) {
+                            select.value = user.section;
+                            updateAttSubjects();
+                        }
+                    }
+                }
+            } catch (e) { console.warn(e); }
+        }
+
+        // ================================================================
+        // ===== UPDATE SUBJECTS =====
+        // ================================================================
+        async function updateAttSubjects() {
+            const dept = document.getElementById('attDept').value;
+            const section = document.getElementById('attSection').value;
+            const select = document.getElementById('attSubject');
+            select.innerHTML = '<option value="">-- اختر المادة --</option>';
+            if (!dept || !section) return;
+
+            try {
+                const docId = dept + '_' + section;
+                const snap = await db.collection('attendance').doc(docId).get();
+                const data = snap.exists ? snap.data() : { subjects: [] };
+                if (!data.subjects || data.subjects.length === 0) {
+                    select.innerHTML += `<option value="__add__">➕ إضافة مادة جديدة</option>`;
+                } else {
+                    data.subjects.forEach(s => {
+                        select.innerHTML += `<option value="${s}">${s}</option>`;
+                    });
+                    select.innerHTML += `<option value="__add__">➕ إضافة مادة جديدة</option>`;
+                }
+                loadAttendance();
+            } catch (e) { console.warn(e); }
+        }
+
+        // ================================================================
+        // ===== LOAD ATTENDANCE =====
+        // ================================================================
+        let currentLectures = [];
+        let currentStudents = {};
+
+        async function loadAttendance() {
+            const dept = document.getElementById('attDept').value;
+            const section = document.getElementById('attSection').value;
+            const subject = document.getElementById('attSubject').value;
+            const listDiv = document.getElementById('attendanceList');
+
+            if (!dept || !section || !subject || subject === '__add__') {
+                if (subject === '__add__') {
+                    const newSubject = prompt('أدخل اسم المادة الجديدة:');
+                    if (newSubject) {
+                        const docId = dept + '_' + section;
+                        const ref = db.collection('attendance').doc(docId);
+                        const snap = await ref.get();
+                        const data = snap.exists ? snap.data() : { subjects: [], lectures: {} };
+                        if (!data.subjects) data.subjects = [];
+                        if (!data.subjects.includes(newSubject)) {
+                            data.subjects.push(newSubject);
+                            await ref.set(data);
+                            updateAttSubjects();
+                            document.getElementById('attSubject').value = newSubject;
+                            loadAttendance();
+                        }
+                    }
+                }
+                listDiv.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">📋</div>
+                        <p>اختر الشعبة والقسم والمادة لعرض المحاضرات</p>
+                    </div>
+                `;
+                document.getElementById('attStats').innerHTML = '';
+                return;
+            }
+
+            listDiv.innerHTML = `
+                <div style="text-align:center;padding:20px;">
+                    <div class="loading-spinner"></div>
+                    <p style="margin-top:10px;color:var(--gray);">جاري التحميل...</p>
+                </div>
+            `;
+
+            try {
+                const docId = dept + '_' + section;
+                const snap = await db.collection('attendance').doc(docId).get();
+                const data = snap.exists ? snap.data() : { lectures: {} };
+                currentLectures = data.lectures && data.lectures[subject] ? data.lectures[subject] : [];
+
+                // جلب طلاب القسم
+                const usersSnap = await db.collection('users')
+                    .where('approved', '==', true)
+                    .where('department', '==', dept)
+                    .where('section', '==', section)
+                    .get();
+                currentStudents = {};
+                usersSnap.forEach(d => {
+                    currentStudents[d.id] = d.data().name || d.id;
+                });
+
+                if (currentLectures.length === 0) {
+                    listDiv.innerHTML = `
+                        <div class="alert alert-info">📭 لا توجد محاضرات مسجلة لهذه المادة</div>
+                    `;
+                    document.getElementById('attStats').innerHTML = '';
+                    return;
+                }
+
+                // عرض الإحصائيات
+                let totalPresent = 0;
+                let totalAbsent = 0;
+                currentLectures.forEach(lec => {
+                    const students = lec.students || {};
+                    for (const [id, data] of Object.entries(students)) {
+                        if (data.present) totalPresent++;
+                        else totalAbsent++;
+                    }
+                });
+
+                document.getElementById('attStats').innerHTML = `
+                    <div class="stats-grid">
+                        <div class="stat-card good"><div class="num">${totalPresent}</div><div class="label">✅ حضور</div></div>
+                        <div class="stat-card bad"><div class="num">${totalAbsent}</div><div class="label">❌ غياب</div></div>
+                        <div class="stat-card"><div class="num">${currentLectures.length}</div><div class="label">📋 محاضرات</div></div>
+                        <div class="stat-card"><div class="num">${Object.keys(currentStudents).length}</div><div class="label">👥 طلاب</div></div>
+                    </div>
+                `;
+
+                // عرض المحاضرات
+                let html = '';
+                currentLectures.forEach((lec, idx) => {
+                    const students = lec.students || {};
+                    const presentCount = Object.values(students).filter(s => s.present).length;
+                    const totalCount = Object.keys(students).length;
+
+                    html += `
+                        <div class="lecture-card">
+                            <div class="lecture-header">
+                                <div>
+                                    <b>📅 ${lec.date || 'بدون تاريخ'}</b>
+                                    <span style="font-size:12px;color:var(--gray);margin-right:12px;">
+                                        ${presentCount} / ${totalCount} حضور
+                                    </span>
+                                </div>
+                                <div style="display:flex;gap:6px;">
+                                    <button class="btn btn-excel btn-xs" onclick="exportSingleLecture(${idx})">📊 تحميل</button>
+                                    <button class="btn btn-reject btn-xs" onclick="deleteLecture(${idx})">🗑</button>
+                                </div>
+                            </div>
+                            <div class="students-grid">
+                                ${Object.entries(students).map(([id, s]) => `
+                                    <label class="${s.present ? 'present' : 'absent'}">
+                                        <input type="checkbox" ${s.present ? 'checked' : ''} onchange="toggleStudent('${id}',${idx},this.checked)">
+                                        ${currentStudents[id] || id}
+                                    </label>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                });
+
+                listDiv.innerHTML = html;
+
+            } catch (e) {
+                listDiv.innerHTML = `
+                    <div class="alert alert-danger">❌ خطأ في التحميل: ${e.message}</div>
+                `;
+                console.warn(e);
+            }
+        }
+
+        // ================================================================
+        // ===== ADD LECTURE =====
+        // ================================================================
+        async function addLecture() {
+            const dept = document.getElementById('attDept').value;
+            const section = document.getElementById('attSection').value;
+            const subject = document.getElementById('attSubject').value;
+            const date = document.getElementById('attDate').value;
+
+            if (!dept || !section || !subject) { alert('اختر الشعبة والقسم والمادة'); return; }
+            if (!date) { alert('اختر تاريخ المحاضرة'); return; }
+
+            try {
+                const docId = dept + '_' + section;
+                const ref = db.collection('attendance').doc(docId);
+                const snap = await ref.get();
+                const data = snap.exists ? snap.data() : { subjects: [], lectures: {} };
+                if (!data.lectures) data.lectures = {};
+                if (!data.lectures[subject]) data.lectures[subject] = [];
+
+                // إنشاء كائن الطلاب
+                const studentsObj = {};
+                for (const [id, name] of Object.entries(currentStudents)) {
+                    studentsObj[id] = { name: name, present: true };
+                }
+
+                data.lectures[subject].push({
+                    date: date,
+                    students: studentsObj
+                });
+
+                await ref.set(data);
+                document.getElementById('attDate').value = '';
+                loadAttendance();
+
+            } catch (e) {
+                alert('❌ خطأ: ' + e.message);
+            }
+        }
+
+        // ================================================================
+        // ===== TOGGLE STUDENT =====
+        // ================================================================
+        async function toggleStudent(studentId, lectureIdx, checked) {
+            const dept = document.getElementById('attDept').value;
+            const section = document.getElementById('attSection').value;
+            const subject = document.getElementById('attSubject').value;
+
+            try {
+                const docId = dept + '_' + section;
+                const ref = db.collection('attendance').doc(docId);
+                const snap = await ref.get();
+                const data = snap.data();
+                data.lectures[subject][lectureIdx].students[studentId].present = checked;
+                await ref.set(data);
+                loadAttendance();
+            } catch (e) {
+                console.warn(e);
+            }
+        }
+
+        // ================================================================
+        // ===== DELETE LECTURE =====
+        // ================================================================
+        async function deleteLecture(idx) {
+            if (!confirm('حذف هذه المحاضرة نهائياً؟')) return;
+            const dept = document.getElementById('attDept').value;
+            const section = document.getElementById('attSection').value;
+            const subject = document.getElementById('attSubject').value;
+
+            try {
+                const docId = dept + '_' + section;
+                const ref = db.collection('attendance').doc(docId);
+                const snap = await ref.get();
+                const data = snap.data();
+                data.lectures[subject].splice(idx, 1);
+                await ref.set(data);
+                loadAttendance();
+            } catch (e) {
+                alert('❌ خطأ: ' + e.message);
+            }
+        }
+
+        // ================================================================
+        // ===== EXPORT SINGLE LECTURE (Excel) =====
+        // ================================================================
+        function exportSingleLecture(idx) {
+            const lecture = currentLectures[idx];
+            if (!lecture) { alert('المحاضرة غير موجودة'); return; }
+
+            const students = lecture.students || {};
+            let html = `<html><head><meta charset="UTF-8"><title>كشف الغياب</title></head><body>
+                <h2>كشف الغياب - ${document.getElementById('attSubject').value}</h2>
+                <p>التاريخ: ${lecture.date || 'بدون تاريخ'}</p>
+                <p>القسم: ${user.department} / ${user.section}</p>
+                <br>
+                <table border="1" style="direction:rtl;font-family:Arial;font-size:13px;border-collapse:collapse;">
+                <tr style="background:#1565d8;color:#fff;font-weight:bold;">
+                    <th>#</th><th>الاسم</th><th>رقم الموبايل</th><th>الحضور</th>
+                </tr>`;
+
+            let i = 0;
+            for (const [id, s] of Object.entries(students)) {
+                i++;
+                const name = currentStudents[id] || id;
+                html += `<tr>
+                    <td>${i}</td>
+                    <td>${name}</td>
+                    <td>${id}</td>
+                    <td style="color:${s.present ? 'green' : 'red'};font-weight:bold;">${s.present ? '✅ حاضر' : '❌ غائب'}</td>
+                </tr>`;
+            }
+
+            html += `</table></body></html>`;
+
+            const blob = new Blob([html], { type: 'application/vnd.ms-excel;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `كشف_غياب_${document.getElementById('attSubject').value}_${lecture.date || 'بدون_تاريخ'}.xls`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // ================================================================
+        // ===== EXPORT LECTURE EXCEL (الحالية) =====
+        // ================================================================
+        function exportLectureExcel() {
+            const subject = document.getElementById('attSubject').value;
+            if (!subject || currentLectures.length === 0) {
+                alert('لا توجد محاضرات لهذه المادة');
+                return;
+            }
+
+            // تصدير آخر محاضرة
+            exportSingleLecture(currentLectures.length - 1);
+        }
+
+        // ================================================================
+        // ===== EXPORT SUMMARY EXCEL (4 محاضرات) =====
+        // ================================================================
+        function exportSummaryExcel() {
+            const subject = document.getElementById('attSubject').value;
+            if (!subject || currentLectures.length === 0) {
+                alert('لا توجد محاضرات لهذه المادة');
+                return;
+            }
+
+            // خذ آخر 4 محاضرات (أو كلهم لو أقل)
+            const last4 = currentLectures.slice(-4);
+            const studentNames = currentStudents;
+
+            let html = `<html><head><meta charset="UTF-8"><title>تقرير مجمع - ${subject}</title></head><body>
+                <h2>📊 تقرير مجمع - ${subject}</h2>
+                <p>القسم: ${user.department} / ${user.section}</p>
+                <p>عدد المحاضرات: ${last4.length}</p>
+                <br>
+                <table border="1" style="direction:rtl;font-family:Arial;font-size:13px;border-collapse:collapse;">
+                <tr style="background:#1565d8;color:#fff;font-weight:bold;">
+                    <th>#</th><th>الاسم</th>`;
+
+            // رؤوس المحاضرات
+            last4.forEach((lec, i) => {
+                html += `<th>محاضرة ${i+1}</th>`;
+            });
+            html += `<th>إجمالي الحضور</th></tr>`;
+
+            // جمع بيانات كل طالب
+            let i = 0;
+            for (const [id, name] of Object.entries(studentNames)) {
+                i++;
+                let presentCount = 0;
+                let row = `<tr><td>${i}</td><td>${name}</td>`;
+
+                last4.forEach(lec => {
+                    const s = lec.students && lec.students[id];
+                    const isPresent = s ? s.present : false;
+                    if (isPresent) presentCount++;
+                    row += `<td style="color:${isPresent ? 'green' : 'red'};font-weight:bold;">${isPresent ? '✅' : '❌'}</td>`;
+                });
+
+                row += `<td style="font-weight:bold;text-align:center;">${presentCount} / ${last4.length}</td></tr>`;
+                html += row;
+            }
+
+            html += `</table></body></html>`;
+
+            const blob = new Blob([html], { type: 'application/vnd.ms-excel;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `تقرير_مجمع_${subject}_${new Date().toLocaleDateString('ar')}.xls`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // ================================================================
+        // ===== INIT =====
+        // ================================================================
+        loadAttDepts();
+
+        // لو القائد، نحدد الشعبة والقسم تلقائياً
+        if (isSectionLeader && user.department && user.section) {
+            setTimeout(() => {
+                document.getElementById('attDept').value = user.department;
+                updateAttSections();
+                setTimeout(() => {
+                    document.getElementById('attSection').value = user.section;
+                    updateAttSubjects();
+                }, 300);
+            }, 500);
+        }
+
+        console.log('✅ دفتر الغياب جاهز');
+        console.log('👤 المستخدم:', user);
+    </script>
+</body>
+  </html>
