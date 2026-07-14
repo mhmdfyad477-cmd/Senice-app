@@ -18,9 +18,11 @@
   .card-box{background:#fff;border-radius:16px;padding:20px;box-shadow:0 4px 14px rgba(10,46,92,0.05);margin-bottom:14px;transition:0.2s;}
   .card-box:hover{box-shadow:0 6px 20px rgba(10,46,92,0.08);}
   .form-line{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;align-items:center;}
-  .form-line input,.form-line select,.form-line textarea{padding:10px 14px;border-radius:10px;border:1.5px solid #cfe2f7;font-size:14px;flex:1;min-width:140px;background:#fff;transition:0.2s;}
+  .form-line input,.form-line select{width:100%;max-width:200px;padding:10px 14px;border-radius:10px;border:1.5px solid #cfe2f7;font-size:14px;background:#fff;transition:0.2s;}
   .form-line input:focus,.form-line select:focus{border-color:var(--blue-main);box-shadow:0 0 0 3px rgba(21,101,216,0.1);outline:none;}
-  .form-line label{font-size:13px;font-weight:600;color:var(--blue-deep);}
+  .form-line .subject-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;width:100%;}
+  .subject-row input{flex:1;min-width:100px;}
+  .subject-row .btn-sm{padding:4px 12px;font-size:12px;}
   .btn{border:none;border-radius:10px;padding:10px 20px;font-size:14px;font-weight:700;cursor:pointer;transition:0.2s;display:inline-flex;align-items:center;gap:6px;}
   .btn:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,0.1);}
   .btn-blue{background:var(--blue-main);color:#fff;}
@@ -30,9 +32,9 @@
   .btn-reject{background:var(--danger);color:#fff;}
   .btn-reject:hover{background:#8a0018;}
   .btn-gold{background:linear-gradient(135deg,#ffd700,#b8860b);color:#fff;}
-  .btn-excel{background:#1d6f42;color:#fff;}
   .btn-sm{padding:6px 14px;font-size:12px;}
-  .btn:disabled{opacity:0.6;cursor:not-allowed;transform:none !important;}
+  .btn-danger{background:var(--danger);color:#fff;}
+  .btn-danger:hover{background:#8a0018;}
   .tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
   .tabs button{padding:8px 18px;border:none;border-radius:10px;background:#fff;color:var(--gray);font-weight:700;font-size:13px;cursor:pointer;transition:0.2s;}
   .tabs button.active{background:var(--blue-main);color:#fff;box-shadow:0 4px 12px rgba(21,101,216,0.3);}
@@ -62,11 +64,8 @@
   .alert-info{background:#e8f1fc;color:var(--blue-deep);}
   .alert-warning{background:#fff3e0;color:#b76e00;}
   .footer-credit{text-align:center;font-size:11.5px;color:#9bb3cb;padding:18px 0;}
-  #progressWrapper{margin-top:10px;background:#e9ecef;border-radius:10px;padding:8px 12px;}
-  #progressWrapper .bar-bg{background:#e9ecef;border-radius:10px;height:8px;overflow:hidden;}
-  #progressWrapper .bar-fill{width:0%;height:100%;background:linear-gradient(90deg,var(--blue-main),var(--blue-bright));transition:width 0.3s;border-radius:10px;}
-  #progressWrapper .progress-text{font-size:12px;color:var(--gray);margin-top:4px;text-align:center;}
-  @media(max-width:768px){.form-line{flex-direction:column;align-items:stretch;}.form-line input,.form-line select{min-width:auto;}.tabs button{font-size:12px;padding:6px 12px;}.result-box .gpa{font-size:22px;}}
+  .ocr-text{background:#f8faff;padding:12px;border-radius:8px;border:1px solid var(--light-gray);font-size:13px;white-space:pre-wrap;max-height:300px;overflow-y:auto;margin:10px 0;}
+  @media(max-width:768px){.form-line{flex-direction:column;align-items:stretch;}.form-line input,.form-line select{max-width:100%;}.subject-row{flex-direction:column;}.subject-row input{width:100%;}.tabs button{font-size:12px;padding:6px 12px;}.result-box .gpa{font-size:22px;}}
 </style>
 </head>
 <body>
@@ -85,7 +84,8 @@
   <div class="section active" id="tab-add">
     <div class="card-box">
       <h2 class="section-title" style="font-size:18px;">📤 رفع كشف النتيجة</h2>
-      <p style="font-size:13px;color:var(--gray);margin-bottom:12px;">ارفع صورة كشف النتيجة، والذكاء الاصطناعي هيستخرج البيانات ويحسب GPA والإنذارات</p>
+      <p style="font-size:13px;color:var(--gray);margin-bottom:12px;">ارفع صورة كشف النتيجة، وسيتم استخراج النصوص منها بواسطة تقنية OCR، ثم قم بإدخال البيانات يدوياً</p>
+      
       <div class="form-line">
         <label>اختر الترم:</label>
         <select id="termSelect">
@@ -93,34 +93,79 @@
           <option value="4">الترم الرابع</option><option value="5">الترم الخامس</option><option value="6">الترم السادس</option>
         </select>
       </div>
-      <div class="form-line"><label>صورة النتيجة:</label><input type="file" id="resultImage" accept="image/*,.pdf"></div>
-      <button class="btn btn-blue" id="analyzeBtn" onclick="analyzeResult()">🤖 تحليل بواسطة الذكاء الاصطناعي</button>
-      <div id="analysisProgress" style="margin-top:12px;display:none;"><div class="loading-spinner"></div><span style="margin-right:10px;font-size:13px;color:var(--gray);">جاري تحليل الصورة...</span></div>
-      <div id="analysisResult" style="margin-top:12px;"></div>
-      <div id="saveSection" style="display:none;margin-top:12px;">
-        <button class="btn btn-approve" onclick="saveAcademicRecord()">💾 حفظ في حسابي</button>
-        <button class="btn btn-reject" onclick="clearAnalysis()">إلغاء</button>
+      
+      <div class="form-line">
+        <label>صورة النتيجة:</label>
+        <input type="file" id="resultImage" accept="image/*">
       </div>
+      
+      <button class="btn btn-blue" onclick="extractTextFromImage()">🔍 استخراج النصوص من الصورة</button>
+      
+      <div id="ocrProgress" style="margin-top:12px;display:none;">
+        <div class="loading-spinner"></div>
+        <span style="margin-right:10px;font-size:13px;color:var(--gray);">جاري استخراج النصوص...</span>
+      </div>
+      
+      <div id="ocrResult" style="margin-top:12px;display:none;">
+        <div class="ocr-text" id="ocrTextContent"></div>
+        <p style="font-size:12px;color:var(--gray);">يمكنك نسخ البيانات من النص أعلاه واستخدامها في الجدول أدناه</p>
+      </div>
+
+      <hr style="margin:16px 0;border-color:var(--light-gray);">
+      
+      <p style="font-size:13px;color:var(--gray);margin-bottom:12px;">📝 أدخل بيانات المواد يدوياً (قم بإضافة كل مادة على حدة)</p>
+      
+      <div class="form-line">
+        <div class="subject-row">
+          <input type="text" id="subjectName" placeholder="اسم المادة (كيمياء)" style="flex:2;">
+          <input type="number" id="subjectGrade" placeholder="الدرجة (0-100)" style="flex:1;max-width:120px;">
+          <input type="number" id="subjectHours" placeholder="الساعات" style="flex:1;max-width:100px;" value="2">
+          <button class="btn btn-approve btn-sm" onclick="addSubject()">➕ إضافة</button>
+        </div>
+      </div>
+      
+      <div id="subjectsList">
+        <p style="color:var(--gray);font-size:13px;">لم يتم إضافة مواد بعد</p>
+      </div>
+      
+      <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn btn-gold" onclick="calculateAndShow()">📊 حساب GPA والإنذارات</button>
+        <button class="btn btn-blue" onclick="saveAcademicRecord()">💾 حفظ في حسابي</button>
+        <button class="btn btn-reject" onclick="clearAll()">🗑 مسح الكل</button>
+      </div>
+      
+      <div id="calculationResult" style="margin-top:12px;"></div>
     </div>
   </div>
 
   <!-- تبويب سجلاتي -->
   <div class="section" id="tab-records">
-    <div class="card-box"><h2 class="section-title" style="font-size:18px;">📋 سجلاتي الأكاديمية</h2><div id="recordsList"><p style="color:var(--gray);">جاري التحميل...</p></div></div>
+    <div class="card-box">
+      <h2 class="section-title" style="font-size:18px;">📋 سجلاتي الأكاديمية</h2>
+      <div id="recordsList"><p style="color:var(--gray);">جاري التحميل...</p></div>
+    </div>
   </div>
 
   <!-- تبويب تسجيل صيفي -->
   <div class="section" id="tab-summer">
     <div class="card-box">
       <h2 class="section-title" style="font-size:18px;">🌞 تسجيل صيفي</h2>
-      <p style="font-size:13px;color:var(--gray);margin-bottom:12px;">ارفع صورة نتيجة الصيفي لتعديل المواد الراسبة فقط</p>
-      <div class="form-line"><label>اختر الترم الأصلي:</label><select id="summerTermSelect">
-        <option value="1">الترم الأول</option><option value="2">الترم الثاني</option><option value="3">الترم الثالث</option>
-        <option value="4">الترم الرابع</option><option value="5">الترم الخامس</option><option value="6">الترم السادس</option>
-      </select></div>
-      <div class="form-line"><label>صورة نتيجة الصيفي:</label><input type="file" id="summerImage" accept="image/*,.pdf"></div>
-      <button class="btn btn-gold" onclick="analyzeSummer()">🌞 تحليل الصيفي بواسطة الذكاء الاصطناعي</button>
-      <div id="summerProgress" style="margin-top:12px;display:none;"><div class="loading-spinner"></div><span style="margin-right:10px;font-size:13px;color:var(--gray);">جاري تحليل الصورة...</span></div>
+      <p style="font-size:13px;color:var(--gray);margin-bottom:12px;">هنا يمكنك تعديل المواد الراسبة فقط بعد نجاحك في الصيفي</p>
+      
+      <div class="form-line">
+        <label>اختر الترم الأصلي:</label>
+        <select id="summerTermSelect">
+          <option value="1">الترم الأول</option><option value="2">الترم الثاني</option><option value="3">الترم الثالث</option>
+          <option value="4">الترم الرابع</option><option value="5">الترم الخامس</option><option value="6">الترم السادس</option>
+        </select>
+      </div>
+      
+      <div id="summerSubjectsList">
+        <p style="color:var(--gray);font-size:13px;">سيتم عرض المواد الراسبة في هذا الترم بعد اختياره</p>
+      </div>
+      
+      <button class="btn btn-blue" onclick="loadSummerSubjects()">📥 تحميل المواد الراسبة</button>
+      
       <div id="summerResult" style="margin-top:12px;"></div>
       <div id="summerSaveSection" style="display:none;margin-top:12px;">
         <button class="btn btn-approve" onclick="saveSummerRecord()">💾 حفظ التعديلات</button>
@@ -131,298 +176,440 @@
 </div>
 <div class="footer-credit">تم إنشاء هذا الموقع بواسطة MF.mo.fayyad</div>
 
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
-
-<script type="importmap">
-{
-  "imports": {
-    "firebase/app": "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js",
-    "firebase/ai": "https://www.gstatic.com/firebasejs/10.12.2/firebase-ai.js"
-  }
-}
-</script>
-
-<script type="module">
-import { initializeApp } from "firebase/app";
-import { getAI, getGenerativeModel, GoogleAIBackend } from "firebase/ai";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyBgI8VcLOdQAMgmcpxCzaMS1UCX1vyzSjw",
-  authDomain: "science-e2b52.firebaseapp.com",
-  projectId: "science-e2b52",
-  storageBucket: "science-e2b52.firebasestorage.app",
-  messagingSenderId: "1031434005860",
-  appId: "1:1031434005860:web:e68fccdd746017a5639e71",
-  measurementId: "G-JZ1SFVMM7P"
-};
-
-const firebaseApp = initializeApp(firebaseConfig);
-const ai = getAI(firebaseApp, { backend: new GoogleAIBackend() });
-const model = getGenerativeModel(ai, { model: "gemini-3.5-flash" });
-
-window.callGemini = async function(prompt) {
-  const response = await model.generateContent(prompt);
-  return response.text();
-};
-
-window.analyzeImage = async function(imageUrl, prompt) {
-  const response = await model.generateContent([
-    prompt,
-    { inlineData: { mimeType: "image/jpeg", data: imageUrl } }
-  ]);
-  return response.text();
-};
-
-// ===== باقي الكود (الدوال) =====
-window.switchTab = function(tab) {
-  document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
-  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-  if (tab === 'add') { document.querySelector('.tabs button:nth-child(1)').classList.add('active'); document.getElementById('tab-add').classList.add('active'); }
-  if (tab === 'records') { document.querySelector('.tabs button:nth-child(2)').classList.add('active'); document.getElementById('tab-records').classList.add('active'); loadRecords(); }
-  if (tab === 'summer') { document.querySelector('.tabs button:nth-child(3)').classList.add('active'); document.getElementById('tab-summer').classList.add('active'); }
-};
-
-// ===== تحليل النتيجة =====
-window.analyzeResult = async function() {
-  const file = document.getElementById('resultImage').files[0];
-  const term = parseInt(document.getElementById('termSelect').value);
-  const progress = document.getElementById('analysisProgress');
-  const resultDiv = document.getElementById('analysisResult');
-  if (!file) { alert('اختر صورة النتيجة أولاً'); return; }
-  progress.style.display = 'block';
-  resultDiv.innerHTML = '';
-  document.getElementById('saveSection').style.display = 'none';
-
+<script>
+  // ===== Firebase Config =====
+  const firebaseConfig = {
+    apiKey: "AIzaSyBgI8VcLOdQAMgmcpxCzaMS1UCX1vyzSjw",
+    authDomain: "science-e2b52.firebaseapp.com",
+    projectId: "science-e2b52",
+    storageBucket: "science-e2b52.firebasestorage.app",
+    messagingSenderId: "1031434005860",
+    appId: "1:1031434005860:web:e68fccdd746017a5639e71",
+    measurementId: "G-JZ1SFVMM7P"
+  };
+  let db = null;
   try {
-    // رفع الصورة على Cloudinary
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('upload_preset', 'Science_app');
-    const uploadRes = await fetch(`https://api.cloudinary.com/v1_1/dgbuovcf/upload`, { method: 'POST', body: formData });
-    const uploadData = await uploadRes.json();
-    const imageUrl = uploadData.secure_url;
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.firestore();
+  } catch (e) { console.warn('Firebase error', e); }
 
-    // استدعاء Gemini
-    const prompt = `
-      أنت مساعد أكاديمي. هذه صورة لكشف نتيجة طالب في الترم ${term}.
-      استخرج المواد والدرجات من الصورة بدقة.
-      أرجو الرد بتنسيق JSON فقط، بدون أي كلام إضافي:
-      { "subjects": [ { "name": "اسم المادة", "grade": 95, "hours": 3 } ] }
-      ملاحظات: الدرجات من 0-100. الساعات الافتراضية: كيمياء 3، فيزياء 3، أحياء 2، رياضيات 3، لغة عربية 2، لغة إنجليزية 2.
-    `;
-    const aiResponse = await window.analyzeImage(imageUrl, prompt);
-    const cleanResponse = aiResponse.replace(/```json/g, '').replace(/```/g, '').trim();
-    const data = JSON.parse(cleanResponse);
-    const subjects = data.subjects || [];
+  // ===== جلب المستخدم الحالي =====
+  function getCurrentUser() {
+    const raw = localStorage.getItem('currentUser');
+    return raw ? JSON.parse(raw) : null;
+  }
+  const user = getCurrentUser();
+  if (!user) window.location.href = 'login.html';
 
-    // إضافة الساعات الافتراضية لو مش موجودة
-    const defaultHours = { 'كيمياء':3, 'فيزياء':3, 'أحياء':2, 'رياضيات':3, 'لغة عربية':2, 'لغة إنجليزية':2 };
-    subjects.forEach(s => { if (!s.hours) s.hours = defaultHours[s.name] || 2; });
+  // ===== متغيرات عامة =====
+  let subjects = [];
+  let currentRecord = null;
+  let summerAnalysis = null;
 
-    let totalPoints = 0, totalHours = 0;
-    subjects.forEach(s => {
-      s.status = s.grade >= 50 ? 'ناجح' : 'راسب';
+  // ===== التبديل بين التبويبات =====
+  function switchTab(tab) {
+    document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    if (tab === 'add') {
+      document.querySelector('.tabs button:nth-child(1)').classList.add('active');
+      document.getElementById('tab-add').classList.add('active');
+    }
+    if (tab === 'records') {
+      document.querySelector('.tabs button:nth-child(2)').classList.add('active');
+      document.getElementById('tab-records').classList.add('active');
+      loadRecords();
+    }
+    if (tab === 'summer') {
+      document.querySelector('.tabs button:nth-child(3)').classList.add('active');
+      document.getElementById('tab-summer').classList.add('active');
+    }
+  }
+
+  // ===== استخراج النصوص من الصورة باستخدام Tesseract.js =====
+  async function extractTextFromImage() {
+    const file = document.getElementById('resultImage').files[0];
+    const progress = document.getElementById('ocrProgress');
+    const resultDiv = document.getElementById('ocrResult');
+    const textDiv = document.getElementById('ocrTextContent');
+    
+    if (!file) { alert('اختر صورة أولاً'); return; }
+    
+    progress.style.display = 'block';
+    resultDiv.style.display = 'none';
+    
+    try {
+      // قراءة الصورة كـ Data URL
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = async function(e) {
+        const imageData = e.target.result;
+        
+        // استخدام Tesseract.js لاستخراج النصوص
+        const result = await Tesseract.recognize(imageData, 'ara', {
+          logger: m => console.log(m)
+        });
+        
+        const text = result.data.text;
+        textDiv.textContent = text || 'لم يتم العثور على نصوص في الصورة';
+        resultDiv.style.display = 'block';
+        progress.style.display = 'none';
+        
+        // محاولة استخراج المواد والدرجات تلقائياً (بسيط)
+        tryExtractSubjectsFromText(text);
+      };
+    } catch (e) {
+      textDiv.textContent = 'خطأ في استخراج النصوص: ' + e.message;
+      resultDiv.style.display = 'block';
+      progress.style.display = 'none';
+    }
+  }
+
+  // ===== محاولة استخراج المواد من النص المستخرج (بدون AI) =====
+  function tryExtractSubjectsFromText(text) {
+    // محاولة بسيطة للعثور على أرقام وجمل تشبه المواد
+    // هذه مجرد محاولة أولية، المستخدم سيقوم بتعديل البيانات يدوياً
+    const lines = text.split('\n').filter(line => line.trim().length > 0);
+    const possibleSubjects = [];
+    
+    // البحث عن سطور تحتوي على أرقام (درجات)
+    lines.forEach(line => {
+      const numbers = line.match(/\b\d{1,3}\b/g);
+      if (numbers && numbers.length >= 1) {
+        // نعتبر أن السطر يحتوي على اسم مادة ودرجة
+        const cleanLine = line.replace(/\d+/g, '').trim();
+        if (cleanLine.length > 1 && cleanLine.length < 30) {
+          const grade = parseInt(numbers[0]);
+          if (grade >= 0 && grade <= 100) {
+            possibleSubjects.push({ name: cleanLine, grade: grade, hours: 2 });
+          }
+        }
+      }
+    });
+    
+    if (possibleSubjects.length > 0) {
+      // عرض تنبيه للمستخدم بأنه تم العثور على مواد محتملة
+      if (confirm(`تم العثور على ${possibleSubjects.length} مواد محتملة. هل تريد إضافتها تلقائياً؟`)) {
+        possibleSubjects.forEach(s => {
+          // التحقق من عدم التكرار
+          if (!subjects.find(sub => sub.name === s.name)) {
+            subjects.push(s);
+          }
+        });
+        renderSubjects();
+      }
+    }
+  }
+
+  // ===== إضافة مادة =====
+  function addSubject() {
+    const name = document.getElementById('subjectName').value.trim();
+    const grade = parseInt(document.getElementById('subjectGrade').value);
+    const hours = parseInt(document.getElementById('subjectHours').value) || 2;
+    
+    if (!name) { alert('أدخل اسم المادة'); return; }
+    if (isNaN(grade) || grade < 0 || grade > 100) { alert('أدخل درجة صحيحة (0-100)'); return; }
+    if (isNaN(hours) || hours < 1) { alert('أدخل عدد ساعات صحيح'); return; }
+    
+    if (subjects.find(s => s.name === name)) { alert('هذه المادة موجودة بالفعل'); return; }
+    
+    subjects.push({ name, grade, hours });
+    renderSubjects();
+    document.getElementById('subjectName').value = '';
+    document.getElementById('subjectGrade').value = '';
+  }
+
+  // ===== عرض المواد =====
+  function renderSubjects() {
+    const box = document.getElementById('subjectsList');
+    if (subjects.length === 0) {
+      box.innerHTML = '<p style="color:var(--gray);font-size:13px;">لا توجد مواد مضافة</p>';
+      return;
+    }
+    box.innerHTML = subjects.map((s, i) => `
+      <div class="subject-item">
+        <span><b>${s.name}</b> — ${s.grade}% — ${s.hours} ساعة</span>
+        <button class="btn btn-danger btn-sm" onclick="removeSubject(${i})">✕</button>
+      </div>
+    `).join('');
+  }
+
+  function removeSubject(index) {
+    subjects.splice(index, 1);
+    renderSubjects();
+  }
+
+  // ===== حساب GPA والإنذارات =====
+  function calculateAndShow() {
+    if (subjects.length === 0) { alert('أضف مواد أولاً'); return; }
+    
+    let totalPoints = 0;
+    let totalHours = 0;
+    const subjectsWithStatus = subjects.map(s => {
+      const status = s.grade >= 50 ? 'ناجح' : 'راسب';
       totalPoints += s.grade * s.hours;
       totalHours += s.hours;
+      return { ...s, status };
     });
+    
     const gpa = totalHours > 0 ? parseFloat((totalPoints / (totalHours * 25)).toFixed(2)) : 0;
     const warnings = gpa < 1.4 ? 1 : 0;
-    const advice = gpa >= 1.4 ? 'أداؤك جيد، استمر' : 'تحتاج إلى تحسين أدائك';
-
-    window.currentAnalysis = { term, imageUrl, subjects, totalHours, gpa, warnings, advice };
-
+    const advice = gpa >= 1.4 ? 'أداؤك جيد، استمر بنفس المستوى' : 'تحتاج إلى تحسين أدائك، راجع المواد التي حصلت فيها على درجات منخفضة';
+    
+    currentRecord = {
+      term: parseInt(document.getElementById('termSelect').value),
+      subjects: subjectsWithStatus,
+      totalHours,
+      gpa,
+      warnings,
+      advice,
+      createdAt: Date.now()
+    };
+    
+    const resultDiv = document.getElementById('calculationResult');
     resultDiv.innerHTML = `
       <div class="result-box">
         <div style="display:flex;justify-content:space-between;flex-wrap:wrap;align-items:center;">
           <div><div style="font-size:13px;color:var(--gray);">GPA</div><div class="gpa">${gpa}</div></div>
           <div><div style="font-size:13px;color:var(--gray);">الإنذارات</div><span class="warning-badge ${warnings > 0 ? 'danger' : 'success'}">${warnings > 0 ? '⚠️ ' + warnings + ' إنذار' : '✅ لا يوجد'}</span></div>
         </div>
-        <div style="margin-top:10px;"><b>المواد:</b>${subjects.map(s => `<div class="subject-item"><span>${s.name} (${s.hours} ساعة)</span><span>${s.grade}% — <span class="${s.status === 'ناجح' ? 'status-pass' : 'status-fail'}">${s.status}</span></span></div>`).join('')}</div>
+        <div style="margin-top:10px;"><b>المواد:</b>${subjectsWithStatus.map(s => `<div class="subject-item"><span>${s.name} (${s.hours} ساعة)</span><span>${s.grade}% — <span class="${s.status === 'ناجح' ? 'status-pass' : 'status-fail'}">${s.status}</span></span></div>`).join('')}</div>
         <div style="margin-top:10px;font-size:13px;color:var(--gray);"><b>📝 التقرير:</b> ${advice}</div>
         <div style="margin-top:6px;font-size:12px;color:var(--gray);">إجمالي الساعات: ${totalHours}</div>
       </div>
     `;
-    document.getElementById('saveSection').style.display = 'flex';
-    progress.style.display = 'none';
-
-  } catch (e) {
-    resultDiv.innerHTML = `<div class="alert alert-danger">❌ خطأ: ${e.message}</div>`;
-    progress.style.display = 'none';
   }
-};
 
-// ===== حفظ السجل =====
-window.saveAcademicRecord = async function() {
-  if (!window.currentAnalysis || !db) return;
-  try {
-    const ref = db.collection('academicRecords').doc(user.phone);
-    const snap = await ref.get();
-    let records = snap.exists ? snap.data().records || [] : [];
-    const existing = records.find(r => r.term === window.currentAnalysis.term);
-    if (existing) {
-      if (!confirm(`استبدال سجل الترم ${window.currentAnalysis.term}؟`)) return;
-      const idx = records.indexOf(existing);
-      records[idx] = window.currentAnalysis;
-    } else {
-      records.push(window.currentAnalysis);
-    }
-    const totalWarnings = records.reduce((sum, r) => sum + (r.warnings || 0), 0);
-    await ref.set({ records, totalWarnings, updatedAt: Date.now() });
-    await db.collection('users').doc(user.phone).update({ totalWarnings });
-    alert('✅ تم الحفظ');
-    document.getElementById('saveSection').style.display = 'none';
-    document.getElementById('analysisResult').innerHTML = '<div class="alert alert-success">✅ تم الحفظ بنجاح</div>';
-    loadRecords();
-  } catch (e) { alert('❌ خطأ: ' + e.message); }
-};
-
-window.clearAnalysis = function() {
-  window.currentAnalysis = null;
-  document.getElementById('analysisResult').innerHTML = '';
-  document.getElementById('saveSection').style.display = 'none';
-  document.getElementById('resultImage').value = '';
-};
-
-// ===== تحميل السجلات =====
-window.loadRecords = async function() {
-  const box = document.getElementById('recordsList');
-  if (!db) { box.innerHTML = '<p style="color:var(--gray);">لا يوجد اتصال</p>'; return; }
-  box.innerHTML = 'جاري التحميل...';
-  try {
-    const snap = await db.collection('academicRecords').doc(user.phone).get();
-    if (!snap.exists || !snap.data().records || snap.data().records.length === 0) {
-      box.innerHTML = '<p style="color:var(--gray);">لا توجد سجلات</p>'; return;
-    }
-    const records = snap.data().records;
-    const totalWarnings = snap.data().totalWarnings || 0;
-    let html = `<div style="margin-bottom:12px;"><span style="font-weight:700;">إجمالي الإنذارات:</span> <span class="warning-badge ${totalWarnings > 0 ? 'danger' : 'success'}">${totalWarnings > 0 ? '⚠️ ' + totalWarnings + ' إنذار' : '✅ لا يوجد'}</span></div>`;
-    records.sort((a,b) => b.term - a.term);
-    records.forEach(r => {
-      const failed = r.subjects.filter(s => s.status === 'راسب');
-      html += `<div class="term-card open" onclick="this.classList.toggle('open')">
-        <div class="term-header"><b>📘 الترم ${r.term}</b><div><span style="font-weight:700;color:var(--blue-main);">GPA: ${r.gpa}</span><span style="margin-right:12px;font-size:12px;color:var(--gray);">${r.warnings > 0 ? '⚠️ ' + r.warnings + ' إنذار' : '✅'}</span></div></div>
-        <div class="term-details">${r.subjects.map(s => `<div class="subject-item"><span>${s.name} (${s.hours} ساعة)</span><span>${s.grade}% — <span class="${s.status === 'ناجح' || s.status === 'ناجح (صيفي)' ? 'status-pass' : 'status-fail'}">${s.status}</span></span></div>`).join('')}
-        ${failed.length > 0 ? `<div style="margin-top:6px;padding:6px 12px;background:#ffe5e5;border-radius:6px;"><b style="color:var(--danger);">⚠️ الراسب:</b> ${failed.map(s=>s.name).join('، ')}</div>` : ''}
-        <div style="margin-top:6px;font-size:12px;color:var(--gray);">${r.advice || ''}</div></div></div>`;
-    });
-    box.innerHTML = html;
-  } catch (e) { box.innerHTML = '<p style="color:var(--gray);">خطأ في التحميل</p>'; }
-};
-
-// ===== تحليل الصيفي =====
-window.analyzeSummer = async function() {
-  const file = document.getElementById('summerImage').files[0];
-  const term = parseInt(document.getElementById('summerTermSelect').value);
-  const progress = document.getElementById('summerProgress');
-  const resultDiv = document.getElementById('summerResult');
-  if (!file) { alert('اختر صورة'); return; }
-  progress.style.display = 'block';
-  resultDiv.innerHTML = '';
-  document.getElementById('summerSaveSection').style.display = 'none';
-
-  try {
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('upload_preset', 'Science_app');
-    const uploadRes = await fetch(`https://api.cloudinary.com/v1_1/dgbuovcf/upload`, { method: 'POST', body: formData });
-    const uploadData = await uploadRes.json();
-    const summerImageUrl = uploadData.secure_url;
-
-    // جلب السجل الأصلي
-    const ref = db.collection('academicRecords').doc(user.phone);
-    const snap = await ref.get();
-    let records = snap.exists ? snap.data().records || [] : [];
-    const originalRecord = records.find(r => r.term === term);
-    if (!originalRecord) { resultDiv.innerHTML = '<div class="alert alert-danger">❌ لا يوجد سجل لهذا الترم</div>'; progress.style.display = 'none'; return; }
-
-    // قراءة الصورة بـ Gemini
-    const prompt = `هذه صورة نتيجة صيفية للطالب في الترم ${term}. استخرج المواد والدرجات. أرجو الرد بتنسيق JSON فقط: { "subjects": [ { "name": "اسم المادة", "grade": 70 } ] }`;
-    const aiResponse = await window.analyzeImage(summerImageUrl, prompt);
-    const cleanResponse = aiResponse.replace(/```json/g, '').replace(/```/g, '').trim();
-    const summerData = JSON.parse(cleanResponse);
-    const summerSubjects = summerData.subjects || [];
-
-    // تعديل المواد الراسبة فقط
-    let modified = false;
-    const updatedSubjects = originalRecord.subjects.map(s => {
-      if (s.status === 'راسب') {
-        const match = summerSubjects.find(m => m.name === s.name);
-        if (match && match.grade >= 50) { modified = true; return { ...s, grade: match.grade, status: 'ناجح (صيفي)' }; }
+  // ===== حفظ السجل الأكاديمي =====
+  async function saveAcademicRecord() {
+    if (!currentRecord) { alert('احسب GPA أولاً'); return; }
+    if (!db) { alert('لا يوجد اتصال بالإنترنت'); return; }
+    
+    try {
+      const ref = db.collection('academicRecords').doc(user.phone);
+      const snap = await ref.get();
+      let records = snap.exists ? snap.data().records || [] : [];
+      
+      const existing = records.find(r => r.term === currentRecord.term);
+      if (existing) {
+        if (!confirm(`استبدال سجل الترم ${currentRecord.term}؟`)) return;
+        const idx = records.indexOf(existing);
+        records[idx] = currentRecord;
+      } else {
+        records.push(currentRecord);
       }
-      return s;
-    });
-
-    if (!modified) { resultDiv.innerHTML = '<div class="alert alert-warning">⚠️ لم يتم العثور على مواد راسبة نجحت في الصيفي</div>'; progress.style.display = 'none'; return; }
-
-    let totalPoints = 0, totalHours = 0;
-    updatedSubjects.forEach(s => { totalPoints += s.grade * s.hours; totalHours += s.hours; });
-    const newGpa = totalHours > 0 ? parseFloat((totalPoints / (totalHours * 25)).toFixed(2)) : 0;
-    const newWarnings = newGpa < 1.4 ? 1 : 0;
-
-    window.summerAnalysis = { term, originalRecord, updatedSubjects, newGpa, newWarnings, summerImageUrl };
-
-    resultDiv.innerHTML = `
-      <div class="result-box">
-        <div style="display:flex;justify-content:space-between;flex-wrap:wrap;align-items:center;">
-          <div><div style="font-size:13px;color:var(--gray);">GPA بعد التعديل</div><div class="gpa">${newGpa}</div></div>
-          <div><span class="warning-badge ${newWarnings > 0 ? 'danger' : 'success'}">${newWarnings > 0 ? '⚠️ ' + newWarnings + ' إنذار' : '✅ لا يوجد'}</span></div>
-        </div>
-        <div style="margin-top:10px;"><b>المواد بعد التعديل:</b>${updatedSubjects.map(s => `<div class="subject-item"><span>${s.name} (${s.hours})</span><span>${s.grade}% — <span class="${s.status === 'ناجح' || s.status === 'ناجح (صيفي)' ? 'status-pass' : 'status-fail'}">${s.status}</span></span></div>`).join('')}</div>
-        <div style="margin-top:8px;font-size:12px;color:var(--gray);">✅ تم تعديل المواد الراسبة التي نجحت في الصيفي</div>
-      </div>
-    `;
-    document.getElementById('summerSaveSection').style.display = 'flex';
-    progress.style.display = 'none';
-
-  } catch (e) {
-    resultDiv.innerHTML = `<div class="alert alert-danger">❌ خطأ: ${e.message}</div>`;
-    progress.style.display = 'none';
+      
+      const totalWarnings = records.reduce((sum, r) => sum + (r.warnings || 0), 0);
+      await ref.set({ records, totalWarnings, updatedAt: Date.now() });
+      await db.collection('users').doc(user.phone).update({ totalWarnings });
+      
+      alert('✅ تم الحفظ بنجاح');
+      document.getElementById('calculationResult').innerHTML = '<div class="alert alert-success">✅ تم الحفظ بنجاح</div>';
+      subjects = [];
+      renderSubjects();
+      currentRecord = null;
+      loadRecords();
+    } catch (e) {
+      alert('❌ خطأ في الحفظ: ' + e.message);
+    }
   }
-};
 
-window.saveSummerRecord = async function() {
-  if (!window.summerAnalysis || !db) return;
-  try {
-    const ref = db.collection('academicRecords').doc(user.phone);
-    const snap = await ref.get();
-    let records = snap.exists ? snap.data().records || [] : [];
-    const idx = records.findIndex(r => r.term === window.summerAnalysis.term);
-    if (idx === -1) { alert('الترم غير موجود'); return; }
-    records[idx].subjects = window.summerAnalysis.updatedSubjects;
-    records[idx].gpa = window.summerAnalysis.newGpa;
-    records[idx].warnings = window.summerAnalysis.newWarnings;
-    records[idx].summerImageUrl = window.summerAnalysis.summerImageUrl;
-    records[idx].updatedAt = Date.now();
-    const totalWarnings = records.reduce((sum, r) => sum + (r.warnings || 0), 0);
-    await ref.set({ records, totalWarnings, updatedAt: Date.now() });
-    await db.collection('users').doc(user.phone).update({ totalWarnings });
-    alert('✅ تم التحديث');
+  function clearAll() {
+    if (!confirm('مسح كل البيانات المدخلة؟')) return;
+    subjects = [];
+    currentRecord = null;
+    renderSubjects();
+    document.getElementById('calculationResult').innerHTML = '';
+    document.getElementById('subjectName').value = '';
+    document.getElementById('subjectGrade').value = '';
+    document.getElementById('subjectHours').value = '2';
+    document.getElementById('resultImage').value = '';
+    document.getElementById('ocrResult').style.display = 'none';
+  }
+
+  // ===== تحميل السجلات =====
+  async function loadRecords() {
+    const box = document.getElementById('recordsList');
+    if (!db) { box.innerHTML = '<p style="color:var(--gray);">لا يوجد اتصال</p>'; return; }
+    box.innerHTML = 'جاري التحميل...';
+    
+    try {
+      const snap = await db.collection('academicRecords').doc(user.phone).get();
+      if (!snap.exists || !snap.data().records || snap.data().records.length === 0) {
+        box.innerHTML = '<p style="color:var(--gray);">لا توجد سجلات</p>';
+        return;
+      }
+      
+      const records = snap.data().records;
+      const totalWarnings = snap.data().totalWarnings || 0;
+      
+      let html = `<div style="margin-bottom:12px;"><span style="font-weight:700;">إجمالي الإنذارات:</span> <span class="warning-badge ${totalWarnings > 0 ? 'danger' : 'success'}">${totalWarnings > 0 ? '⚠️ ' + totalWarnings + ' إنذار' : '✅ لا يوجد'}</span></div>`;
+      
+      records.sort((a, b) => b.term - a.term);
+      records.forEach(r => {
+        const failed = r.subjects.filter(s => s.status === 'راسب');
+        html += `<div class="term-card open" onclick="this.classList.toggle('open')">
+          <div class="term-header">
+            <b>📘 الترم ${r.term}</b>
+            <div><span style="font-weight:700;color:var(--blue-main);">GPA: ${r.gpa}</span><span style="margin-right:12px;font-size:12px;color:var(--gray);">${r.warnings > 0 ? '⚠️ ' + r.warnings + ' إنذار' : '✅'}</span></div>
+          </div>
+          <div class="term-details">
+            ${r.subjects.map(s => `<div class="subject-item"><span>${s.name} (${s.hours} ساعة)</span><span>${s.grade}% — <span class="${s.status === 'ناجح' || s.status === 'ناجح (صيفي)' ? 'status-pass' : 'status-fail'}">${s.status}</span></span></div>`).join('')}
+            ${failed.length > 0 ? `<div style="margin-top:6px;padding:6px 12px;background:#ffe5e5;border-radius:6px;"><b style="color:var(--danger);">⚠️ الراسب:</b> ${failed.map(s=>s.name).join('، ')}</div>` : ''}
+            <div style="margin-top:6px;font-size:12px;color:var(--gray);">${r.advice || ''}</div>
+          </div>
+        </div>`;
+      });
+      
+      box.innerHTML = html;
+    } catch (e) {
+      box.innerHTML = '<p style="color:var(--gray);">خطأ في التحميل</p>';
+    }
+  }
+
+  // ===== تسجيل صيفي =====
+  async function loadSummerSubjects() {
+    const term = parseInt(document.getElementById('summerTermSelect').value);
+    const box = document.getElementById('summerSubjectsList');
+    const resultDiv = document.getElementById('summerResult');
+    
+    if (!db) { alert('لا يوجد اتصال'); return; }
+    
+    box.innerHTML = 'جاري التحميل...';
+    resultDiv.innerHTML = '';
     document.getElementById('summerSaveSection').style.display = 'none';
-    document.getElementById('summerResult').innerHTML = '<div class="alert alert-success">✅ تم الحفظ</div>';
-    loadRecords();
-  } catch (e) { alert('❌ خطأ: ' + e.message); }
-};
+    
+    try {
+      const snap = await db.collection('academicRecords').doc(user.phone).get();
+      if (!snap.exists) { box.innerHTML = '<p style="color:var(--gray);">لا توجد سجلات</p>'; return; }
+      
+      const records = snap.data().records || [];
+      const record = records.find(r => r.term === term);
+      if (!record) { box.innerHTML = `<p style="color:var(--gray);">لا يوجد سجل للترم ${term}</p>`; return; }
+      
+      const failedSubjects = record.subjects.filter(s => s.status === 'راسب');
+      if (failedSubjects.length === 0) {
+        box.innerHTML = `<p style="color:var(--success);">✅ لا توجد مواد راسبة في الترم ${term}</p>`;
+        return;
+      }
+      
+      let html = `<p style="font-weight:700;color:var(--danger);">⚠️ المواد الراسبة في الترم ${term}:</p>`;
+      failedSubjects.forEach((s, i) => {
+        html += `
+          <div class="subject-item">
+            <span>${s.name} — الدرجة: ${s.grade}% — ${s.hours} ساعة</span>
+            <div style="display:flex;gap:6px;align-items:center;">
+              <input type="number" id="summerGrade_${i}" placeholder="درجة الصيفي" style="width:100px;padding:4px 8px;border-radius:6px;border:1px solid #cfe2f7;">
+              <button class="btn btn-approve btn-sm" onclick="updateSummerSubject(${i}, '${s.name}', ${s.hours})">✅ نجح</button>
+            </div>
+          </div>
+        `;
+      });
+      
+      box.innerHTML = html;
+      
+      // تخزين المواد الراسبة للاستخدام
+      window.summerFailedSubjects = failedSubjects;
+      window.summerOriginalRecord = record;
+      window.summerTerm = term;
+      
+    } catch (e) {
+      box.innerHTML = '<p style="color:var(--gray);">خطأ في التحميل</p>';
+    }
+  }
 
-window.clearSummer = function() {
-  window.summerAnalysis = null;
-  document.getElementById('summerResult').innerHTML = '';
-  document.getElementById('summerSaveSection').style.display = 'none';
-  document.getElementById('summerImage').value = '';
-};
+  function updateSummerSubject(index, name, hours) {
+    const gradeInput = document.getElementById(`summerGrade_${index}`);
+    const grade = parseInt(gradeInput.value);
+    if (isNaN(grade) || grade < 0 || grade > 100) { alert('أدخل درجة صحيحة (0-100)'); return; }
+    if (grade < 50) { alert('⚠️ الدرجة أقل من 50، لم يتم النجاح في الصيفي'); return; }
+    
+    // تحديث حالة المادة
+    const failed = window.summerFailedSubjects;
+    if (failed && failed[index]) {
+      failed[index].status = 'ناجح (صيفي)';
+      failed[index].grade = grade;
+      failed[index].summerPassed = true;
+      
+      // عرض رسالة تأكيد
+      document.getElementById(`summerGrade_${index}`).style.borderColor = 'var(--success)';
+      alert(`✅ تم تسجيل نجاح ${name} في الصيفي بالدرجة ${grade}%`);
+      
+      // التحقق من أن كل المواد تم تعديلها
+      const allUpdated = failed.every(s => s.summerPassed === true);
+      if (allUpdated) {
+        document.getElementById('summerSaveSection').style.display = 'flex';
+        document.getElementById('summerResult').innerHTML = '<div class="alert alert-success">✅ تم تعديل جميع المواد الراسبة. اضغط "حفظ التعديلات" لتحديث السجل.</div>';
+      }
+    }
+  }
 
-// ===== جلب المستخدم الحالي =====
-function getCurrentUser() {
-  const raw = localStorage.getItem('currentUser');
-  return raw ? JSON.parse(raw) : null;
-}
-const user = getCurrentUser();
-if (!user) window.location.href = 'login.html';
+  async function saveSummerRecord() {
+    if (!window.summerFailedSubjects || !window.summerOriginalRecord || !db) {
+      alert('لا توجد بيانات للحفظ');
+      return;
+    }
+    
+    try {
+      const term = window.summerTerm;
+      const updatedSubjects = window.summerOriginalRecord.subjects.map(s => {
+        const failed = window.summerFailedSubjects.find(f => f.name === s.name);
+        if (failed && failed.summerPassed) {
+          return { ...s, grade: failed.grade, status: 'ناجح (صيفي)' };
+        }
+        return s;
+      });
+      
+      // إعادة حساب GPA
+      let totalPoints = 0, totalHours = 0;
+      updatedSubjects.forEach(s => {
+        totalPoints += s.grade * s.hours;
+        totalHours += s.hours;
+      });
+      const newGpa = totalHours > 0 ? parseFloat((totalPoints / (totalHours * 25)).toFixed(2)) : 0;
+      const newWarnings = newGpa < 1.4 ? 1 : 0;
+      
+      // حفظ في Firestore
+      const ref = db.collection('academicRecords').doc(user.phone);
+      const snap = await ref.get();
+      let records = snap.exists ? snap.data().records || [] : [];
+      const idx = records.findIndex(r => r.term === term);
+      
+      if (idx === -1) { alert('الترم غير موجود'); return; }
+      
+      records[idx].subjects = updatedSubjects;
+      records[idx].gpa = newGpa;
+      records[idx].warnings = newWarnings;
+      records[idx].updatedAt = Date.now();
+      
+      const totalWarnings = records.reduce((sum, r) => sum + (r.warnings || 0), 0);
+      await ref.set({ records, totalWarnings, updatedAt: Date.now() });
+      await db.collection('users').doc(user.phone).update({ totalWarnings });
+      
+      alert('✅ تم تحديث السجل الأكاديمي بعد الصيفي');
+      document.getElementById('summerSaveSection').style.display = 'none';
+      document.getElementById('summerResult').innerHTML = '<div class="alert alert-success">✅ تم الحفظ بنجاح</div>';
+      loadRecords();
+      
+    } catch (e) {
+      alert('❌ خطأ: ' + e.message);
+    }
+  }
 
-// ===== تهيئة =====
-loadRecords();
-console.log('✅ academic.html مع Gemini جاهز');
+  function clearSummer() {
+    window.summerFailedSubjects = null;
+    window.summerOriginalRecord = null;
+    window.summerTerm = null;
+    document.getElementById('summerResult').innerHTML = '';
+    document.getElementById('summerSaveSection').style.display = 'none';
+    document.getElementById('summerSubjectsList').innerHTML = '<p style="color:var(--gray);font-size:13px;">سيتم عرض المواد الراسبة في هذا الترم بعد اختياره</p>';
+  }
+
+  // ===== تحميل السجلات عند بدء الصفحة =====
+  loadRecords();
+  console.log('✅ academic.html جاهز (بدون AI)');
 </script>
 </body>
-    </html>
+  </html>
