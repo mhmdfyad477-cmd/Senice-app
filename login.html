@@ -44,6 +44,9 @@
   .switch-line{text-align:center;margin-top:16px;font-size:13.5px;color:#5c7a9c;}
   .switch-line a{color:var(--blue-main);font-weight:700;text-decoration:none;cursor:pointer;}
   .footer-credit{position:relative;z-index:2;text-align:center;font-size:11.5px;color:#9bb3cb;padding-bottom:14px;}
+  .radio-group{display:flex;gap:16px;margin-top:6px;}
+  .radio-group label{display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600;color:var(--blue-deep);cursor:pointer;}
+  .radio-group input[type="radio"]{width:18px;height:18px;accent-color:var(--blue-main);cursor:pointer;}
   @media (prefers-reduced-motion: reduce){.bubble,.flask,.logo-icon{animation:none !important;}}
 </style>
 </head>
@@ -87,6 +90,32 @@
           <option value="الرابعة">الفرقة الرابعة</option>
         </select>
       </div>
+      
+      <!-- 🆕 حقل الشعبة -->
+      <div class="field">
+        <label>الشعبة</label>
+        <select id="suDepartment" required onchange="updateSections()">
+          <option value="">-- اختر الشعبة --</option>
+        </select>
+      </div>
+      
+      <!-- 🆕 حقل القسم -->
+      <div class="field">
+        <label>القسم</label>
+        <select id="suSection" required>
+          <option value="">-- اختر القسم --</option>
+        </select>
+      </div>
+
+      <!-- 🆕 حقل حالة الطالب -->
+      <div class="field">
+        <label>حالة الطالب</label>
+        <div class="radio-group">
+          <label><input type="radio" name="studentStatus" value="مستجد" required> مستجد</label>
+          <label><input type="radio" name="studentStatus" value="باقي" required> باقي</label>
+        </div>
+      </div>
+
       <div class="field"><label>كلمة المرور</label><input type="password" id="suPass" placeholder="••••••••" required></div>
       <div class="field">
         <label>تأكيد كلمة المرور</label>
@@ -105,17 +134,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script>
-  document.getElementById('loginForm').addEventListener('submit', e => e.preventDefault());
-  document.getElementById('signupForm').addEventListener('submit', e => e.preventDefault());
-
-  if(typeof firebase === 'undefined'){
-    document.querySelectorAll('.submit-btn').forEach(b=>{
-      b.addEventListener('click', ()=> alert('تعذّر تحميل مكتبة Firebase. تأكد إن جهازك متصل بالإنترنت وحاول تاني.'));
-    });
-  }
-</script>
-
-<script>
+  // ========== Firebase Config ==========
   const firebaseConfig = {
     apiKey: "AIzaSyBgI8VcLOdQAMgmcpxCzaMS1UCX1vyzSjw",
     authDomain: "science-e2b52.firebaseapp.com",
@@ -129,10 +148,11 @@
   try{
     firebase.initializeApp(firebaseConfig);
     db = firebase.firestore();
-  }catch(e){ console.warn('تعذر الاتصال بقاعدة البيانات (لا يوجد إنترنت؟)', e); }
+  }catch(e){ console.warn('تعذر الاتصال بقاعدة البيانات', e); }
   const ADMIN_PHONE = "01229914072";
   const ADMIN_PASS  = "197197";
 
+  // ========== إنشاء الأدمن تلقائياً ==========
   async function ensureAdmin(){
     if(!db) return;
     try{
@@ -140,17 +160,74 @@
       const snap = await ref.get();
       if(!snap.exists){
         await ref.set({
-          name: "المسؤول العام", phone: ADMIN_PHONE, password: ADMIN_PASS,
-          year: "—", role: "admin", approved: true, activeSession: false,
-          points: 0, createdAt: Date.now()
+          name: "المسؤول العام",
+          phone: ADMIN_PHONE,
+          password: ADMIN_PASS,
+          year: "—",
+          department: "",
+          section: "",
+          studentStatus: "",
+          role: "admin",
+          approved: true,
+          activeSession: false,
+          points: 0,
+          createdAt: Date.now()
         });
       }
     }catch(e){ console.warn('لا يوجد اتصال بالإنترنت', e); }
   }
   ensureAdmin();
-</script>
 
-<script>
+  // ========== تحميل الشعب من Firestore ==========
+  async function loadDepartments() {
+    const select = document.getElementById('suDepartment');
+    if (!db) {
+      select.innerHTML = '<option value="">⚠️ لا يوجد اتصال بالإنترنت</option>';
+      return;
+    }
+    select.innerHTML = '<option value="">-- اختر الشعبة --</option>';
+    try {
+      const snap = await db.collection('settings').doc('departments').get();
+      if (snap.exists) {
+        const data = snap.data();
+        for (const [key, val] of Object.entries(data.departments || {})) {
+          select.innerHTML += `<option value="${key}">${val.name}</option>`;
+        }
+      } else {
+        select.innerHTML = '<option value="">⚠️ لم يضف الأدمن شعب بعد</option>';
+      }
+    } catch (e) {
+      console.warn('خطأ في تحميل الشعب', e);
+      select.innerHTML = '<option value="">⚠️ خطأ في التحميل</option>';
+    }
+  }
+
+  // ========== تحديث الأقسام عند اختيار الشعبة ==========
+  async function updateSections() {
+    const deptKey = document.getElementById('suDepartment').value;
+    const sectionSelect = document.getElementById('suSection');
+    sectionSelect.innerHTML = '<option value="">-- اختر القسم --</option>';
+    if (!deptKey || !db) return;
+    try {
+      const snap = await db.collection('settings').doc('departments').get();
+      if (snap.exists) {
+        const data = snap.data();
+        const dept = data.departments[deptKey];
+        if (dept && dept.sections) {
+          dept.sections.forEach(s => {
+            sectionSelect.innerHTML += `<option value="${s}">${s}</option>`;
+          });
+        } else {
+          sectionSelect.innerHTML = '<option value="">⚠️ لا توجد أقسام لهذه الشعبة</option>';
+        }
+      }
+    } catch (e) { console.warn(e); }
+  }
+
+  // ========== تحميل الشعب عند تحميل الصفحة ==========
+  document.addEventListener('DOMContentLoaded', loadDepartments);
+
+  // ========== التبديل بين التاب ==========
   function switchTab(tab){
     document.getElementById('tabLogin').classList.toggle('active', tab==='login');
     document.getElementById('tabSignup').classList.toggle('active', tab==='signup');
@@ -164,6 +241,7 @@
     el.textContent = text; el.className = 'msg ' + type; el.style.display='block';
   }
 
+  // ========== تسجيل الدخول ==========
   document.getElementById('loginForm').addEventListener('submit', async (e)=>{
     e.preventDefault();
     const phone = document.getElementById('loginPhone').value.trim();
@@ -187,15 +265,14 @@
         } else if(!data.approved){
           showMsg(msg,'حسابك لسه في انتظار موافقة الأدمن','info');
         } else if(data.activeSession && data.role !== 'admin'){
-          // ✅ منع تسجيل الدخول نهائياً من جهاز آخر
-          showMsg(msg,'⚠️ الحساب مسجل دخول بالفعل من جهاز آخر. يرجى تسجيل الخروج من الجهاز الآخر أولاً','error');
+          showMsg(msg,'⚠️ الحساب مسجل دخول بالفعل من جهاز آخر','error');
         } else {
           await ref.update({activeSession:true, lastLogin:Date.now()});
-          const userObj = {phone, name:data.name, role:data.role||'student', year:data.year};
+          const userObj = {phone, name:data.name, role:data.role||'student', year:data.year, department:data.department||'', section:data.section||'', studentStatus:data.studentStatus||''};
           localStorage.setItem('currentUser', JSON.stringify(userObj));
           const params = new URLSearchParams(userObj).toString();
           const targetUrl = 'home.html?' + params;
-          msg.innerHTML = 'تم تسجيل الدخول بنجاح. <a href="'+targetUrl+'" style="color:#0a2e5c;font-weight:800;text-decoration:underline;">اضغط هنا للمتابعة</a> لو ملحولكش تلقائيًا';
+          msg.innerHTML = 'تم تسجيل الدخول بنجاح. <a href="'+targetUrl+'" style="color:#0a2e5c;font-weight:800;text-decoration:underline;">اضغط هنا للمتابعة</a>';
           msg.className = 'msg success';
           msg.style.display = 'block';
           setTimeout(()=>{ window.location.href = targetUrl; }, 700);
@@ -208,19 +285,27 @@
     btn.disabled=false; btn.textContent='دخول';
   });
 
+  // ========== إنشاء حساب ==========
   document.getElementById('signupForm').addEventListener('submit', async (e)=>{
     e.preventDefault();
     const name = document.getElementById('suName').value.trim();
     const phone = document.getElementById('suPhone').value.trim();
     const year = document.getElementById('suYear').value;
+    const department = document.getElementById('suDepartment').value;
+    const section = document.getElementById('suSection').value;
+    const studentStatus = document.querySelector('input[name="studentStatus"]:checked');
     const pass = document.getElementById('suPass').value;
     const pass2 = document.getElementById('suPass2').value;
     const btn = document.getElementById('signupBtn');
     const msg = document.getElementById('signupMsg');
 
+    // التحقق من الحقول
     if(name.length < 3){ showMsg(msg,'من فضلك أدخل الاسم بالكامل','error'); return; }
     if(!/^01[0-9]{9}$/.test(phone)){ showMsg(msg,'رقم الموبايل غير صحيح','error'); return; }
     if(!year){ showMsg(msg,'من فضلك اختر الفرقة الدراسية','error'); return; }
+    if(!department){ showMsg(msg,'من فضلك اختر الشعبة','error'); return; }
+    if(!section){ showMsg(msg,'من فضلك اختر القسم','error'); return; }
+    if(!studentStatus){ showMsg(msg,'من فضلك اختر حالة الطالب (مستجد / باقي)','error'); return; }
     if(pass.length < 6){ showMsg(msg,'كلمة المرور يجب ألا تقل عن 6 أحرف','error'); return; }
     if(pass !== pass2){ showMsg(msg,'كلمتا المرور غير متطابقتين','error'); return; }
     if(!db){ showMsg(msg,'لا يوجد اتصال بالإنترنت','error'); return; }
@@ -232,7 +317,7 @@
       if(existing.exists){
         showMsg(msg,'يوجد حساب بالفعل بهذا الرقم','error');
       } else {
-        // ✅ التحقق من القائمة البيضاء
+        // التحقق من القائمة البيضاء
         let isWhitelisted = false;
         try {
           const whiteSnap = await db.collection('settings').doc('whitelist').get();
@@ -242,11 +327,17 @@
         } catch(e) { console.warn('خطأ في التحقق من القائمة البيضاء', e); }
 
         await ref.set({
-          name, phone, password: pass, year,
-          role:'student',
+          name,
+          phone,
+          password: pass,
+          year,
+          department: department,
+          section: section,
+          studentStatus: studentStatus.value,
+          role: 'student',
           approved: isWhitelisted,
-          activeSession:false,
-          points:0,
+          activeSession: false,
+          points: 0,
           createdAt: Date.now()
         });
 
@@ -264,6 +355,7 @@
     btn.disabled=false; btn.textContent='إنشاء الحساب';
   });
 
+  // ========== الخلفية المتحركة ==========
   document.addEventListener('DOMContentLoaded', function(){
     const bg = document.getElementById('labBg');
     for(let i=0;i<22;i++){
@@ -276,14 +368,7 @@
       b.style.animationDelay = (Math.random()*8)+'s';
       bg.appendChild(b);
     }
-    const flaskSVG = '<svg width="90" height="120" viewBox="0 0 90 120"><path d="M35 5h20v30l20 60a8 8 0 0 1-7 12H22a8 8 0 0 1-7-12l20-60V5z" fill="none" stroke="#1565d8" stroke-width="3"/><path d="M20 75h50" stroke="#1565d8" stroke-width="3"/></svg>';
-    [['5%','10%'],['85%','15%'],['8%','70%'],['88%','65%']].forEach(function(p,i){
-      const d = document.createElement('div');
-      d.className='flask'; d.style.left = p[0]; d.style.top = p[1];
-      d.style.animationDelay = (i*1.3)+'s'; d.innerHTML = flaskSVG;
-      bg.appendChild(d);
-    });
   });
 </script>
 </body>
-</html>
+  </html>
