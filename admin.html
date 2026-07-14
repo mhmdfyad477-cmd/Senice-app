@@ -1,1935 +1,1093 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة الأدمن | قسم علوم ابتدائي</title>
-    <style>
-        :root {
-            --blue-deep: #0a2e5c;
-            --blue-main: #1565d8;
-            --blue-bright: #2f9bf0;
-            --ice: #eaf4ff;
-            --gold: #f5a623;
-            --success: #147a35;
-            --danger: #b00020;
-            --gray: #7a93ad;
-            --light-gray: #f0f4fa;
-        }
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
-        }
-        body {
-            background: var(--ice);
-            color: var(--blue-deep);
-            min-height: 100vh;
-        }
-
-        /* ===== الشريط العلوي ===== */
-        .topbar {
-            background: linear-gradient(135deg, var(--blue-main), var(--blue-deep));
-            color: #fff;
-            padding: 14px 24px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            box-shadow: 0 4px 14px rgba(10, 46, 92, 0.25);
-        }
-        .topbar .brand {
-            font-weight: 800;
-            font-size: 18px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .topbar .brand svg {
-            width: 28px;
-            height: 28px;
-            fill: #fff;
-        }
-        .topbar a {
-            color: #fff;
-            text-decoration: none;
-            font-size: 13px;
-            background: rgba(255, 255, 255, 0.15);
-            padding: 8px 16px;
-            border-radius: 10px;
-            transition: 0.2s;
-        }
-        .topbar a:hover {
-            background: rgba(255, 255, 255, 0.25);
-        }
-
-        /* ===== الحاوية ===== */
-        .wrap {
-            max-width: 1300px;
-            margin: 20px auto;
-            padding: 0 16px;
-        }
-
-        /* ===== التبويبات (Tabs) ===== */
-        .tabs-wrapper {
-            background: #fff;
-            border-radius: 16px;
-            padding: 8px 12px;
-            box-shadow: 0 4px 14px rgba(10, 46, 92, 0.06);
-            margin-bottom: 20px;
-            overflow-x: auto;
-            white-space: nowrap;
-            position: sticky;
-            top: 68px;
-            z-index: 50;
-        }
-        .tabs-wrapper::-webkit-scrollbar {
-            height: 4px;
-        }
-        .tabs-wrapper::-webkit-scrollbar-thumb {
-            background: var(--blue-main);
-            border-radius: 4px;
-        }
-        .tabs-wrapper .tabs {
-            display: inline-flex;
-            gap: 4px;
-            padding: 4px 0;
-        }
-        .tabs-wrapper .tabs button {
-            padding: 8px 16px;
-            border: none;
-            border-radius: 10px;
-            background: transparent;
-            color: var(--gray);
-            font-weight: 700;
-            font-size: 13px;
-            cursor: pointer;
-            transition: 0.2s;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .tabs-wrapper .tabs button:hover {
-            background: var(--ice);
-            color: var(--blue-main);
-        }
-        .tabs-wrapper .tabs button.active {
-            background: var(--blue-main);
-            color: #fff;
-            box-shadow: 0 4px 12px rgba(21, 101, 216, 0.3);
-        }
-        .tabs-wrapper .tabs button .badge {
-            background: var(--danger);
-            color: #fff;
-            font-size: 10px;
-            padding: 1px 7px;
-            border-radius: 10px;
-            margin-right: 2px;
-        }
-
-        /* ===== الأقسام ===== */
-        .section {
-            display: none;
-            animation: fadeIn 0.3s ease;
-        }
-        .section.active {
-            display: block;
-        }
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(8px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* ===== البطاقات ===== */
-        .card-box {
-            background: #fff;
-            border-radius: 16px;
-            padding: 18px 20px;
-            box-shadow: 0 4px 14px rgba(10, 46, 92, 0.05);
-            margin-bottom: 14px;
-            transition: 0.2s;
-        }
-        .card-box:hover {
-            box-shadow: 0 6px 20px rgba(10, 46, 92, 0.08);
-        }
-        .card-box .card-title {
-            font-size: 16px;
-            font-weight: 800;
-            color: var(--blue-deep);
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .card-box .card-title .sub {
-            font-size: 12px;
-            font-weight: 400;
-            color: var(--gray);
-        }
-
-        /* ===== الشبكات ===== */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 12px;
-            margin-bottom: 16px;
-        }
-        .stat-card {
-            background: #fff;
-            border-radius: 14px;
-            padding: 16px;
-            text-align: center;
-            box-shadow: 0 4px 14px rgba(10, 46, 92, 0.05);
-            border-top: 4px solid var(--blue-main);
-        }
-        .stat-card .num {
-            font-size: 28px;
-            font-weight: 900;
-            color: var(--blue-deep);
-        }
-        .stat-card .label {
-            font-size: 12.5px;
-            color: var(--gray);
-            margin-top: 4px;
-        }
-        .stat-card.gold {
-            border-top-color: var(--gold);
-        }
-        .stat-card.green {
-            border-top-color: var(--success);
-        }
-        .stat-card.purple {
-            border-top-color: #8e44ad;
-        }
-        .stat-card.orange {
-            border-top-color: #e67e22;
-        }
-        .stat-card.red {
-            border-top-color: var(--danger);
-        }
-
-        /* ===== الأزرار ===== */
-        .btn {
-            border: none;
-            border-radius: 10px;
-            padding: 8px 16px;
-            font-size: 13px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: 0.2s;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-        .btn-blue {
-            background: var(--blue-main);
-            color: #fff;
-        }
-        .btn-blue:hover {
-            background: var(--blue-deep);
-        }
-        .btn-approve {
-            background: var(--success);
-            color: #fff;
-        }
-        .btn-approve:hover {
-            background: #0f5e2a;
-        }
-        .btn-reject {
-            background: var(--danger);
-            color: #fff;
-        }
-        .btn-reject:hover {
-            background: #8a0018;
-        }
-        .btn-gold {
-            background: linear-gradient(135deg, #ffd700, #b8860b);
-            color: #fff;
-            box-shadow: 0 2px 8px rgba(184, 134, 11, 0.3);
-        }
-        .btn-gold:hover {
-            box-shadow: 0 4px 16px rgba(184, 134, 11, 0.4);
-        }
-        .btn-excel {
-            background: #1d6f42;
-            color: #fff;
-        }
-        .btn-excel:hover {
-            background: #14532d;
-        }
-        .btn-outline {
-            background: transparent;
-            color: var(--blue-main);
-            border: 1.5px solid var(--blue-main);
-        }
-        .btn-outline:hover {
-            background: var(--blue-main);
-            color: #fff;
-        }
-        .btn-sm {
-            padding: 4px 12px;
-            font-size: 12px;
-        }
-        .btn-xs {
-            padding: 2px 8px;
-            font-size: 11px;
-        }
-        .btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none !important;
-        }
-
-        /* ===== الحقول ===== */
-        .form-line {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin-bottom: 10px;
-            align-items: center;
-        }
-        .form-line input,
-        .form-line select,
-        .form-line textarea {
-            padding: 10px 14px;
-            border-radius: 10px;
-            border: 1.5px solid #cfe2f7;
-            font-size: 14px;
-            flex: 1;
-            min-width: 140px;
-            background: #fff;
-            transition: 0.2s;
-        }
-        .form-line input:focus,
-        .form-line select:focus,
-        .form-line textarea:focus {
-            border-color: var(--blue-main);
-            box-shadow: 0 0 0 3px rgba(21, 101, 216, 0.1);
-            outline: none;
-        }
-        .form-line textarea {
-            min-height: 80px;
-            resize: vertical;
-        }
-        .form-line label {
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--blue-deep);
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-        .form-line .inline-label {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--blue-deep);
-        }
-        .form-line .inline-label input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
-            accent-color: var(--blue-main);
-            cursor: pointer;
-        }
-
-        /* ===== القوائم ===== */
-        .list-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 0;
-            border-bottom: 1px solid var(--light-gray);
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-        .list-item:last-child {
-            border-bottom: none;
-        }
-        .list-item .meta b {
-            display: block;
-            font-size: 14.5px;
-            color: var(--blue-deep);
-        }
-        .list-item .meta span {
-            font-size: 12px;
-            color: var(--gray);
-        }
-        .list-item .actions {
-            display: flex;
-            gap: 6px;
-            flex-wrap: wrap;
-        }
-
-        /* ===== التبويبات الداخلية ===== */
-        .sub-tabs {
-            display: flex;
-            gap: 6px;
-            margin-bottom: 12px;
-            flex-wrap: wrap;
-        }
-        .sub-tabs button {
-            padding: 6px 14px;
-            border: none;
-            border-radius: 8px;
-            background: var(--light-gray);
-            color: var(--gray);
-            font-weight: 600;
-            font-size: 12.5px;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        .sub-tabs button.active {
-            background: var(--blue-main);
-            color: #fff;
-        }
-        .sub-tabs button:hover:not(.active) {
-            background: #dce4ed;
-        }
-
-        /* ===== التنبيهات ===== */
-        .alert {
-            padding: 12px 16px;
-            border-radius: 10px;
-            font-size: 13px;
-            margin-bottom: 10px;
-        }
-        .alert-success {
-            background: #e3f7e8;
-            color: var(--success);
-        }
-        .alert-danger {
-            background: #ffe5e5;
-            color: var(--danger);
-        }
-        .alert-info {
-            background: #e8f1fc;
-            color: var(--blue-deep);
-        }
-        .alert-warning {
-            background: #fff3e0;
-            color: #b76e00;
-        }
-
-        /* ===== الميداليات ===== */
-        .medal-winner-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 6px 0;
-            border-bottom: 1px solid var(--light-gray);
-        }
-
-        /* ===== النقاط ===== */
-        .points-input {
-            width: 70px;
-            padding: 4px 6px;
-            border-radius: 6px;
-            border: 1.5px solid #cfe2f7;
-            text-align: center;
-        }
-
-        /* ===== الإختيارات ===== */
-        .user-checkbox {
-            width: 18px;
-            height: 18px;
-            cursor: pointer;
-            flex-shrink: 0;
-            accent-color: var(--blue-main);
-        }
-
-        /* ===== تحميل ===== */
-        .loading-spinner {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid var(--light-gray);
-            border-top-color: var(--blue-main);
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
-        }
-
-        /* ===== التجاوب ===== */
-        @media(max-width:768px) {
-            .topbar .brand {
-                font-size: 15px;
-            }
-            .topbar .brand svg {
-                width: 22px;
-                height: 22px;
-            }
-            .tabs-wrapper {
-                padding: 6px 8px;
-                top: 60px;
-            }
-            .tabs-wrapper .tabs button {
-                font-size: 12px;
-                padding: 6px 12px;
-            }
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            .form-line {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            .form-line input,
-            .form-line select,
-            .form-line textarea {
-                min-width: auto;
-            }
-            .list-item {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-        }
-        @media(max-width:480px) {
-            .stats-grid {
-                grid-template-columns: 1fr 1fr;
-                gap: 8px;
-            }
-            .stat-card .num {
-                font-size: 22px;
-            }
-            .topbar {
-                padding: 10px 14px;
-                flex-wrap: wrap;
-                gap: 8px;
-            }
-        }
-
-        /* ===== Scroll ===== */
-        .scrollable {
-            max-height: 400px;
-            overflow-y: auto;
-        }
-        .scrollable::-webkit-scrollbar {
-            width: 6px;
-        }
-        .scrollable::-webkit-scrollbar-thumb {
-            background: var(--blue-main);
-            border-radius: 4px;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>لوحة الأدمن | قسم علوم ابتدائي</title>
+<style>
+  :root{--blue-deep:#0a2e5c;--blue-main:#1565d8;--blue-bright:#2f9bf0;--ice:#eaf4ff;--gold:#f5a623;--success:#147a35;--danger:#b00020;--gray:#7a93ad;--light-gray:#f0f4fa;}
+  *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Tahoma,Arial,sans-serif;}
+  body{background:var(--ice);color:var(--blue-deep);min-height:100vh;}
+  
+  /* الشريط العلوي */
+  .topbar{background:linear-gradient(135deg,var(--blue-main),var(--blue-deep));color:#fff;padding:14px 24px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100;box-shadow:0 4px 14px rgba(10,46,92,0.25);}
+  .topbar .brand{font-weight:800;font-size:18px;display:flex;align-items:center;gap:10px;}
+  .topbar .brand svg{width:28px;height:28px;fill:#fff;}
+  .topbar a{color:#fff;text-decoration:none;font-size:13px;background:rgba(255,255,255,0.15);padding:8px 16px;border-radius:10px;transition:0.2s;}
+  .topbar a:hover{background:rgba(255,255,255,0.25);}
+  
+  .wrap{max-width:1300px;margin:20px auto;padding:0 16px;}
+  
+  /* التبويبات */
+  .tabs-wrapper{background:#fff;border-radius:16px;padding:8px 12px;box-shadow:0 4px 14px rgba(10,46,92,0.06);margin-bottom:20px;overflow-x:auto;white-space:nowrap;position:sticky;top:68px;z-index:50;}
+  .tabs-wrapper::-webkit-scrollbar{height:4px;}
+  .tabs-wrapper::-webkit-scrollbar-thumb{background:var(--blue-main);border-radius:4px;}
+  .tabs-wrapper .tabs{display:inline-flex;gap:4px;padding:4px 0;}
+  .tabs-wrapper .tabs button{padding:8px 16px;border:none;border-radius:10px;background:transparent;color:var(--gray);font-weight:700;font-size:13px;cursor:pointer;transition:0.2s;display:inline-flex;align-items:center;gap:6px;}
+  .tabs-wrapper .tabs button:hover{background:var(--ice);color:var(--blue-main);}
+  .tabs-wrapper .tabs button.active{background:var(--blue-main);color:#fff;box-shadow:0 4px 12px rgba(21,101,216,0.3);}
+  .tabs-wrapper .tabs button .badge{background:var(--danger);color:#fff;font-size:10px;padding:1px 7px;border-radius:10px;margin-right:2px;}
+  
+  /* الأقسام */
+  .section{display:none;animation:fadeIn 0.3s ease;}
+  .section.active{display:block;}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+  
+  /* البطاقات */
+  .card-box{background:#fff;border-radius:16px;padding:18px 20px;box-shadow:0 4px 14px rgba(10,46,92,0.05);margin-bottom:14px;transition:0.2s;}
+  .card-box:hover{box-shadow:0 6px 20px rgba(10,46,92,0.08);}
+  .card-box .card-title{font-size:16px;font-weight:800;color:var(--blue-deep);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+  .card-box .card-title .sub{font-size:12px;font-weight:400;color:var(--gray);}
+  
+  /* الشبكات */
+  .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px;}
+  .stat-card{background:#fff;border-radius:14px;padding:16px;text-align:center;box-shadow:0 4px 14px rgba(10,46,92,0.05);border-top:4px solid var(--blue-main);}
+  .stat-card .num{font-size:28px;font-weight:900;color:var(--blue-deep);}
+  .stat-card .label{font-size:12.5px;color:var(--gray);margin-top:4px;}
+  .stat-card.gold{border-top-color:var(--gold);}
+  .stat-card.green{border-top-color:var(--success);}
+  .stat-card.purple{border-top-color:#8e44ad;}
+  .stat-card.orange{border-top-color:#e67e22;}
+  .stat-card.red{border-top-color:var(--danger);}
+  
+  /* الأزرار */
+  .btn{border:none;border-radius:10px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer;transition:0.2s;display:inline-flex;align-items:center;gap:6px;}
+  .btn:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,0.1);}
+  .btn-blue{background:var(--blue-main);color:#fff;}
+  .btn-blue:hover{background:var(--blue-deep);}
+  .btn-approve{background:var(--success);color:#fff;}
+  .btn-approve:hover{background:#0f5e2a;}
+  .btn-reject{background:var(--danger);color:#fff;}
+  .btn-reject:hover{background:#8a0018;}
+  .btn-gold{background:linear-gradient(135deg,#ffd700,#b8860b);color:#fff;box-shadow:0 2px 8px rgba(184,134,11,0.3);}
+  .btn-gold:hover{box-shadow:0 4px 16px rgba(184,134,11,0.4);}
+  .btn-excel{background:#1d6f42;color:#fff;}
+  .btn-excel:hover{background:#14532d;}
+  .btn-outline{background:transparent;color:var(--blue-main);border:1.5px solid var(--blue-main);}
+  .btn-outline:hover{background:var(--blue-main);color:#fff;}
+  .btn-sm{padding:4px 12px;font-size:12px;}
+  .btn-xs{padding:2px 8px;font-size:11px;}
+  
+  /* الحقول */
+  .form-line{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;align-items:center;}
+  .form-line input,.form-line select,.form-line textarea{padding:10px 14px;border-radius:10px;border:1.5px solid #cfe2f7;font-size:14px;flex:1;min-width:140px;background:#fff;transition:0.2s;}
+  .form-line input:focus,.form-line select:focus,.form-line textarea:focus{border-color:var(--blue-main);box-shadow:0 0 0 3px rgba(21,101,216,0.1);outline:none;}
+  .form-line textarea{min-height:80px;resize:vertical;}
+  .form-line label{font-size:13px;font-weight:600;color:var(--blue-deep);display:flex;align-items:center;gap:4px;}
+  
+  /* القوائم */
+  .list-item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--light-gray);flex-wrap:wrap;gap:8px;}
+  .list-item:last-child{border-bottom:none;}
+  .list-item .meta b{display:block;font-size:14.5px;color:var(--blue-deep);}
+  .list-item .meta span{font-size:12px;color:var(--gray);}
+  .list-item .actions{display:flex;gap:6px;flex-wrap:wrap;}
+  
+  .points-input{width:70px;padding:4px 6px;border-radius:6px;border:1.5px solid #cfe2f7;text-align:center;}
+  .user-checkbox{width:18px;height:18px;cursor:pointer;flex-shrink:0;accent-color:var(--blue-main);}
+  
+  .loading-spinner{display:inline-block;width:20px;height:20px;border:3px solid var(--light-gray);border-top-color:var(--blue-main);border-radius:50%;animation:spin 0.8s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  
+  .alert{padding:12px 16px;border-radius:10px;font-size:13px;margin-bottom:10px;}
+  .alert-success{background:#e3f7e8;color:var(--success);}
+  .alert-danger{background:#ffe5e5;color:var(--danger);}
+  .alert-info{background:#e8f1fc;color:var(--blue-deep);}
+  .alert-warning{background:#fff3e0;color:#b76e00;}
+  
+  .footer-credit{text-align:center;font-size:11.5px;color:#9bb3cb;padding:18px 0;}
+  
+  @media(max-width:768px){
+    .topbar .brand{font-size:15px;}
+    .tabs-wrapper{padding:6px 8px;top:60px;}
+    .tabs-wrapper .tabs button{font-size:12px;padding:6px 12px;}
+    .stats-grid{grid-template-columns:repeat(2,1fr);}
+    .form-line{flex-direction:column;align-items:stretch;}
+    .form-line input,.form-line select,.form-line textarea{min-width:auto;}
+    .list-item{flex-direction:column;align-items:flex-start;}
+  }
+</style>
 </head>
 <body>
 
-    <!-- ===== الشريط العلوي ===== -->
-    <div class="topbar">
-        <div class="brand">
-            <svg viewBox="0 0 24 24"><path d="M9 2v6.3L4.3 17a2 2 0 0 0 1.8 3h11.8a2 2 0 0 0 1.8-3L15 8.3V2H9z"/></svg>
-            لوحة التحكم
-        </div>
-        <a href="home.html">🏠 الرجوع للرئيسية</a>
+<div class="topbar">
+  <div class="brand"><svg viewBox="0 0 24 24"><path d="M9 2v6.3L4.3 17a2 2 0 0 0 1.8 3h11.8a2 2 0 0 0 1.8-3L15 8.3V2H9z"/></svg>لوحة التحكم</div>
+  <a href="home.html">🏠 الرجوع للرئيسية</a>
+</div>
+
+<div class="wrap">
+  <!-- التبويبات -->
+  <div class="tabs-wrapper">
+    <div class="tabs" id="mainTabs">
+      <button class="active" onclick="showTab('dashboard',this)">📊 الإحصائيات</button>
+      <button onclick="showTab('pending',this)">📩 الطلبات <span class="badge" id="pendingBadge">0</span></button>
+      <button onclick="showTab('users',this)">👥 الأعضاء</button>
+      <button onclick="showTab('admins',this)">🛡️ المشرفون</button>
+      <button onclick="showTab('departments',this)">🏫 الشعب والأقسام</button>
+      <button onclick="showTab('schedule',this)">📅 الجدول</button>
+      <button onclick="showTab('books',this)">📚 الكتب</button>
+      <button onclick="showTab('attendance',this)">📋 دفتر الغياب</button>
+      <button onclick="showTab('points',this)">⭐ النقاط</button>
+      <button onclick="showTab('academic',this)">📘 الإرشاد الأكاديمي</button>
+      <button onclick="showTab('announce',this)">📢 التنبيهات</button>
     </div>
+  </div>
 
-    <!-- ===== الحاوية ===== -->
-    <div class="wrap">
-
-        <!-- ===== التبويبات ===== -->
-        <div class="tabs-wrapper">
-            <div class="tabs" id="mainTabs">
-                <button class="active" onclick="showTab('dashboard',this)">📊 الإحصائيات</button>
-                <button onclick="showTab('pending',this)">📩 الطلبات <span class="badge" id="pendingBadge">0</span></button>
-                <button onclick="showTab('users',this)">👥 الأعضاء</button>
-                <button onclick="showTab('admins',this)">🛡️ المشرفون</button>
-                <button onclick="showTab('departments',this)">🏫 الشعب والأقسام</button>
-                <button onclick="showTab('schedule',this)">📅 الجدول</button>
-                <button onclick="showTab('books',this)">📚 الكتب</button>
-                <button onclick="showTab('attendance',this)">📋 دفتر الغياب</button>
-                <button onclick="showTab('points',this)">⭐ النقاط</button>
-                <button onclick="showTab('academic',this)">📘 الإرشاد الأكاديمي</button>
-                <button onclick="showTab('reports',this)">📊 تقارير المنصة</button>
-                <button onclick="showTab('announce',this)">📢 التنبيهات</button>
-            </div>
-        </div>
-
-        <!-- ================================================================= -->
-        <!-- ===== تبويب الإحصائيات ===== -->
-        <div class="section active" id="tab-dashboard">
-            <div class="stats-grid" id="statsGrid">
-                <div class="stat-card"><div class="num" id="statUsers">0</div><div class="label">👥 الأعضاء</div></div>
-                <div class="stat-card gold"><div class="num" id="statGroups">0</div><div class="label">💬 الجروبات</div></div>
-                <div class="stat-card green"><div class="num" id="statSummaries">0</div><div class="label">📝 الملخصات</div></div>
-                <div class="stat-card purple"><div class="num" id="statBooks">0</div><div class="label">📚 الكتب</div></div>
-                <div class="stat-card orange"><div class="num" id="statQuizzes">0</div><div class="label">📝 الكويزات</div></div>
-                <div class="stat-card red"><div class="num" id="statAttendance">0</div><div class="label">📋 محاضرات</div></div>
-            </div>
-
-            <div class="card-box">
-                <div class="card-title">🏆 أعلى 5 طلاب في النقاط</div>
-                <div id="topStudentsList"></div>
-            </div>
-
-            <div class="card-box" style="text-align:center;">
-                <button class="btn btn-excel" onclick="exportExcel()" style="padding:12px 30px;font-size:16px;">📊 تحميل بيانات الأعضاء (Excel)</button>
-                <p style="font-size:12px;color:var(--gray);margin-top:6px;">ملف Excel يحتوي على: الاسم، الرقم، الفرقة، الشعبة، القسم، النقاط، الحالة</p>
-            </div>
-        </div>
-
-        <!-- ================================================================= -->
-        <!-- ===== تبويب طلبات التسجيل ===== -->
-        <div class="section" id="tab-pending">
-            <div class="card-box">
-                <div class="card-title">📩 طلبات التسجيل <span class="sub">(في انتظار الموافقة)</span></div>
-                <div id="pendingList"></div>
-            </div>
-        </div>
-
-        <!-- ================================================================= -->
-        <!-- ===== تبويب الأعضاء ===== -->
-        <div class="section" id="tab-users">
-            <div class="card-box">
-                <div class="card-title">👥 كل الأعضاء</div>
-                <div class="form-line" style="margin-bottom:12px;">
-                    <input type="text" id="userSearch" placeholder="🔍 بحث بالاسم أو الرقم..." oninput="loadUsers()" style="flex:2;">
-                    <select id="userFilterDept" onchange="loadUsers()" style="flex:1;">
-                        <option value="">كل الشعب</option>
-                    </select>
-                    <select id="userFilterSection" onchange="loadUsers()" style="flex:1;">
-                        <option value="">كل الأقسام</option>
-                    </select>
-                </div>
-                <div id="usersList"></div>
-            </div>
-        </div>
-
-        <!-- ================================================================= -->
-        <!-- ===== تبويب المشرفون ===== -->
-        <div class="section" id="tab-admins">
-            <div class="card-box">
-                <div class="card-title">🛡️ المشرفون والقادة</div>
-                <div id="adminsList"></div>
-            </div>
-            <div class="card-box" id="promoteSection">
-                <div class="card-title">🔑 ترقية عضو</div>
-                <div class="form-line">
-                    <input type="text" id="promotePhone" placeholder="رقم الموبايل">
-                    <select id="promoteRole">
-                        <option value="co-admin">مشرف</option>
-                        <option value="college-admin">إداري كلية</option>
-                        <option value="section-leader">قائد قسم</option>
-                    </select>
-                    <select id="promoteSection" style="display:none;">
-                        <option value="">اختر القسم</option>
-                    </select>
-                    <button class="btn btn-approve" onclick="promoteUser()">ترقية</button>
-                </div>
-                <p id="promoteMsg" style="font-size:12px;color:var(--gray);"></p>
-            </div>
-        </div>
-
-        <!-- ================================================================= -->
-        <!-- ===== تبويب الشعب والأقسام ===== -->
-        <div class="section" id="tab-departments">
-            <div class="card-box">
-                <div class="card-title">🏫 إدارة الشعب والأقسام</div>
-                <div class="form-line">
-                    <input type="text" id="newDeptName" placeholder="اسم الشعبة الجديدة">
-                    <button class="btn btn-blue" onclick="addDepartment()">➕ إضافة شعبة</button>
-                </div>
-                <div id="deptList"></div>
-            </div>
-        </div>
-
-        <!-- ================================================================= -->
-        <!-- ===== تبويب الجدول ===== -->
-        <div class="section" id="tab-schedule">
-            <div class="card-box">
-                <div class="card-title">📅 إدارة جدول المحاضرات</div>
-                <div class="form-line">
-                    <select id="scheduleDept" onchange="updateScheduleSections()">
-                        <option value="">اختر الشعبة</option>
-                    </select>
-                    <select id="scheduleSection" onchange="loadScheduleAdmin()">
-                        <option value="">اختر القسم</option>
-                    </select>
-                </div>
-                <div class="form-line">
-                    <input type="text" id="schDay" placeholder="اليوم (السبت)">
-                    <input type="text" id="schSubject" placeholder="المادة">
-                    <input type="text" id="schTime" placeholder="الموعد (9:00 ص)">
-                    <input type="text" id="schPlace" placeholder="المكان">
-                    <button class="btn btn-blue" onclick="addScheduleItem()">➕ إضافة</button>
-                </div>
-                <div id="scheduleAdminList"></div>
-            </div>
-        </div>
-
-        <!-- ================================================================= -->
-        <!-- ===== تبويب الكتب ===== -->
-        <div class="section" id="tab-books">
-            <div class="card-box">
-                <div class="card-title">📚 إدارة الكتب والمسددين</div>
-                <div class="form-line">
-                    <select id="bookDept" onchange="updateBookSections()">
-                        <option value="">اختر الشعبة</option>
-                    </select>
-                    <select id="bookSection">
-                        <option value="">اختر القسم</option>
-                    </select>
-                </div>
-                <div class="form-line">
-                    <input type="text" id="bookTitle" placeholder="عنوان الكتاب">
-                    <input type="file" id="bookFile" accept=".pdf,.docx,.pptx,.xlsx,.jpg,.png">
-                    <button class="btn btn-blue" onclick="addBook()">➕ رفع كتاب</button>
-                </div>
-                <p id="bookProgress" style="font-size:12px;color:var(--gray);"></p>
-                <hr style="margin:16px 0;border-color:var(--light-gray);">
-                <div class="card-title" style="font-size:15px;">📋 الطلاب المسددين</div>
-                <div id="paidStudentsList"></div>
-                <button class="btn btn-excel btn-sm" onclick="exportPaidStudents()">📊 تحميل المسددين (Excel)</button>
-                <div id="booksAdminList" style="margin-top:12px;"></div>
-            </div>
-        </div>
-
-        <!-- ================================================================= -->
-        <!-- ===== تبويب دفتر الغياب ===== -->
-        <div class="section" id="tab-attendance">
-            <div class="card-box">
-                <div class="card-title">📋 دفتر الغياب</div>
-                <div class="form-line">
-                    <select id="attDept" onchange="updateAttSections()">
-                        <option value="">اختر الشعبة</option>
-                    </select>
-                    <select id="attSection" onchange="updateAttSubjects()">
-                        <option value="">اختر القسم</option>
-                    </select>
-                    <select id="attSubject" onchange="loadAttendance()">
-                        <option value="">اختر المادة</option>
-                    </select>
-                </div>
-                <div class="form-line">
-                    <input type="date" id="attDate">
-                    <button class="btn btn-blue" onclick="addLecture()">➕ تسجيل محاضرة</button>
-                    <button class="btn btn-excel btn-sm" onclick="exportAttendance()">📊 تحميل كشف الغياب</button>
-                    <button class="btn btn-gold btn-sm" onclick="exportSummaryAttendance()">📊 تقرير مجمع (4 محاضرات)</button>
-                </div>
-                <div id="attendanceList"></div>
-            </div>
-        </div>
-
-        <!-- ================================================================= -->
-        <!-- ===== تبويب النقاط ===== -->
-        <div class="section" id="tab-points">
-            <div class="card-box">
-                <div class="card-title">⭐ إدارة النقاط</div>
-                <div class="form-line">
-                    <label>نقاط رفع الملخص:</label>
-                    <input type="number" id="summaryPointsInput" min="0" value="10" style="max-width:100px;">
-                    <button class="btn btn-blue" onclick="saveSummaryPoints()">حفظ</button>
-                </div>
-                <p id="pointsMsg" style="font-size:12px;color:var(--gray);"></p>
-                <hr style="margin:16px 0;border-color:var(--light-gray);">
-                <button class="btn btn-reject" onclick="resetAllPoints()">🔄 تصفير كل النقاط</button>
-                <p id="resetPointsMsg" style="font-size:12px;color:var(--gray);margin-top:6px;"></p>
-                <hr style="margin:16px 0;border-color:var(--light-gray);">
-                <div class="card-title" style="font-size:15px;">🏆 ترتيب الفخر</div>
-                <div id="pointsLeaderboardList"></div>
-            </div>
-        </div>
-
-        <!-- ================================================================= -->
-        <!-- ===== تبويب الإرشاد الأكاديمي ===== -->
-        <div class="section" id="tab-academic">
-            <div class="card-box">
-                <div class="card-title">📘 الإرشاد الأكاديمي</div>
-                <div class="form-line">
-                    <input type="text" id="academicSearch" placeholder="🔍 بحث عن طالب (اسم أو رقم)">
-                    <button class="btn btn-blue" onclick="searchAcademic()">بحث</button>
-                </div>
-                <div id="academicResult"></div>
-            </div>
-        </div>
-
-        <!-- ================================================================= -->
-        <!-- ===== تبويب تقارير المنصة ===== -->
-        <div class="section" id="tab-reports">
-            <div class="card-box">
-                <div class="card-title">📊 تقارير المنصة</div>
-                <div class="stats-grid" id="reportStats">
-                    <div class="stat-card"><div class="num" id="reportUsers">0</div><div class="label">👥 الأعضاء</div></div>
-                    <div class="stat-card gold"><div class="num" id="reportSummaries">0</div><div class="label">📝 الملخصات</div></div>
-                    <div class="stat-card green"><div class="num" id="reportBooks">0</div><div class="label">📚 الكتب</div></div>
-                    <div class="stat-card purple"><div class="num" id="reportQuizzes">0</div><div class="label">📝 الكويزات</div></div>
-                </div>
-                <button class="btn btn-excel" onclick="exportPlatformReport()">📊 تحميل تقرير المنصة (Excel)</button>
-                <button class="btn btn-gold" onclick="generateAIReport()" style="margin-right:8px;">🤖 توليد تقرير ذكي</button>
-                <div id="aiReportResult" style="margin-top:12px;"></div>
-            </div>
-        </div>
-
-        <!-- ================================================================= -->
-        <!-- ===== تبويب التنبيهات ===== -->
-        <div class="section" id="tab-announce">
-            <div class="card-box">
-                <div class="card-title">📢 التنبيهات</div>
-                <div class="form-line">
-                    <input type="text" id="announceTextInput" placeholder="نص التنبيه...">
-                    <button class="btn btn-blue" onclick="publishAnnouncement()">نشر</button>
-                    <button class="btn btn-reject" onclick="clearAnnouncement()">إلغاء</button>
-                </div>
-                <div id="announcePreview"></div>
-            </div>
-        </div>
-
+  <!-- ===== تبويب الإحصائيات ===== -->
+  <div class="section active" id="tab-dashboard">
+    <div class="stats-grid" id="statsGrid">
+      <div class="stat-card"><div class="num" id="statUsers">0</div><div class="label">👥 الأعضاء</div></div>
+      <div class="stat-card gold"><div class="num" id="statGroups">0</div><div class="label">💬 الجروبات</div></div>
+      <div class="stat-card green"><div class="num" id="statSummaries">0</div><div class="label">📝 الملخصات</div></div>
+      <div class="stat-card purple"><div class="num" id="statBooks">0</div><div class="label">📚 الكتب</div></div>
+      <div class="stat-card orange"><div class="num" id="statQuizzes">0</div><div class="label">📝 الكويزات</div></div>
+      <div class="stat-card red"><div class="num" id="statAttendance">0</div><div class="label">📋 محاضرات</div></div>
     </div>
+    <div class="card-box"><div class="card-title">🏆 أعلى 5 طلاب في النقاط</div><div id="topStudentsList"></div></div>
+    <div class="card-box" style="text-align:center;">
+      <button class="btn btn-excel" onclick="exportExcel()" style="padding:12px 30px;font-size:16px;">📊 تحميل بيانات الأعضاء (Excel)</button>
+      <p style="font-size:12px;color:var(--gray);margin-top:6px;">ملف Excel يحتوي على: الاسم، الرقم، الفرقة، الشعبة، القسم، النقاط، الحالة</p>
+    </div>
+  </div>
 
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
+  <!-- ===== تبويب طلبات التسجيل ===== -->
+  <div class="section" id="tab-pending">
+    <div class="card-box"><div class="card-title">📩 طلبات التسجيل <span class="sub">(في انتظار الموافقة)</span></div><div id="pendingList"></div></div>
+  </div>
 
-    <script>
-        // ================================================================
-        // ===== FIREBASE CONFIG =====
-        // ================================================================
-        const firebaseConfig = {
-            apiKey: "AIzaSyBgI8VcLOdQAMgmcpxCzaMS1UCX1vyzSjw",
-            authDomain: "science-e2b52.firebaseapp.com",
-            projectId: "science-e2b52",
-            storageBucket: "science-e2b52.firebasestorage.app",
-            messagingSenderId: "1031434005860",
-            appId: "1:1031434005860:web:e68fccdd746017a5639e71",
-            measurementId: "G-JZ1SFVMM7P"
-        };
-        let db = null;
-        try {
-            firebase.initializeApp(firebaseConfig);
-            db = firebase.firestore();
-        } catch (e) { console.warn('Firebase error', e); }
+  <!-- ===== تبويب الأعضاء ===== -->
+  <div class="section" id="tab-users">
+    <div class="card-box">
+      <div class="card-title">👥 كل الأعضاء</div>
+      <div class="form-line">
+        <input type="text" id="userSearch" placeholder="🔍 بحث بالاسم أو الرقم..." oninput="loadUsers()" style="flex:2;">
+        <select id="userFilterDept" onchange="loadUsers()" style="flex:1;"><option value="">كل الشعب</option></select>
+        <select id="userFilterSection" onchange="loadUsers()" style="flex:1;"><option value="">كل الأقسام</option></select>
+      </div>
+      <div id="usersList"></div>
+    </div>
+  </div>
 
-        const ADMIN_PHONE = "01229914072";
-        const CLOUD_NAME = 'dgbuovcf';
-        const UPLOAD_PRESET = 'Science_app';
+  <!-- ===== تبويب المشرفون ===== -->
+  <div class="section" id="tab-admins">
+    <div class="card-box"><div class="card-title">🛡️ المشرفون والقادة</div><div id="adminsList"></div></div>
+    <div class="card-box" id="promoteSection">
+      <div class="card-title">🔑 ترقية عضو</div>
+      <div class="form-line">
+        <input type="text" id="promotePhone" placeholder="رقم الموبايل">
+        <select id="promoteRole"><option value="co-admin">مشرف</option><option value="college-admin">إداري كلية</option><option value="section-leader">قائد قسم</option></select>
+        <select id="promoteSectionSelect" style="display:none;"><option value="">اختر القسم</option></select>
+        <button class="btn btn-approve" onclick="promoteUser()">ترقية</button>
+      </div>
+      <p id="promoteMsg" style="font-size:12px;color:var(--gray);"></p>
+    </div>
+  </div>
 
-        // ================================================================
-        // ===== GET CURRENT USER =====
-        // ================================================================
-        function getCurrentUser() {
-            const raw = localStorage.getItem('currentUser');
-            return raw ? JSON.parse(raw) : null;
+  <!-- ===== تبويب الشعب والأقسام ===== -->
+  <div class="section" id="tab-departments">
+    <div class="card-box">
+      <div class="card-title">🏫 إدارة الشعب والأقسام</div>
+      <div class="form-line"><input type="text" id="newDeptName" placeholder="اسم الشعبة الجديدة"><button class="btn btn-blue" onclick="addDepartment()">➕ إضافة شعبة</button></div>
+      <div id="deptList"></div>
+    </div>
+  </div>
+
+  <!-- ===== تبويب الجدول ===== -->
+  <div class="section" id="tab-schedule">
+    <div class="card-box">
+      <div class="card-title">📅 إدارة جدول المحاضرات</div>
+      <div class="form-line">
+        <select id="scheduleDept" onchange="updateScheduleSections()"><option value="">اختر الشعبة</option></select>
+        <select id="scheduleSection" onchange="loadScheduleAdmin()"><option value="">اختر القسم</option></select>
+      </div>
+      <div class="form-line">
+        <input type="text" id="schDay" placeholder="اليوم (السبت)"><input type="text" id="schSubject" placeholder="المادة">
+        <input type="text" id="schTime" placeholder="الموعد (9:00 ص)"><input type="text" id="schPlace" placeholder="المكان">
+        <button class="btn btn-blue" onclick="addScheduleItem()">➕ إضافة</button>
+      </div>
+      <div id="scheduleAdminList"></div>
+    </div>
+  </div>
+
+  <!-- ===== تبويب الكتب ===== -->
+  <div class="section" id="tab-books">
+    <div class="card-box">
+      <div class="card-title">📚 إدارة الكتب والمسددين</div>
+      <div class="form-line">
+        <select id="bookDept" onchange="updateBookSections()"><option value="">اختر الشعبة</option></select>
+        <select id="bookSection"><option value="">اختر القسم</option></select>
+      </div>
+      <div class="form-line">
+        <input type="text" id="bookTitle" placeholder="عنوان الكتاب">
+        <input type="file" id="bookFile" accept=".pdf,.docx,.pptx,.xlsx,.jpg,.png">
+        <button class="btn btn-blue" onclick="addBook()">➕ رفع كتاب</button>
+      </div>
+      <p id="bookProgress" style="font-size:12px;color:var(--gray);"></p>
+      <hr style="margin:16px 0;border-color:var(--light-gray);">
+      <div class="card-title" style="font-size:15px;">📋 الطلاب المسددين</div>
+      <div id="paidStudentsList"></div>
+      <button class="btn btn-excel btn-sm" onclick="exportPaidStudents()">📊 تحميل المسددين (Excel)</button>
+      <div id="booksAdminList" style="margin-top:12px;"></div>
+    </div>
+  </div>
+
+  <!-- ===== تبويب دفتر الغياب ===== -->
+  <div class="section" id="tab-attendance">
+    <div class="card-box">
+      <div class="card-title">📋 دفتر الغياب</div>
+      <div class="form-line">
+        <select id="attDept" onchange="updateAttSections()"><option value="">اختر الشعبة</option></select>
+        <select id="attSection" onchange="updateAttSubjects()"><option value="">اختر القسم</option></select>
+        <select id="attSubject" onchange="loadAttendance()"><option value="">اختر المادة</option></select>
+      </div>
+      <div class="form-line">
+        <input type="date" id="attDate">
+        <button class="btn btn-approve" onclick="addLecture()">➕ تسجيل محاضرة</button>
+        <button class="btn btn-excel btn-sm" onclick="exportLectureExcel()">📊 تحميل كشف محاضرة</button>
+        <button class="btn btn-gold btn-sm" onclick="exportSummaryExcel()">📊 تقرير مجمع (4 محاضرات)</button>
+      </div>
+      <div id="attStats"></div>
+      <div id="attendanceList"></div>
+    </div>
+  </div>
+
+  <!-- ===== تبويب النقاط ===== -->
+  <div class="section" id="tab-points">
+    <div class="card-box">
+      <div class="card-title">⭐ إدارة النقاط</div>
+      <div class="form-line">
+        <label>نقاط رفع الملخص:</label>
+        <input type="number" id="summaryPointsInput" min="0" value="10" style="max-width:100px;">
+        <button class="btn btn-blue" onclick="saveSummaryPoints()">حفظ</button>
+      </div>
+      <p id="pointsMsg" style="font-size:12px;color:var(--gray);"></p>
+      <hr style="margin:16px 0;border-color:var(--light-gray);">
+      <button class="btn btn-reject" onclick="resetAllPoints()">🔄 تصفير كل النقاط</button>
+      <p id="resetPointsMsg" style="font-size:12px;color:var(--gray);margin-top:6px;"></p>
+      <hr style="margin:16px 0;border-color:var(--light-gray);">
+      <div class="card-title" style="font-size:15px;">🏆 ترتيب الفخر</div>
+      <div id="pointsLeaderboardList"></div>
+    </div>
+  </div>
+
+  <!-- ===== تبويب الإرشاد الأكاديمي ===== -->
+  <div class="section" id="tab-academic">
+    <div class="card-box">
+      <div class="card-title">📘 الإرشاد الأكاديمي</div>
+      <div class="form-line">
+        <input type="text" id="academicSearch" placeholder="🔍 بحث عن طالب (اسم أو رقم)">
+        <button class="btn btn-blue" onclick="searchAcademic()">بحث</button>
+      </div>
+      <div id="academicResult"></div>
+    </div>
+  </div>
+
+  <!-- ===== تبويب التنبيهات ===== -->
+  <div class="section" id="tab-announce">
+    <div class="card-box">
+      <div class="card-title">📢 التنبيهات</div>
+      <div class="form-line">
+        <input type="text" id="announceTextInput" placeholder="نص التنبيه...">
+        <button class="btn btn-blue" onclick="publishAnnouncement()">نشر</button>
+        <button class="btn btn-reject" onclick="clearAnnouncement()">إلغاء</button>
+      </div>
+      <div id="announcePreview"></div>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer-credit">تم إنشاء هذا الموقع بواسطة MF.mo.fayyad</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
+<script>
+  // ===== Firebase Config =====
+  const firebaseConfig = {
+    apiKey: "AIzaSyBgI8VcLOdQAMgmcpxCzaMS1UCX1vyzSjw",
+    authDomain: "science-e2b52.firebaseapp.com",
+    projectId: "science-e2b52",
+    storageBucket: "science-e2b52.firebasestorage.app",
+    messagingSenderId: "1031434005860",
+    appId: "1:1031434005860:web:e68fccdd746017a5639e71",
+    measurementId: "G-JZ1SFVMM7P"
+  };
+  let db = null, storage = null;
+  try {
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.firestore();
+    storage = firebase.storage();
+  } catch(e){ console.warn('Firebase error', e); }
+
+  const ADMIN_PHONE = "01229914072";
+  const CLOUD_NAME = 'dgbuovcf';
+  const UPLOAD_PRESET = 'Science_app';
+
+  // ===== Current User =====
+  function getCurrentUser() {
+    const raw = localStorage.getItem('currentUser');
+    return raw ? JSON.parse(raw) : null;
+  }
+  const user = getCurrentUser();
+  if (!user) window.location.href = 'login.html';
+
+  const isAdmin = user.role === 'admin';
+  const isCollegeAdmin = user.role === 'college-admin';
+  const isCoAdmin = user.role === 'co-admin';
+  const isSectionLeader = user.role === 'section-leader';
+  const canViewAll = isAdmin || isCollegeAdmin || isCoAdmin;
+  const canPromote = isAdmin;
+  const userSection = user.section || '';
+  const userDept = user.department || '';
+
+  // ===== Show Tab =====
+  function showTab(id, btn) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('#mainTabs button').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + id).classList.add('active');
+    if (btn) btn.classList.add('active');
+    switch(id) {
+      case 'dashboard': loadDashboard(); break;
+      case 'pending': loadPending(); break;
+      case 'users': loadDepartmentsFilter(); loadUsers(); break;
+      case 'admins': loadAdmins(); loadSectionsForPromote(); break;
+      case 'departments': loadDepartmentsAdmin(); break;
+      case 'schedule': loadScheduleDepts(); break;
+      case 'books': loadBooksDepts(); loadBooks(); break;
+      case 'attendance': loadAttDepts(); break;
+      case 'points': loadPointsSettings(); loadPointsLeaderboard(); break;
+      case 'academic': break;
+      case 'announce': loadAnnouncementSettings(); break;
+    }
+  }
+
+  // ===== Dashboard =====
+  async function loadDashboard() {
+    try {
+      const usersSnap = await db.collection('users').where('approved','==',true).get();
+      document.getElementById('statUsers').textContent = usersSnap.size;
+      const groupsSnap = await db.collection('groups').get();
+      document.getElementById('statGroups').textContent = groupsSnap.size;
+      const summariesSnap = await db.collection('summaries').get();
+      document.getElementById('statSummaries').textContent = summariesSnap.size;
+      const booksSnap = await db.collection('books').get();
+      document.getElementById('statBooks').textContent = booksSnap.size;
+      const quizzesSnap = await db.collection('quizzes').get();
+      document.getElementById('statQuizzes').textContent = quizzesSnap.size;
+      let totalLectures = 0;
+      const attSnap = await db.collection('attendance').get();
+      attSnap.forEach(doc => { const data = doc.data(); if(data.lectures) totalLectures += data.lectures.length; });
+      document.getElementById('statAttendance').textContent = totalLectures;
+      await loadTopStudents();
+    } catch(e){ console.warn(e); }
+  }
+
+  async function loadTopStudents() {
+    const box = document.getElementById('topStudentsList');
+    try {
+      const snap = await db.collection('users').where('approved','==',true).get();
+      let items = []; snap.forEach(d => items.push(d.data()));
+      items.sort((a,b) => (b.points||0) - (a.points||0));
+      const top = items.slice(0,5);
+      if(top.length === 0){ box.innerHTML = '<p style="color:var(--gray);">لا يوجد أعضاء</p>'; return; }
+      box.innerHTML = top.map((u,i) => {
+        const medals = ['🥇','🥈','🥉','4️⃣','5️⃣'];
+        return `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--light-gray);">
+          <span><b>${medals[i]}</b> ${u.name} <span style="font-size:11px;color:var(--gray);">${u.phone}</span></span>
+          <span style="font-weight:700;color:var(--gold);">${u.points||0} نقطة</span>
+        </div>`;
+      }).join('');
+    } catch(e){ box.innerHTML = '<p style="color:var(--gray);">خطأ في التحميل</p>'; }
+  }
+
+  // ===== Export Excel =====
+  function exportExcel() {
+    if(!db) return alert('لا يوجد اتصال بالإنترنت');
+    db.collection('users').where('approved','==',true).get().then(snap => {
+      if(snap.empty){ alert('لا يوجد أعضاء'); return; }
+      let rows = [];
+      snap.forEach(doc => {
+        const u = doc.data();
+        rows.push({ name: u.name||'', phone: u.phone||'', year: u.year||'', department: u.department||'', section: u.section||'', studentStatus: u.studentStatus||'', points: u.points||0, role: u.role||'طالب', active: u.activeSession ? '🟢 متصل' : '🔴 غير متصل' });
+      });
+      let html = `<html><head><meta charset="UTF-8"><title>بيانات الأعضاء</title></head><body><table border="1" style="direction:rtl;font-family:Arial;font-size:12px;"><tr style="background:#1565d8;color:#fff;"><th>#</th><th>الاسم</th><th>رقم الموبايل</th><th>الفرقة</th><th>الشعبة</th><th>القسم</th><th>الحالة</th><th>النقاط</th><th>الدور</th><th>النشاط</th></tr>`;
+      rows.forEach((u,i) => { html += `<tr><td>${i+1}</td><td>${u.name}</td><td>${u.phone}</td><td>${u.year}</td><td>${u.department}</td><td>${u.section}</td><td>${u.studentStatus}</td><td>${u.points}</td><td>${u.role}</td><td>${u.active}</td></tr>`; });
+      html += `</table></body></html>`;
+      const blob = new Blob([html], { type: 'application/vnd.ms-excel;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `بيانات_الأعضاء_${new Date().toLocaleDateString('ar')}.xls`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }).catch(e => alert('خطأ: '+e.message));
+  }
+
+  // ===== Pending =====
+  async function loadPending() {
+    const box = document.getElementById('pendingList');
+    box.innerHTML = 'جاري التحميل...';
+    try {
+      let query = db.collection('users').where('approved','==',false);
+      if(isSectionLeader) query = query.where('department','==',userDept).where('section','==',userSection);
+      const snap = await query.get();
+      document.getElementById('pendingBadge').textContent = snap.size;
+      if(snap.empty){ box.innerHTML = '<p style="color:var(--gray);">لا توجد طلبات جديدة</p>'; return; }
+      box.innerHTML = '';
+      snap.forEach(doc => {
+        const u = doc.data();
+        const el = document.createElement('div');
+        el.className = 'list-item';
+        el.innerHTML = `<div class="meta"><b>${u.name}</b><span>${u.phone} — ${u.year} — ${u.department}/${u.section}</span></div><div class="actions"><button class="btn btn-approve btn-sm" onclick="approveUser('${doc.id}')">✅ موافقة</button><button class="btn btn-reject btn-sm" onclick="rejectUser('${doc.id}')">❌ رفض</button></div>`;
+        box.appendChild(el);
+      });
+    } catch(e){ box.innerHTML = '<p style="color:var(--gray);">خطأ في التحميل</p>'; }
+  }
+
+  async function approveUser(phone){ await db.collection('users').doc(phone).update({approved:true}); loadPending(); loadUsers(); loadDashboard(); }
+  async function rejectUser(phone){ if(!confirm('حذف الطلب نهائياً؟')) return; await db.collection('users').doc(phone).delete(); loadPending(); }
+
+  // ===== Users =====
+  async function loadDepartmentsFilter() {
+    const select = document.getElementById('userFilterDept');
+    if(!db) return;
+    try {
+      const snap = await db.collection('settings').doc('departments').get();
+      const depts = snap.exists ? snap.data().departments || {} : {};
+      select.innerHTML = '<option value="">كل الشعب</option>';
+      for(const [key,val] of Object.entries(depts)) select.innerHTML += `<option value="${key}">${val.name}</option>`;
+    } catch(e){ console.warn(e); }
+  }
+
+  async function loadUsers() {
+    const box = document.getElementById('usersList');
+    box.innerHTML = 'جاري التحميل...';
+    const search = document.getElementById('userSearch').value.trim().toLowerCase();
+    const filterDept = document.getElementById('userFilterDept').value;
+    const filterSection = document.getElementById('userFilterSection').value;
+    try {
+      let query = db.collection('users').where('approved','==',true);
+      if(isSectionLeader) query = query.where('department','==',userDept).where('section','==',userSection);
+      const snap = await query.get();
+      let items = [];
+      snap.forEach(d => items.push({ id: d.id, ...d.data() }));
+      if(search) items = items.filter(u => (u.name||'').toLowerCase().includes(search) || (u.phone||'').includes(search));
+      if(filterDept) items = items.filter(u => u.department === filterDept);
+      if(filterSection) items = items.filter(u => u.section === filterSection);
+      items.sort((a,b) => (a.name||'').localeCompare(b.name||''));
+      if(items.length === 0){ box.innerHTML = '<p style="color:var(--gray);">لا يوجد أعضاء</p>'; return; }
+      const isAdminUser = user.role === 'admin';
+      box.innerHTML = items.map(u => `
+        <div class="list-item">
+          <div class="meta">
+            <b>${u.name} <span style="font-size:11px;color:var(--gray);">${u.role||'طالب'}</span></b>
+            <span>${u.phone} — ${u.year} — ${u.department}/${u.section} — ${u.studentStatus||''} ${u.activeSession?'🟢':''}</span>
+          </div>
+          <div class="actions">
+            ${isAdminUser && u.role !== 'admin' ? `<button class="btn btn-approve btn-xs" onclick="promoteUserDirect('${u.id}','co-admin')">ترقية</button><button class="btn btn-reject btn-xs" onclick="removeUser('${u.id}')">🗑</button>` : ''}
+            ${u.activeSession && isAdminUser ? `<button class="btn btn-blue btn-xs" onclick="forceLogout('${u.id}')">إنهاء الجلسة</button>` : ''}
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:4px;padding:6px 0;border-bottom:1px solid var(--light-gray);flex-wrap:wrap;">
+          <span style="font-size:12px;font-weight:bold;color:var(--blue-deep);">⭐ النقاط:</span>
+          <input type="number" id="points_input_${u.id}" value="${u.points||0}" class="points-input" min="0">
+          <button class="btn btn-gold btn-sm" onclick="updateUserPoints('${u.id}')">💾 حفظ</button>
+          <span id="points_msg_${u.id}" style="font-size:11px;color:var(--gray);"></span>
+        </div>
+      `).join('');
+    } catch(e){ box.innerHTML = '<p style="color:var(--gray);">خطأ في التحميل</p>'; }
+  }
+
+  // ===== تحديث نقاط الطالب (وظيفة جديدة) =====
+  async function updateUserPoints(phone) {
+    const input = document.getElementById('points_input_' + phone);
+    const msg = document.getElementById('points_msg_' + phone);
+    const val = parseInt(input.value, 10);
+    if (isNaN(val) || val < 0) {
+      msg.textContent = '⚠️ أدخل رقماً صحيحاً';
+      msg.style.color = '#b00020';
+      return;
+    }
+    try {
+      await db.collection('users').doc(phone).update({ points: val });
+      msg.textContent = '✅ تم التحديث';
+      msg.style.color = '#147a35';
+      if(document.getElementById('tab-points').classList.contains('active')) loadPointsLeaderboard();
+      if(document.getElementById('tab-dashboard').classList.contains('active')) loadDashboard();
+    } catch(e) {
+      msg.textContent = '❌ خطأ: ' + e.message;
+      msg.style.color = '#b00020';
+    }
+  }
+
+  // ===== Admins =====
+  async function loadAdmins() {
+    const box = document.getElementById('adminsList');
+    box.innerHTML = 'جاري التحميل...';
+    try {
+      const snap = await db.collection('users').where('role','in',['admin','co-admin','college-admin','section-leader']).get();
+      if(snap.empty){ box.innerHTML = '<p style="color:var(--gray);">لا يوجد مشرفون</p>'; return; }
+      box.innerHTML = '';
+      snap.forEach(doc => {
+        const u = doc.data();
+        const el = document.createElement('div');
+        el.className = 'list-item';
+        const roleLabels = { 'admin':'👑 أدمن عام', 'co-admin':'🔑 مشرف', 'college-admin':'🏛️ إداري كلية', 'section-leader':'👔 قائد قسم' };
+        el.innerHTML = `<div class="meta"><b>${u.name}</b><span>${u.phone} — ${roleLabels[u.role]||u.role} ${u.section?'(قسم: '+u.section+')':''}</span></div><div class="actions">${user.role === 'admin' && u.role !== 'admin' ? `<button class="btn btn-reject btn-xs" onclick="demoteUser('${u.id}')">إزالة الصلاحية</button>` : ''}</div>`;
+        box.appendChild(el);
+      });
+    } catch(e){ box.innerHTML = '<p style="color:var(--gray);">خطأ في التحميل</p>'; }
+  }
+
+  async function loadSectionsForPromote() {
+    const select = document.getElementById('promoteSectionSelect');
+    if(!db) return;
+    try {
+      const snap = await db.collection('settings').doc('departments').get();
+      const depts = snap.exists ? snap.data().departments || {} : {};
+      select.innerHTML = '<option value="">اختر القسم</option>';
+      for(const [deptKey, deptVal] of Object.entries(depts)) {
+        if(deptVal.sections) {
+          deptVal.sections.forEach(s => { select.innerHTML += `<option value="${deptKey}_${s}">${deptVal.name} - ${s}</option>`; });
         }
-        const user = getCurrentUser();
-        if (!user) window.location.href = 'login.html';
-        const isAdmin = user.role === 'admin';
-        const isCollegeAdmin = user.role === 'college-admin';
-        const isCoAdmin = user.role === 'co-admin';
-        const isSectionLeader = user.role === 'section-leader';
-        const canViewAll = isAdmin || isCollegeAdmin || isCoAdmin;
-        const canPromote = isAdmin;
-        const userSection = user.section || '';
-        const userDept = user.department || '';
+      }
+    } catch(e){ console.warn(e); }
+  }
 
-        // ================================================================
-        // ===== SHOW TAB =====
-        // ================================================================
-        function showTab(id, btn) {
-            // إخفاء الكل
-            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-            document.querySelectorAll('#mainTabs button').forEach(b => b.classList.remove('active'));
-            // إظهار المطلوب
-            document.getElementById('tab-' + id).classList.add('active');
-            if (btn) btn.classList.add('active');
-            // تحميل البيانات حسب التبويب
-            switch (id) {
-                case 'dashboard':
-                    loadDashboard();
-                    break;
-                case 'pending':
-                    loadPending();
-                    break;
-                case 'users':
-                    loadDepartmentsFilter();
-                    loadUsers();
-                    break;
-                case 'admins':
-                    loadAdmins();
-                    loadSectionsForPromote();
-                    break;
-                case 'departments':
-                    loadDepartmentsAdmin();
-                    break;
-                case 'schedule':
-                    loadScheduleDepts();
-                    break;
-                case 'books':
-                    loadBooksDepts();
-                    loadBooks();
-                    break;
-                case 'attendance':
-                    loadAttDepts();
-                    break;
-                case 'points':
-                    loadPointsSettings();
-                    loadPointsLeaderboard();
-                    break;
-                case 'academic':
-                    break;
-                case 'reports':
-                    loadReportStats();
-                    break;
-                case 'announce':
-                    loadAnnouncementSettings();
-                    break;
-            }
+  async function promoteUser() {
+    if(!canPromote){ alert('⛔ غير مسموح لك'); return; }
+    const phone = document.getElementById('promotePhone').value.trim();
+    const role = document.getElementById('promoteRole').value;
+    const sectionVal = document.getElementById('promoteSectionSelect').value;
+    const msg = document.getElementById('promoteMsg');
+    if(!phone){ msg.textContent = '⚠️ أدخل رقم الموبايل'; return; }
+    try {
+      const ref = db.collection('users').doc(phone);
+      const snap = await ref.get();
+      if(!snap.exists){ msg.textContent = '⚠️ العضو غير موجود'; return; }
+      const data = snap.data();
+      if(data.role === 'admin'){ msg.textContent = '⚠️ لا يمكن تعديل الأدمن العام'; return; }
+      const updateData = { role: role };
+      if(role === 'section-leader') {
+        const parts = sectionVal.split('_');
+        if(parts.length === 2){ updateData.department = parts[0]; updateData.section = parts[1]; }
+        else { msg.textContent = '⚠️ اختر القسم بشكل صحيح'; return; }
+      }
+      await ref.update(updateData);
+      msg.textContent = '✅ تمت الترقية بنجاح';
+      msg.style.color = 'var(--success)';
+      loadAdmins();
+    } catch(e){ msg.textContent = '❌ ' + e.message; msg.style.color = 'var(--danger)'; }
+  }
+
+  async function demoteUser(phone){ if(!canPromote){ alert('⛔ غير مسموح لك'); return; } if(!confirm('إزالة الصلاحيات عن هذا العضو؟')) return; await db.collection('users').doc(phone).update({role:'student'}); loadAdmins(); loadUsers(); }
+  async function removeUser(phone){ if(!canPromote){ alert('⛔ غير مسموح لك'); return; } if(!confirm('حذف العضو نهائياً؟')) return; await db.collection('users').doc(phone).delete(); loadUsers(); loadDashboard(); }
+  async function forceLogout(phone){ if(!canPromote){ alert('⛔ غير مسموح لك'); return; } await db.collection('users').doc(phone).update({activeSession:false}); loadUsers(); }
+
+  // ===== Departments =====
+  async function loadDepartmentsAdmin() {
+    const box = document.getElementById('deptList');
+    if(!db){ box.innerHTML = '<p style="color:var(--gray);">لا يوجد اتصال</p>'; return; }
+    box.innerHTML = 'جاري التحميل...';
+    try {
+      const snap = await db.collection('settings').doc('departments').get();
+      if(!snap.exists || !snap.data().departments){ box.innerHTML = '<p style="color:var(--gray);">لا توجد شعب بعد</p>'; return; }
+      const depts = snap.data().departments || {};
+      let html = '';
+      for(const [key, val] of Object.entries(depts)) {
+        html += `<div class="list-item"><div class="meta"><b>🏫 ${val.name}</b><span>${(val.sections||[]).length} قسم</span></div><div class="actions"><button class="btn btn-blue btn-xs" onclick="addSection('${key}')">➕ إضافة قسم</button><button class="btn btn-reject btn-xs" onclick="deleteDepartment('${key}')">🗑 حذف</button></div></div><div style="padding-right:20px;">${(val.sections||[]).map(s => `<div class="list-item" style="border-bottom:1px dashed var(--light-gray);padding:4px 0;"><span>📂 ${s}</span><button class="btn btn-reject btn-xs" onclick="deleteSection('${key}','${s}')">✕</button></div>`).join('')}</div>`;
+      }
+      box.innerHTML = html;
+    } catch(e){ box.innerHTML = '<p style="color:var(--gray);">خطأ في التحميل</p>'; }
+  }
+
+  async function addDepartment() {
+    const name = document.getElementById('newDeptName').value.trim();
+    if(!name) return alert('أدخل اسم الشعبة');
+    try {
+      const ref = db.collection('settings').doc('departments');
+      const snap = await ref.get();
+      const data = snap.exists ? snap.data() : { departments: {} };
+      const key = name.replace(/\s/g,'_').toLowerCase();
+      if(data.departments[key]){ alert('هذه الشعبة موجودة'); return; }
+      data.departments[key] = { name: name, sections: [] };
+      await ref.set(data);
+      document.getElementById('newDeptName').value = '';
+      loadDepartmentsAdmin();
+      loadDepartmentsFilter();
+      loadScheduleDepts();
+      loadBooksDepts();
+      loadAttDepts();
+    } catch(e){ alert('خطأ: '+e.message); }
+  }
+
+  async function deleteDepartment(key){ if(!confirm('حذف الشعبة وجميع أقسامها؟')) return; try { const ref = db.collection('settings').doc('departments'); const snap = await ref.get(); const data = snap.data(); delete data.departments[key]; await ref.set(data); loadDepartmentsAdmin(); } catch(e){ alert('خطأ: '+e.message); } }
+  async function addSection(deptKey){ const name = prompt('أدخل اسم القسم الجديد:'); if(!name) return; try { const ref = db.collection('settings').doc('departments'); const snap = await ref.get(); const data = snap.data(); if(!data.departments[deptKey].sections) data.departments[deptKey].sections = []; if(data.departments[deptKey].sections.includes(name)){ alert('هذا القسم موجود'); return; } data.departments[deptKey].sections.push(name); await ref.set(data); loadDepartmentsAdmin(); loadDepartmentsFilter(); } catch(e){ alert('خطأ: '+e.message); } }
+  async function deleteSection(deptKey, sectionName){ if(!confirm(`حذف القسم "${sectionName}"؟`)) return; try { const ref = db.collection('settings').doc('departments'); const snap = await ref.get(); const data = snap.data(); data.departments[deptKey].sections = data.departments[deptKey].sections.filter(s => s !== sectionName); await ref.set(data); loadDepartmentsAdmin(); } catch(e){ alert('خطأ: '+e.message); } }
+
+  // ===== Schedule =====
+  async function loadScheduleDepts() {
+    const select = document.getElementById('scheduleDept');
+    if(!db) return;
+    try {
+      const snap = await db.collection('settings').doc('departments').get();
+      const depts = snap.exists ? snap.data().departments || {} : {};
+      select.innerHTML = '<option value="">اختر الشعبة</option>';
+      for(const [key,val] of Object.entries(depts)) select.innerHTML += `<option value="${key}">${val.name}</option>`;
+      if(isSectionLeader){ select.value = userDept; updateScheduleSections(); }
+    } catch(e){ console.warn(e); }
+  }
+
+  function updateScheduleSections() {
+    const deptKey = document.getElementById('scheduleDept').value;
+    const select = document.getElementById('scheduleSection');
+    select.innerHTML = '<option value="">اختر القسم</option>';
+    if(!deptKey) return;
+    db.collection('settings').doc('departments').get().then(snap => {
+      if(snap.exists) {
+        const depts = snap.data().departments || {};
+        const dept = depts[deptKey];
+        if(dept && dept.sections) {
+          dept.sections.forEach(s => { select.innerHTML += `<option value="${s}">${s}</option>`; });
+          if(isSectionLeader && userSection){ select.value = userSection; loadScheduleAdmin(); }
         }
+      }
+    }).catch(console.warn);
+  }
 
-        // ================================================================
-        // ===== LOAD DASHBOARD =====
-        // ================================================================
-        async function loadDashboard() {
-            try {
-                const usersSnap = await db.collection('users').where('approved', '==', true).get();
-                document.getElementById('statUsers').textContent = usersSnap.size;
+  async function loadScheduleAdmin() {
+    const box = document.getElementById('scheduleAdminList');
+    const dept = document.getElementById('scheduleDept').value;
+    const section = document.getElementById('scheduleSection').value;
+    if(!dept || !section){ box.innerHTML = '<p style="color:var(--gray);">اختر الشعبة والقسم</p>'; return; }
+    box.innerHTML = 'جاري التحميل...';
+    try {
+      const docId = dept + '_' + section;
+      const snap = await db.collection('schedules').doc(docId).get();
+      const items = snap.exists ? snap.data().items || [] : [];
+      if(items.length === 0){ box.innerHTML = '<p style="color:var(--gray);">لا توجد محاضرات</p>'; return; }
+      box.innerHTML = items.map((s,i) => `<div class="list-item"><div class="meta"><b>${s.subject}</b><span>${s.day} — ${s.time} — ${s.place}</span></div><div class="actions"><button class="btn btn-reject btn-xs" onclick="deleteScheduleItem('${docId}',${i})">🗑</button></div></div>`).join('');
+    } catch(e){ box.innerHTML = '<p style="color:var(--gray);">خطأ في التحميل</p>'; }
+  }
 
-                const groupsSnap = await db.collection('groups').get();
-                document.getElementById('statGroups').textContent = groupsSnap.size;
+  async function addScheduleItem() {
+    const dept = document.getElementById('scheduleDept').value;
+    const section = document.getElementById('scheduleSection').value;
+    const day = document.getElementById('schDay').value.trim();
+    const subject = document.getElementById('schSubject').value.trim();
+    const time = document.getElementById('schTime').value.trim();
+    const place = document.getElementById('schPlace').value.trim();
+    if(!dept || !section) return alert('اختر الشعبة والقسم');
+    if(!day || !subject || !time || !place) return alert('املأ جميع الحقول');
+    try {
+      const docId = dept + '_' + section;
+      const ref = db.collection('schedules').doc(docId);
+      const snap = await ref.get();
+      const items = snap.exists ? snap.data().items || [] : [];
+      items.push({ day, subject, time, place });
+      await ref.set({ items, updatedAt: Date.now(), updatedBy: user.phone });
+      document.getElementById('schDay').value = ''; document.getElementById('schSubject').value = ''; document.getElementById('schTime').value = ''; document.getElementById('schPlace').value = '';
+      loadScheduleAdmin();
+    } catch(e){ alert('خطأ: '+e.message); }
+  }
 
-                const summariesSnap = await db.collection('summaries').get();
-                document.getElementById('statSummaries').textContent = summariesSnap.size;
+  async function deleteScheduleItem(docId, index){ if(!confirm('حذف هذه المحاضرة؟')) return; try { const ref = db.collection('schedules').doc(docId); const snap = await ref.get(); const items = snap.data().items || []; items.splice(index,1); await ref.set({ items, updatedAt: Date.now() }); loadScheduleAdmin(); } catch(e){ alert('خطأ: '+e.message); } }
 
-                const booksSnap = await db.collection('books').get();
-                document.getElementById('statBooks').textContent = booksSnap.size;
+  // ===== Books =====
+  async function loadBooksDepts() {
+    const select = document.getElementById('bookDept');
+    if(!db) return;
+    try {
+      const snap = await db.collection('settings').doc('departments').get();
+      const depts = snap.exists ? snap.data().departments || {} : {};
+      select.innerHTML = '<option value="">اختر الشعبة</option>';
+      for(const [key,val] of Object.entries(depts)) select.innerHTML += `<option value="${key}">${val.name}</option>`;
+      if(isSectionLeader){ select.value = userDept; updateBookSections(); }
+    } catch(e){ console.warn(e); }
+  }
 
-                const quizzesSnap = await db.collection('quizzes').get();
-                document.getElementById('statQuizzes').textContent = quizzesSnap.size;
-
-                // عدد المحاضرات (من attendance)
-                let totalLectures = 0;
-                const attSnap = await db.collection('attendance').get();
-                attSnap.forEach(doc => {
-                    const data = doc.data();
-                    if (data.lectures) totalLectures += data.lectures.length;
-                });
-                document.getElementById('statAttendance').textContent = totalLectures;
-
-                await loadTopStudents();
-            } catch (e) { console.warn(e); }
+  function updateBookSections() {
+    const deptKey = document.getElementById('bookDept').value;
+    const select = document.getElementById('bookSection');
+    select.innerHTML = '<option value="">اختر القسم</option>';
+    if(!deptKey) return;
+    db.collection('settings').doc('departments').get().then(snap => {
+      if(snap.exists) {
+        const depts = snap.data().departments || {};
+        const dept = depts[deptKey];
+        if(dept && dept.sections) {
+          dept.sections.forEach(s => { select.innerHTML += `<option value="${s}">${s}</option>`; });
+          if(isSectionLeader && userSection){ select.value = userSection; loadBooks(); }
         }
+      }
+    }).catch(console.warn);
+  }
 
-        async function loadTopStudents() {
-            const box = document.getElementById('topStudentsList');
-            try {
-                const snap = await db.collection('users').where('approved', '==', true).get();
-                let items = [];
-                snap.forEach(d => items.push(d.data()));
-                items.sort((a, b) => (b.points || 0) - (a.points || 0));
-                const top = items.slice(0, 5);
-                if (top.length === 0) { box.innerHTML = '<p style="color:var(--gray);">لا يوجد أعضاء</p>'; return; }
-                box.innerHTML = top.map((u, i) => {
-                    const medals = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣'];
-                    return `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--light-gray);">
-                        <span><b>${medals[i]}</b> ${u.name} <span style="font-size:11px;color:var(--gray);">${u.phone}</span></span>
-                        <span style="font-weight:700;color:var(--gold);">${u.points||0} نقطة</span>
-                    </div>`;
-                }).join('');
-            } catch (e) { box.innerHTML = '<p style="color:var(--gray);">خطأ في التحميل</p>'; }
+  async function loadBooks() {
+    const box = document.getElementById('booksAdminList');
+    const dept = document.getElementById('bookDept').value;
+    const section = document.getElementById('bookSection').value;
+    if(!dept || !section){ box.innerHTML = '<p style="color:var(--gray);">اختر الشعبة والقسم</p>'; return; }
+    box.innerHTML = 'جاري التحميل...';
+    try {
+      const snap = await db.collection('books').where('department','==',dept).where('section','==',section).orderBy('time','desc').get();
+      if(snap.empty){ box.innerHTML = '<p style="color:var(--gray);">لا توجد كتب</p>'; return; }
+      const usersSnap = await db.collection('users').where('approved','==',true).where('department','==',dept).where('section','==',section).get();
+      const students = []; usersSnap.forEach(d => students.push({ id: d.id, ...d.data() }));
+      students.sort((a,b) => (a.name||'').localeCompare(b.name||''));
+      let html = '';
+      snap.forEach(doc => {
+        const b = doc.data();
+        html += `<div class="list-item"><div class="meta"><b>${b.title}</b><span>${b.locked?'🔒 مقفول':'📖 متاح'}</span></div><div class="actions"><button class="btn btn-reject btn-xs" onclick="deleteBook('${doc.id}')">🗑</button></div></div>
+        <div style="padding-right:20px;margin-bottom:10px;"><div class="card-title" style="font-size:13px;">الطلاب المسددين:</div>${students.map(s => `<label style="display:inline-flex;align-items:center;gap:4px;margin:2px 8px 2px 0;font-size:12px;"><input type="checkbox" ${(b.paidStudents||[]).includes(s.id)?'checked':''} onchange="togglePaidStudent('${doc.id}','${s.id}',this.checked)"> ${s.name}</label>`).join('')}</div>`;
+      });
+      box.innerHTML = html;
+    } catch(e){ box.innerHTML = '<p style="color:var(--gray);">خطأ في التحميل</p>'; }
+  }
+
+  async function addBook() {
+    const dept = document.getElementById('bookDept').value;
+    const section = document.getElementById('bookSection').value;
+    const title = document.getElementById('bookTitle').value.trim();
+    const file = document.getElementById('bookFile').files[0];
+    if(!dept || !section) return alert('اختر الشعبة والقسم');
+    if(!title || !file) return alert('أدخل العنوان واختر ملف');
+    const progress = document.getElementById('bookProgress');
+    progress.textContent = 'جاري الرفع...';
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('upload_preset', UPLOAD_PRESET);
+      const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/upload`, { method: 'POST', body: formData });
+      const data = await res.json();
+      await db.collection('books').add({ title, fileUrl: data.secure_url, fileName: file.name, department: dept, section: section, locked: false, paidStudents: [], addedBy: user.phone, time: Date.now() });
+      document.getElementById('bookTitle').value = ''; document.getElementById('bookFile').value = '';
+      progress.textContent = '✅ تم رفع الكتاب';
+      loadBooks();
+    } catch(e){ progress.textContent = '❌ '+e.message; }
+  }
+
+  async function togglePaidStudent(bookId, studentId, checked){ const ref = db.collection('books').doc(bookId); if(checked){ await ref.update({ paidStudents: firebase.firestore.FieldValue.arrayUnion(studentId) }); } else { await ref.update({ paidStudents: firebase.firestore.FieldValue.arrayRemove(studentId) }); } }
+  async function deleteBook(id){ if(!confirm('حذف الكتاب؟')) return; await db.collection('books').doc(id).delete(); loadBooks(); }
+
+  async function exportPaidStudents() {
+    const dept = document.getElementById('bookDept').value;
+    const section = document.getElementById('bookSection').value;
+    if(!dept || !section) return alert('اختر الشعبة والقسم');
+    try {
+      const booksSnap = await db.collection('books').where('department','==',dept).where('section','==',section).get();
+      const usersSnap = await db.collection('users').where('approved','==',true).where('department','==',dept).where('section','==',section).get();
+      const students = {}; usersSnap.forEach(d => students[d.id] = d.data().name || d.id);
+      let paid = new Set();
+      booksSnap.forEach(doc => { const b = doc.data(); if(b.paidStudents) b.paidStudents.forEach(p => paid.add(p)); });
+      let html = `<html><head><meta charset="UTF-8"><title>الطلاب المسددين</title></head><body><table border="1" style="direction:rtl;font-family:Arial;font-size:12px;"><tr style="background:#1565d8;color:#fff;"><th>#</th><th>الاسم</th><th>رقم الموبايل</th><th>الحالة</th></tr>`;
+      let i=0; for(const [id,name] of Object.entries(students)){ i++; const isPaid = paid.has(id); html += `<tr><td>${i}</td><td>${name}</td><td>${id}</td><td>${isPaid?'✅ مسدد':'❌ غير مسدد'}</td></tr>`; }
+      html += `</table></body></html>`;
+      const blob = new Blob([html], { type: 'application/vnd.ms-excel;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `المسددين_${dept}_${section}.xls`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch(e){ alert('خطأ: '+e.message); }
+  }
+
+  // ===== Attendance =====
+  async function loadAttDepts() {
+    const select = document.getElementById('attDept');
+    if(!db) return;
+    try {
+      const snap = await db.collection('settings').doc('departments').get();
+      const depts = snap.exists ? snap.data().departments || {} : {};
+      select.innerHTML = '<option value="">اختر الشعبة</option>';
+      for(const [key,val] of Object.entries(depts)) select.innerHTML += `<option value="${key}">${val.name}</option>`;
+      if(isSectionLeader){ select.value = userDept; updateAttSections(); }
+    } catch(e){ console.warn(e); }
+  }
+
+  function updateAttSections() {
+    const deptKey = document.getElementById('attDept').value;
+    const select = document.getElementById('attSection');
+    select.innerHTML = '<option value="">اختر القسم</option>';
+    if(!deptKey) return;
+    db.collection('settings').doc('departments').get().then(snap => {
+      if(snap.exists) {
+        const depts = snap.data().departments || {};
+        const dept = depts[deptKey];
+        if(dept && dept.sections) {
+          dept.sections.forEach(s => { select.innerHTML += `<option value="${s}">${s}</option>`; });
+          if(isSectionLeader && userSection){ select.value = userSection; updateAttSubjects(); }
         }
+      }
+    }).catch(console.warn);
+  }
 
-        // ================================================================
-        // ===== EXPORT EXCEL (All Users) =====
-        // ================================================================
-        function exportExcel() {
-            if (!db) return alert('لا يوجد اتصال بالإنترنت');
-            db.collection('users').where('approved', '==', true).get().then(snap => {
-                if (snap.empty) { alert('لا يوجد أعضاء'); return; }
-                let rows = [];
-                snap.forEach(doc => {
-                    const u = doc.data();
-                    rows.push({
-                        name: u.name || '',
-                        phone: u.phone || '',
-                        year: u.year || '',
-                        department: u.department || '',
-                        section: u.section || '',
-                        studentStatus: u.studentStatus || '',
-                        points: u.points || 0,
-                        role: u.role || 'طالب',
-                        active: u.activeSession ? '🟢 متصل' : '🔴 غير متصل'
-                    });
-                });
-                let html = `<html><head><meta charset="UTF-8"><title>بيانات الأعضاء</title></head><body>
-                <table border="1" style="direction:rtl;font-family:Arial;font-size:12px;">
-                <tr style="background:#1565d8;color:#fff;">
-                    <th>#</th><th>الاسم</th><th>رقم الموبايل</th><th>الفرقة</th><th>الشعبة</th><th>القسم</th><th>الحالة</th><th>النقاط</th><th>الدور</th><th>النشاط</th>
-                </tr>`;
-                rows.forEach((u, i) => {
-                    html += `<tr><td>${i+1}</td><td>${u.name}</td><td>${u.phone}</td><td>${u.year}</td><td>${u.department}</td><td>${u.section}</td><td>${u.studentStatus}</td><td>${u.points}</td><td>${u.role}</td><td>${u.active}</td></tr>`;
-                });
-                html += `</table></body></html>`;
-                const blob = new Blob([html], { type: 'application/vnd.ms-excel;charset=utf-8' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `بيانات_الأعضاء_${new Date().toLocaleDateString('ar')}.xls`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-            }).catch(e => alert('خطأ: ' + e.message));
+  async function updateAttSubjects() {
+    const dept = document.getElementById('attDept').value;
+    const section = document.getElementById('attSection').value;
+    const select = document.getElementById('attSubject');
+    select.innerHTML = '<option value="">اختر المادة</option>';
+    if(!dept || !section) return;
+    try {
+      const docId = dept + '_' + section;
+      const snap = await db.collection('attendance').doc(docId).get();
+      const data = snap.exists ? snap.data() : { subjects: [] };
+      data.subjects.forEach(s => { select.innerHTML += `<option value="${s}">${s}</option>`; });
+      if(data.subjects.length === 0){ select.innerHTML += `<option value="__add__">➕ إضافة مادة جديدة</option>`; }
+      loadAttendance();
+    } catch(e){ console.warn(e); }
+  }
+
+  async function loadAttendance() {
+    const dept = document.getElementById('attDept').value;
+    const section = document.getElementById('attSection').value;
+    const subject = document.getElementById('attSubject').value;
+    const listDiv = document.getElementById('attendanceList');
+    if(!dept || !section || !subject || subject === '__add__') {
+      if(subject === '__add__') {
+        const newSubject = prompt('أدخل اسم المادة الجديدة:');
+        if(newSubject) {
+          const docId = dept + '_' + section;
+          const ref = db.collection('attendance').doc(docId);
+          const snap = await ref.get();
+          const data = snap.exists ? snap.data() : { subjects: [], lectures: {} };
+          if(!data.subjects) data.subjects = [];
+          if(!data.subjects.includes(newSubject)){ data.subjects.push(newSubject); await ref.set(data); updateAttSubjects(); document.getElementById('attSubject').value = newSubject; loadAttendance(); }
         }
+      }
+      listDiv.innerHTML = '<div class="empty-state"><div class="icon">📋</div><p>اختر الشعبة والقسم والمادة</p></div>';
+      document.getElementById('attStats').innerHTML = '';
+      return;
+    }
+    listDiv.innerHTML = '<div style="text-align:center;padding:20px;"><div class="loading-spinner"></div><p style="margin-top:10px;color:var(--gray);">جاري التحميل...</p></div>';
+    try {
+      const docId = dept + '_' + section;
+      const snap = await db.collection('attendance').doc(docId).get();
+      const data = snap.exists ? snap.data() : { lectures: {} };
+      const currentLectures = data.lectures && data.lectures[subject] ? data.lectures[subject] : [];
+      const usersSnap = await db.collection('users').where('approved','==',true).where('department','==',dept).where('section','==',section).get();
+      const currentStudents = {}; usersSnap.forEach(d => currentStudents[d.id] = d.data().name || d.id);
+      if(currentLectures.length === 0){ listDiv.innerHTML = '<div class="alert alert-info">📭 لا توجد محاضرات</div>'; document.getElementById('attStats').innerHTML = ''; return; }
+      let totalPresent=0,totalAbsent=0; currentLectures.forEach(lec => { const students = lec.students || {}; for(const [id,s] of Object.entries(students)){ if(s.present) totalPresent++; else totalAbsent++; } });
+      document.getElementById('attStats').innerHTML = `<div class="stats-grid"><div class="stat-card good"><div class="num">${totalPresent}</div><div class="label">✅ حضور</div></div><div class="stat-card bad"><div class="num">${totalAbsent}</div><div class="label">❌ غياب</div></div><div class="stat-card"><div class="num">${currentLectures.length}</div><div class="label">📋 محاضرات</div></div><div class="stat-card"><div class="num">${Object.keys(currentStudents).length}</div><div class="label">👥 طلاب</div></div></div>`;
+      let html = '';
+      currentLectures.forEach((lec, idx) => {
+        const students = lec.students || {};
+        const presentCount = Object.values(students).filter(s => s.present).length;
+        const totalCount = Object.keys(students).length;
+        html += `<div class="lecture-card"><div class="lecture-header"><div><b>📅 ${lec.date||'بدون تاريخ'}</b><span style="font-size:12px;color:var(--gray);margin-right:12px;">${presentCount}/${totalCount} حضور</span></div><div style="display:flex;gap:6px;"><button class="btn btn-excel btn-xs" onclick="exportSingleLecture(${idx})">📊 تحميل</button><button class="btn btn-reject btn-xs" onclick="deleteLecture(${idx})">🗑</button></div></div><div class="students-grid">${Object.entries(students).map(([id,s]) => `<label class="${s.present?'present':'absent'}"><input type="checkbox" ${s.present?'checked':''} onchange="toggleStudent('${id}',${idx},this.checked)"> ${currentStudents[id]||id}</label>`).join('')}</div></div>`;
+      });
+      listDiv.innerHTML = html;
+      window.currentLectures = currentLectures;
+      window.currentStudents = currentStudents;
+    } catch(e){ listDiv.innerHTML = '<div class="alert alert-danger">❌ خطأ في التحميل</div>'; }
+  }
 
-        // ================================================================
-        // ===== PENDING REQUESTS =====
-        // ================================================================
-        async function loadPending() {
-            const box = document.getElementById('pendingList');
-            box.innerHTML = 'جاري التحميل...';
-            try {
-                let query = db.collection('users').where('approved', '==', false);
-                if (isSectionLeader) {
-                    query = query.where('department', '==', userDept).where('section', '==', userSection);
-                }
-                const snap = await query.get();
-                const badge = document.getElementById('pendingBadge');
-                badge.textContent = snap.size;
-                if (snap.empty) { box.innerHTML = '<p style="color:var(--gray);">لا توجد طلبات جديدة</p>'; return; }
-                box.innerHTML = '';
-                snap.forEach(doc => {
-                    const u = doc.data();
-                    const el = document.createElement('div');
-                    el.className = 'list-item';
-                    el.innerHTML = `
-                        <div class="meta"><b>${u.name}</b><span>${u.phone} — ${u.year} — ${u.department} / ${u.section}</span></div>
-                        <div class="actions">
-                            <button class="btn btn-approve btn-sm" onclick="approveUser('${doc.id}')">✅ موافقة</button>
-                            <button class="btn btn-reject btn-sm" onclick="rejectUser('${doc.id}')">❌ رفض</button>
-                        </div>
-                    `;
-                    box.appendChild(el);
-                });
-            } catch (e) { box.innerHTML = '<p style="color:var(--gray);">خطأ في التحميل</p>'; }
+  async function addLecture() {
+    const dept = document.getElementById('attDept').value;
+    const section = document.getElementById('attSection').value;
+    const subject = document.getElementById('attSubject').value;
+    const date = document.getElementById('attDate').value;
+    if(!dept || !section || !subject){ alert('اختر الشعبة والقسم والمادة'); return; }
+    if(!date){ alert('اختر تاريخ المحاضرة'); return; }
+    try {
+      const docId = dept + '_' + section;
+      const ref = db.collection('attendance').doc(docId);
+      const snap = await ref.get();
+      const data = snap.exists ? snap.data() : { subjects: [], lectures: {} };
+      if(!data.lectures) data.lectures = {};
+      if(!data.lectures[subject]) data.lectures[subject] = [];
+      const usersSnap = await db.collection('users').where('approved','==',true).where('department','==',dept).where('section','==',section).get();
+      const studentsObj = {}; usersSnap.forEach(d => studentsObj[d.id] = { name: d.data().name||d.id, present: true });
+      data.lectures[subject].push({ date: date, students: studentsObj });
+      await ref.set(data);
+      document.getElementById('attDate').value = '';
+      loadAttendance();
+    } catch(e){ alert('❌ خطأ: '+e.message); }
+  }
+
+  async function toggleStudent(studentId, lectureIdx, checked) {
+    const dept = document.getElementById('attDept').value;
+    const section = document.getElementById('attSection').value;
+    const subject = document.getElementById('attSubject').value;
+    try {
+      const docId = dept + '_' + section;
+      const ref = db.collection('attendance').doc(docId);
+      const snap = await ref.get();
+      const data = snap.data();
+      data.lectures[subject][lectureIdx].students[studentId].present = checked;
+      await ref.set(data);
+      loadAttendance();
+    } catch(e){ console.warn(e); }
+  }
+
+  async function deleteLecture(idx) {
+    if(!confirm('حذف هذه المحاضرة نهائياً؟')) return;
+    const dept = document.getElementById('attDept').value;
+    const section = document.getElementById('attSection').value;
+    const subject = document.getElementById('attSubject').value;
+    try {
+      const docId = dept + '_' + section;
+      const ref = db.collection('attendance').doc(docId);
+      const snap = await ref.get();
+      const data = snap.data();
+      data.lectures[subject].splice(idx, 1);
+      await ref.set(data);
+      loadAttendance();
+    } catch(e){ alert('❌ خطأ: '+e.message); }
+  }
+
+  function exportSingleLecture(idx) {
+    const lecture = window.currentLectures[idx];
+    if(!lecture){ alert('المحاضرة غير موجودة'); return; }
+    const students = lecture.students || {};
+    const subject = document.getElementById('attSubject').value;
+    let html = `<html><head><meta charset="UTF-8"><title>كشف الغياب</title></head><body><h2>كشف الغياب - ${subject}</h2><p>التاريخ: ${lecture.date||'بدون تاريخ'}</p><br><table border="1" style="direction:rtl;font-family:Arial;font-size:13px;border-collapse:collapse;"><tr style="background:#1565d8;color:#fff;font-weight:bold;"><th>#</th><th>الاسم</th><th>رقم الموبايل</th><th>الحضور</th></tr>`;
+    let i=0; for(const [id,s] of Object.entries(students)){ i++; const name = window.currentStudents[id]||id; html += `<tr><td>${i}</td><td>${name}</td><td>${id}</td><td style="color:${s.present?'green':'red'};font-weight:bold;">${s.present?'✅ حاضر':'❌ غائب'}</td></tr>`; }
+    html += `</table></body></html>`;
+    const blob = new Blob([html], { type: 'application/vnd.ms-excel;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `كشف_غياب_${subject}_${lecture.date||'بدون_تاريخ'}.xls`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  function exportLectureExcel() {
+    const subject = document.getElementById('attSubject').value;
+    if(!subject || !window.currentLectures || window.currentLectures.length === 0){ alert('لا توجد محاضرات'); return; }
+    exportSingleLecture(window.currentLectures.length - 1);
+  }
+
+  function exportSummaryExcel() {
+    const subject = document.getElementById('attSubject').value;
+    if(!subject || !window.currentLectures || window.currentLectures.length === 0){ alert('لا توجد محاضرات'); return; }
+    const last4 = window.currentLectures.slice(-4);
+    const studentNames = window.currentStudents;
+    let html = `<html><head><meta charset="UTF-8"><title>تقرير مجمع - ${subject}</title></head><body><h2>📊 تقرير مجمع - ${subject}</h2><p>عدد المحاضرات: ${last4.length}</p><br><table border="1" style="direction:rtl;font-family:Arial;font-size:13px;border-collapse:collapse;"><tr style="background:#1565d8;color:#fff;font-weight:bold;"><th>#</th><th>الاسم</th>`;
+    last4.forEach((lec,i) => { html += `<th>محاضرة ${i+1}</th>`; });
+    html += `<th>إجمالي الحضور</th></tr>`;
+    let i=0; for(const [id,name] of Object.entries(studentNames)){ i++; let presentCount=0; let row = `<tr><td>${i}</td><td>${name}</td>`; last4.forEach(lec => { const s = lec.students && lec.students[id]; const isPresent = s ? s.present : false; if(isPresent) presentCount++; row += `<td style="color:${isPresent?'green':'red'};font-weight:bold;">${isPresent?'✅':'❌'}</td>`; }); row += `<td style="font-weight:bold;text-align:center;">${presentCount}/${last4.length}</td></tr>`; html += row; }
+    html += `</table></body></html>`;
+    const blob = new Blob([html], { type: 'application/vnd.ms-excel;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `تقرير_مجمع_${subject}_${new Date().toLocaleDateString('ar')}.xls`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  // ===== Points =====
+  async function loadPointsSettings() {
+    try {
+      const snap = await db.collection('settings').doc('points').get();
+      const val = snap.exists ? snap.data().summaryPoints || 10 : 10;
+      document.getElementById('summaryPointsInput').value = val;
+    } catch(e){ console.warn(e); }
+  }
+
+  async function saveSummaryPoints() {
+    const val = parseInt(document.getElementById('summaryPointsInput').value);
+    if(isNaN(val) || val < 0){ alert('أدخل رقماً صحيحاً'); return; }
+    await db.collection('settings').doc('points').set({ summaryPoints: val }, { merge: true });
+    document.getElementById('pointsMsg').textContent = '✅ تم الحفظ';
+    document.getElementById('pointsMsg').style.color = 'var(--success)';
+  }
+
+  async function loadPointsLeaderboard() {
+    const box = document.getElementById('pointsLeaderboardList');
+    box.innerHTML = 'جاري التحميل...';
+    try {
+      const snap = await db.collection('users').where('approved','==',true).get();
+      let items = []; snap.forEach(d => items.push(d.data()));
+      items.sort((a,b) => (b.points||0) - (a.points||0));
+      if(items.length === 0){ box.innerHTML = '<p style="color:var(--gray);">لا يوجد أعضاء</p>'; return; }
+      const medals = ['🥇','🥈','🥉'];
+      box.innerHTML = items.map((u,i) => `<div class="list-item"><div class="meta"><b>${i<3?medals[i]:i+1} ${u.name}</b><span>${u.phone}</span></div><span style="font-weight:700;color:var(--gold);">${u.points||0} نقطة</span></div>`).join('');
+    } catch(e){ box.innerHTML = '<p style="color:var(--gray);">خطأ في التحميل</p>'; }
+  }
+
+  async function resetAllPoints() {
+    if(!confirm('تصفير كل النقاط نهائياً؟')) return;
+    try {
+      const snap = await db.collection('users').get();
+      const batch = db.batch();
+      snap.forEach(doc => batch.update(doc.ref, { points: 0 }));
+      await batch.commit();
+      document.getElementById('resetPointsMsg').textContent = '✅ تم التصفير';
+      document.getElementById('resetPointsMsg').style.color = 'var(--success)';
+      loadPointsLeaderboard();
+      loadDashboard();
+    } catch(e){ alert('خطأ: '+e.message); }
+  }
+
+  // ===== Academic =====
+  async function searchAcademic() {
+    const query = document.getElementById('academicSearch').value.trim();
+    const box = document.getElementById('academicResult');
+    if(!query){ box.innerHTML = '<p style="color:var(--gray);">أدخل اسم أو رقم للبحث</p>'; return; }
+    box.innerHTML = 'جاري البحث...';
+    try {
+      let queryRef = db.collection('users').where('approved','==',true);
+      const snap = await queryRef.get();
+      let found = null;
+      snap.forEach(doc => {
+        const u = doc.data();
+        if(u.phone === query || (u.name && u.name.includes(query))) {
+          if(!isSectionLeader || (u.department === userDept && u.section === userSection)) { found = { id: doc.id, ...u }; }
         }
+      });
+      if(!found){ box.innerHTML = '<p style="color:var(--gray);">لم يتم العثور على طالب</p>'; return; }
+      const acadSnap = await db.collection('academicRecords').doc(found.id).get();
+      const records = acadSnap.exists ? acadSnap.data().records || [] : [];
+      let html = `<div class="card-box"><b>${found.name}</b> — ${found.phone} — ${found.year} — ${found.department}/${found.section}<div style="margin-top:8px;font-size:13px;"><span>نقاط: ${found.points||0}</span>${found.totalWarnings ? `<span style="color:var(--danger);margin-right:12px;">⚠️ إنذارات: ${found.totalWarnings}</span>` : ''}</div></div>`;
+      if(records.length === 0){ html += '<p style="color:var(--gray);">لا توجد سجلات أكاديمية</p>'; } else { html += records.map(r => `<div class="card-box" style="padding:12px;"><b>الترم ${r.term}</b> — GPA: ${r.gpa} — ${r.warnings?'⚠️ إنذار':''}<div style="font-size:12px;color:var(--gray);">${r.advice||''}</div><div style="margin-top:4px;">${(r.subjects||[]).map(s => `<span style="display:inline-block;padding:2px 8px;border-radius:6px;margin:2px;background:${s.status==='ناجح'?'#e3f7e8':'#ffe5e5'};}">${s.name} — ${s.grade} — ${s.status}</span>`).join('')}</div></div>`).join(''); }
+      box.innerHTML = html;
+    } catch(e){ box.innerHTML = '<p style="color:var(--gray);">خطأ في التحميل</p>'; }
+  }
 
-        async function approveUser(phone) {
-            await db.collection('users').doc(phone).update({ approved: true });
-            loadPending();
-            loadUsers();
-            loadDashboard();
-        }
+  // ===== Announcement =====
+  async function loadAnnouncementSettings() {
+    try {
+      const snap = await db.collection('settings').doc('announcement').get();
+      const preview = document.getElementById('announcePreview');
+      if(snap.exists && snap.data().active && snap.data().text) {
+        document.getElementById('announceTextInput').value = snap.data().text;
+        preview.innerHTML = `<div class="alert alert-info">📢 التنبيه المنشور: ${snap.data().text}</div>`;
+      } else { preview.innerHTML = '<div class="alert alert-warning">لا يوجد تنبيه منشور</div>'; }
+    } catch(e){ console.warn(e); }
+  }
 
-        async function rejectUser(phone) {
-            if (!confirm('حذف الطلب نهائياً؟')) return;
-            await db.collection('users').doc(phone).delete();
-            loadPending();
-        }
+  async function publishAnnouncement() {
+    const text = document.getElementById('announceTextInput').value.trim();
+    if(!text) return alert('أدخل نص التنبيه');
+    await db.collection('settings').doc('announcement').set({ text, active: true, time: Date.now() });
+    loadAnnouncementSettings();
+    alert('✅ تم النشر');
+  }
 
-        // ================================================================
-        // ===== USERS LIST =====
-        // ================================================================
-        async function loadDepartmentsFilter() {
-            const select = document.getElementById('userFilterDept');
-            if (!db) return;
-            try {
-                const snap = await db.collection('settings').doc('departments').get();
-                const depts = snap.exists ? snap.data().departments || {} : {};
-                select.innerHTML = '<option value="">كل الشعب</option>';
-                for (const [key, val] of Object.entries(depts)) {
-                    select.innerHTML += `<option value="${key}">${val.name}</option>`;
-                }
-            } catch (e) { console.warn(e); }
-        }
+  async function clearAnnouncement() {
+    await db.collection('settings').doc('announcement').set({ active: false }, { merge: true });
+    document.getElementById('announceTextInput').value = '';
+    loadAnnouncementSettings();
+  }
 
-        async function loadUsers() {
-            const box = document.getElementById('usersList');
-            box.innerHTML = 'جاري التحميل...';
-            const search = document.getElementById('userSearch').value.trim().toLowerCase();
-            const filterDept = document.getElementById('userFilterDept').value;
-            const filterSection = document.getElementById('userFilterSection').value;
+  // ===== Init =====
+  loadDashboard();
 
-            try {
-                let query = db.collection('users').where('approved', '==', true);
-                if (isSectionLeader) {
-                    query = query.where('department', '==', userDept).where('section', '==', userSection);
-                }
-                const snap = await query.get();
-                let items = [];
-                snap.forEach(d => items.push({ id: d.id, ...d.data() }));
-
-                // فلترة
-                if (search) items = items.filter(u => (u.name || '').toLowerCase().includes(search) || (u.phone || '').includes(search));
-                if (filterDept) items = items.filter(u => u.department === filterDept);
-                if (filterSection) items = items.filter(u => u.section === filterSection);
-
-                items.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
-
-                if (items.length === 0) { box.innerHTML = '<p style="color:var(--gray);">لا يوجد أعضاء</p>'; return; }
-
-                const isAdminUser = user.role === 'admin';
-                box.innerHTML = items.map(u => `
-                    <div class="list-item">
-                        <div class="meta">
-                            <b>${u.name} <span style="font-size:11px;color:var(--gray);">${u.role || 'طالب'}</span></b>
-                            <span>${u.phone} — ${u.year} — ${u.department}/${u.section} — ${u.studentStatus||''} ${u.activeSession?'🟢':''}</span>
-                        </div>
-                        <div class="actions">
-                            ${isAdminUser && u.role !== 'admin' ? `
-                                <button class="btn btn-approve btn-xs" onclick="promoteUserDirect('${u.id}','co-admin')">ترقية</button>
-                                <button class="btn btn-reject btn-xs" onclick="removeUser('${u.id}')">🗑</button>
-                            ` : ''}
-                            ${u.activeSession && isAdminUser ? `<button class="btn btn-blue btn-xs" onclick="forceLogout('${u.id}')">إنهاء الجلسة</button>` : ''}
-                        </div>
-                    </div>
-                `).join('');
-            } catch (e) { box.innerHTML = '<p style="color:var(--gray);">خطأ في التحميل</p>'; }
-        }
-
-        // ================================================================
-        // ===== ADMINS =====
-        // ================================================================
-        async function loadAdmins() {
-            const box = document.getElementById('adminsList');
-            box.innerHTML = 'جاري التحميل...';
-            try {
-                const snap = await db.collection('users').where('role', 'in', ['admin', 'co-admin', 'college-admin', 'section-leader']).get();
-                if (snap.empty) { box.innerHTML = '<p style="color:var(--gray);">لا يوجد مشرفون</p>'; return; }
-                box.innerHTML = '';
-                snap.forEach(doc => {
-                    const u = doc.data();
-                    const el = document.createElement('div');
-                    el.className = 'list-item';
-                    const roleLabels = {
-                        'admin': '👑 أدمن عام',
-                        'co-admin': '🔑 مشرف',
-                        'college-admin': '🏛️ إداري كلية',
-                        'section-leader': '👔 قائد قسم'
-                    };
-                    el.innerHTML = `
-                        <div class="meta"><b>${u.name}</b><span>${u.phone} — ${roleLabels[u.role]||u.role} ${u.section?'(قسم: '+u.section+')':''}</span></div>
-                        <div class="actions">
-                            ${user.role === 'admin' && u.role !== 'admin' ? `<button class="btn btn-reject btn-xs" onclick="demoteUser('${u.id}')">إزالة الصلاحية</button>` : ''}
-                        </div>
-                    `;
-                    box.appendChild(el);
-                });
-            } catch (e) { box.innerHTML = '<p style="color:var(--gray);">خطأ في التحميل</p>'; }
-        }
-
-        async function loadSectionsForPromote() {
-            const select = document.getElementById('promoteSection');
-            if (!db) return;
-            try {
-                const snap = await db.collection('settings').doc('departments').get();
-                const depts = snap.exists ? snap.data().departments || {} : {};
-                select.innerHTML = '<option value="">اختر القسم</option>';
-                for (const [deptKey, deptVal] of Object.entries(depts)) {
-                    if (deptVal.sections) {
-                        deptVal.sections.forEach(s => {
-                            select.innerHTML += `<option value="${deptKey}_${s}">${deptVal.name} - ${s}</option>`;
-                        });
-                    }
-                }
-            } catch (e) { console.warn(e); }
-        }
-
-        async function promoteUser() {
-            if (!canPromote) { alert('⛔ غير مسموح لك'); return; }
-            const phone = document.getElementById('promotePhone').value.trim();
-            const role = document.getElementById('promoteRole').value;
-            const sectionVal = document.getElementById('promoteSection').value;
-            const msg = document.getElementById('promoteMsg');
-            if (!phone) { msg.textContent = '⚠️ أدخل رقم الموبايل'; return; }
-            try {
-                const ref = db.collection('users').doc(phone);
-                const snap = await ref.get();
-                if (!snap.exists) { msg.textContent = '⚠️ العضو غير موجود'; return; }
-                const data = snap.data();
-                if (data.role === 'admin') { msg.textContent = '⚠️ لا يمكن تعديل الأدمن العام'; return; }
-                const updateData = { role: role };
-                if (role === 'section-leader') {
-                    const parts = sectionVal.split('_');
-                    if (parts.length === 2) {
-                        updateData.department = parts[0];
-                        updateData.section = parts[1];
-                    } else {
-                        msg.textContent = '⚠️ اختر القسم بشكل صحيح';
-                        return;
-                    }
-                }
-                await ref.update(updateData);
-                msg.textContent = '✅ تمت الترقية بنجاح';
-                msg.style.color = 'var(--success)';
-                loadAdmins();
-            } catch (e) { msg.textContent = '❌ ' + e.message;
-                msg.style.color = 'var(--danger)'; }
-        }
-
-        async function demoteUser(phone) {
-            if (!canPromote) { alert('⛔ غير مسموح لك'); return; }
-            if (!confirm('إزالة الصلاحيات عن هذا العضو؟')) return;
-            await db.collection('users').doc(phone).update({ role: 'student' });
-            loadAdmins();
-            loadUsers();
-        }
-
-        async function removeUser(phone) {
-            if (!canPromote) { alert('⛔ غير مسموح لك'); return; }
-            if (!confirm('حذف العضو نهائياً؟')) return;
-            await db.collection('users').doc(phone).delete();
-            loadUsers();
-            loadDashboard();
-        }
-
-        async function forceLogout(phone) {
-            if (!canPromote) { alert('⛔ غير مسموح لك'); return; }
-            await db.collection('users').doc(phone).update({ activeSession: false });
-            loadUsers();
-        }
-
-        // ================================================================
-        // ===== DEPARTMENTS MANAGEMENT =====
-        // ================================================================
-        async function loadDepartmentsAdmin() {
-            const box = document.getElementById('deptList');
-            if (!db) { box.innerHTML = '<p style="color:var(--gray);">لا يوجد اتصال</p>'; return; }
-            box.innerHTML = 'جاري التحميل...';
-            try {
-                const snap = await db.collection('settings').doc('departments').get();
-                if (!snap.exists || !snap.data().departments) {
-                    box.innerHTML = '<p style="color:var(--gray);">لا توجد شعب بعد</p>';
-                    return;
-                }
-                const depts = snap.data().departments || {};
-                let html = '';
-                for (const [key, val] of Object.entries(depts)) {
-                    html += `
-                        <div class="list-item">
-                            <div class="meta"><b>🏫 ${val.name}</b><span>${(val.sections||[]).length} قسم</span></div>
-                            <div class="actions">
-                                <button class="btn btn-blue btn-xs" onclick="addSection('${key}')">➕ إضافة قسم</button>
-                                <button class="btn btn-reject btn-xs" onclick="deleteDepartment('${key}')">🗑 حذف</button>
-                            </div>
-                        </div>
-                        <div style="padding-right:20px;">
-                            ${(val.sections||[]).map(s => `
-                                <div class="list-item" style="border-bottom:1px dashed var(--light-gray);padding:4px 0;">
-                                    <span>📂 ${s}</span>
-                                    <button class="btn btn-reject btn-xs" onclick="deleteSection('${key}','${s}')">✕</button>
-                                </div>
-                            `).join('')}
-                        </div>
-                    `;
-                }
-                box.innerHTML = html;
-            } catch (e) { box.innerHTML = '<p style="color:var(--gray);">خطأ في التحميل</p>'; }
-        }
-
-        async function addDepartment() {
-            const name = document.getElementById('newDeptName').value.trim();
-            if (!name) return alert('أدخل اسم الشعبة');
-            try {
-                const ref = db.collection('settings').doc('departments');
-                const snap = await ref.get();
-                const data = snap.exists ? snap.data() : { departments: {} };
-                const key = name.replace(/\s/g, '_').toLowerCase();
-                if (data.departments[key]) { alert('هذه الشعبة موجودة'); return; }
-                data.departments[key] = { name: name, sections: [] };
-                await ref.set(data);
-                document.getElementById('newDeptName').value = '';
-                loadDepartmentsAdmin();
-                loadDepartmentsFilter();
-                loadScheduleDepts();
-                loadBooksDepts();
-                loadAttDepts();
-            } catch (e) { alert('خطأ: ' + e.message); }
-        }
-
-        async function deleteDepartment(key) {
-            if (!confirm('حذف الشعبة وجميع أقسامها؟')) return;
-            try {
-                const ref = db.collection('settings').doc('departments');
-                const snap = await ref.get();
-                const data = snap.data();
-                delete data.departments[key];
-                await ref.set(data);
-                loadDepartmentsAdmin();
-            } catch (e) { alert('خطأ: ' + e.message); }
-        }
-
-        async function addSection(deptKey) {
-            const name = prompt('أدخل اسم القسم الجديد:');
-            if (!name) return;
-            try {
-                const ref = db.collection('settings').doc('departments');
-                const snap = await ref.get();
-                const data = snap.data();
-                if (!data.departments[deptKey].sections) data.departments[deptKey].sections = [];
-                if (data.departments[deptKey].sections.includes(name)) { alert('هذا القسم موجود'); return; }
-                data.departments[deptKey].sections.push(name);
-                await ref.set(data);
-                loadDepartmentsAdmin();
-                loadDepartmentsFilter();
-            } catch (e) { alert('خطأ: ' + e.message); }
-        }
-
-        async function deleteSection(deptKey, sectionName) {
-            if (!confirm(`حذف القسم "${sectionName}"؟`)) return;
-            try {
-                const ref = db.collection('settings').doc('departments');
-                const snap = await ref.get();
-                const data = snap.data();
-                data.departments[deptKey].sections = data.departments[deptKey].sections.filter(s => s !== sectionName);
-                await ref.set(data);
-                loadDepartmentsAdmin();
-            } catch (e) { alert('خطأ: ' + e.message); }
-        }
-
-        // ================================================================
-        // ===== SCHEDULE =====
-        // ================================================================
-        async function loadScheduleDepts() {
-            const select = document.getElementById('scheduleDept');
-            if (!db) return;
-            try {
-                const snap = await db.collection('settings').doc('departments').get();
-                const depts = snap.exists ? snap.data().departments || {} : {};
-                select.innerHTML = '<option value="">اختر الشعبة</option>';
-                for (const [key, val] of Object.entries(depts)) {
-                    select.innerHTML += `<option value="${key}">${val.name}</option>`;
-                }
-                if (isSectionLeader) {
-                    select.value = userDept;
-                    updateScheduleSections();
-                }
-            } catch (e) { console.warn(e); }
-        }
-
-        function updateScheduleSections() {
-            const deptKey = document.getElementById('scheduleDept').value;
-            const select = document.getElementById('scheduleSection');
-            select.innerHTML = '<option value="">اختر القسم</option>';
-            if (!deptKey) return;
-            db.collection('settings').doc('departments').get().then(snap => {
-                if (snap.exists) {
-                    const depts = snap.data().departments || {};
-                    const dept = depts[deptKey];
-                    if (dept && dept.sections) {
-                        dept.sections.forEach(s => {
-                            select.innerHTML += `<option value="${s}">${s}</option>`;
-                        });
-                        if (isSectionLeader && userSection) {
-                            select.value = userSection;
-                            loadScheduleAdmin();
-                        }
-                    }
-                }
-            }).catch(console.warn);
-        }
-
-        async function loadScheduleAdmin() {
-            const box = document.getElementById('scheduleAdminList');
-            const dept = document.getElementById('scheduleDept').value;
-            const section = document.getElementById('scheduleSection').value;
-            if (!dept || !section) { box.innerHTML = '<p style="color:var(--gray);">اختر الشعبة والقسم</p>'; return; }
-            box.innerHTML = 'جاري التحميل...';
-            try {
-                const docId = dept + '_' + section;
-                const snap = await db.collection('schedules').doc(docId).get();
-                const items = snap.exists ? snap.data().items || [] : [];
-                if (items.length === 0) { box.innerHTML = '<p style="color:var(--gray);">لا توجد محاضرات</p>'; return; }
-                box.innerHTML = items.map((s, i) => `
-                    <div class="list-item">
-                        <div class="meta"><b>${s.subject}</b><span>${s.day} — ${s.time} — ${s.place}</span></div>
-                        <div class="actions">
-                            <button class="btn btn-reject btn-xs" onclick="deleteScheduleItem('${docId}',${i})">🗑</button>
-                        </div>
-                    </div>
-                `).join('');
-            } catch (e) { box.innerHTML = '<p style="color:var(--gray);">خطأ في التحميل</p>'; }
-        }
-
-        async function addScheduleItem() {
-            const dept = document.getElementById('scheduleDept').value;
-            const section = document.getElementById('scheduleSection').value;
-            const day = document.getElementById('schDay').value.trim();
-            const subject = document.getElementById('schSubject').value.trim();
-            const time = document.getElementById('schTime').value.trim();
-            const place = document.getElementById('schPlace').value.trim();
-            if (!dept || !section) return alert('اختر الشعبة والقسم');
-            if (!day || !subject || !time || !place) return alert('املأ جميع الحقول');
-            try {
-                const docId = dept + '_' + section;
-                const ref = db.collection('schedules').doc(docId);
-                const snap = await ref.get();
-                const items = snap.exists ? snap.data().items || [] : [];
-                items.push({ day, subject, time, place });
-                await ref.set({ items, updatedAt: Date.now(), updatedBy: user.phone });
-                document.getElementById('schDay').value = '';
-                document.getElementById('schSubject').value = '';
-                document.getElementById('schTime').value = '';
-                document.getElementById('schPlace').value = '';
-                loadScheduleAdmin();
-            } catch (e) { alert('خطأ: ' + e.message); }
-        }
-
-        async function deleteScheduleItem(docId, index) {
-            if (!confirm('حذف هذه المحاضرة؟')) return;
-            try {
-                const ref = db.collection('schedules').doc(docId);
-                const snap = await ref.get();
-                const items = snap.data().items || [];
-                items.splice(index, 1);
-                await ref.set({ items, updatedAt: Date.now() });
-                loadScheduleAdmin();
-            } catch (e) { alert('خطأ: ' + e.message); }
-        }
-
-        // ================================================================
-        // ===== BOOKS =====
-        // ================================================================
-        async function loadBooksDepts() {
-            const select = document.getElementById('bookDept');
-            if (!db) return;
-            try {
-                const snap = await db.collection('settings').doc('departments').get();
-                const depts = snap.exists ? snap.data().departments || {} : {};
-                select.innerHTML = '<option value="">اختر الشعبة</option>';
-                for (const [key, val] of Object.entries(depts)) {
-                    select.innerHTML += `<option value="${key}">${val.name}</option>`;
-                }
-                if (isSectionLeader) {
-                    select.value = userDept;
-                    updateBookSections();
-                }
-            } catch (e) { console.warn(e); }
-        }
-
-        function updateBookSections() {
-            const deptKey = document.getElementById('bookDept').value;
-            const select = document.getElementById('bookSection');
-            select.innerHTML = '<option value="">اختر القسم</option>';
-            if (!deptKey) return;
-            db.collection('settings').doc('departments').get().then(snap => {
-                if (snap.exists) {
-                    const depts = snap.data().departments || {};
-                    const dept = depts[deptKey];
-                    if (dept && dept.sections) {
-                        dept.sections.forEach(s => {
-                            select.innerHTML += `<option value="${s}">${s}</option>`;
-                        });
-                        if (isSectionLeader && userSection) {
-                            select.value = userSection;
-                            loadBooks();
-                        }
-                    }
-                }
-            }).catch(console.warn);
-        }
-
-        async function loadBooks() {
-            const box = document.getElementById('booksAdminList');
-            const dept = document.getElementById('bookDept').value;
-            const section = document.getElementById('bookSection').value;
-            if (!dept || !section) { box.innerHTML = '<p style="color:var(--gray);">اختر الشعبة والقسم</p>'; return; }
-            box.innerHTML = 'جاري التحميل...';
-            try {
-                const snap = await db.collection('books').where('department', '==', dept).where('section', '==', section).orderBy('time', 'desc').get();
-                if (snap.empty) { box.innerHTML = '<p style="color:var(--gray);">لا توجد كتب</p>'; return; }
-                // جلب طلاب القسم
-                const usersSnap = await db.collection('users').where('approved', '==', true).where('department', '==', dept).where('section', '==', section).get();
-                const students = [];
-                usersSnap.forEach(d => students.push({ id: d.id, ...d.data() }));
-                students.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
-
-                let html = '';
-                snap.forEach(doc => {
-                    const b = doc.data();
-                    html += `
-                        <div class="list-item">
-                            <div class="meta"><b>${b.title}</b><span>${b.locked?'🔒 مقفول':'📖 متاح'}</span></div>
-                            <div class="actions">
-                                <button class="btn btn-reject btn-xs" onclick="deleteBook('${doc.id}')">🗑</button>
-                            </div>
-                        </div>
-                        <div style="padding-right:20px;margin-bottom:10px;">
-                            <div class="card-title" style="font-size:13px;">الطلاب المسددين:</div>
-                            ${students.map(s => `
-                                <label style="display:inline-flex;align-items:center;gap:4px;margin:2px 8px 2px 0;font-size:12px;">
-                                    <input type="checkbox" ${(b.paidStudents||[]).includes(s.id) ? 'checked' : ''} onchange="togglePaidStudent('${doc.id}','${s.id}',this.checked)">
-                                    ${s.name}
-                                </label>
-                            `).join('')}
-                        </div>
-                    `;
-                });
-                box.innerHTML = html;
-            } catch (e) { box.innerHTML = '<p style="color:var(--gray);">خطأ في التحميل</p>'; }
-        }
-
-        async function addBook() {
-            const dept = document.getElementById('bookDept').value;
-            const section = document.getElementById('bookSection').value;
-            const title = document.getElementById('bookTitle').value.trim();
-            const file = document.getElementById('bookFile').files[0];
-            if (!dept || !section) return alert('اختر الشعبة والقسم');
-            if (!title || !file) return alert('أدخل العنوان واختر ملف');
-            const progress = document.getElementById('bookProgress');
-            progress.textContent = 'جاري الرفع...';
-            try {
-                const formData = new FormData();
-                formData.append('file', file);
-                formData.append('upload_preset', UPLOAD_PRESET);
-                const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/upload`, { method: 'POST', body: formData });
-                const data = await res.json();
-                await db.collection('books').add({
-                    title,
-                    fileUrl: data.secure_url,
-                    fileName: file.name,
-                    department: dept,
-                    section: section,
-                    locked: false,
-                    paidStudents: [],
-                    addedBy: user.phone,
-                    time: Date.now()
-                });
-                document.getElementById('bookTitle').value = '';
-                document.getElementById('bookFile').value = '';
-                progress.textContent = '✅ تم رفع الكتاب';
-                loadBooks();
-            } catch (e) { progress.textContent = '❌ ' + e.message; }
-        }
-
-        async function togglePaidStudent(bookId, studentId, checked) {
-            const ref = db.collection('books').doc(bookId);
-            if (checked) {
-                await ref.update({ paidStudents: firebase.firestore.FieldValue.arrayUnion(studentId) });
-            } else {
-                await ref.update({ paidStudents: firebase.firestore.FieldValue.arrayRemove(studentId) });
-            }
-        }
-
-        async function deleteBook(id) {
-            if (!confirm('حذف الكتاب؟')) return;
-            await db.collection('books').doc(id).delete();
-            loadBooks();
-        }
-
-        async function exportPaidStudents() {
-            const dept = document.getElementById('bookDept').value;
-            const section = document.getElementById('bookSection').value;
-            if (!dept || !section) return alert('اختر الشعبة والقسم');
-            try {
-                const booksSnap = await db.collection('books').where('department', '==', dept).where('section', '==', section).get();
-                const usersSnap = await db.collection('users').where('approved', '==', true).where('department', '==', dept).where('section', '==', section).get();
-                const students = {};
-                usersSnap.forEach(d => students[d.id] = d.data().name || d.id);
-
-                let paid = new Set();
-                booksSnap.forEach(doc => {
-                    const b = doc.data();
-                    if (b.paidStudents) b.paidStudents.forEach(p => paid.add(p));
-                });
-
-                let html = `<html><head><meta charset="UTF-8"><title>الطلاب المسددين</title></head><body>
-                <table border="1" style="direction:rtl;font-family:Arial;font-size:12px;">
-                <tr style="background:#1565d8;color:#fff;"><th>#</th><th>الاسم</th><th>رقم الموبايل</th><th>الحالة</th></tr>`;
-                let i = 0;
-                for (const [id, name] of Object.entries(students)) {
-                    i++;
-                    const isPaid = paid.has(id);
-                    html += `<tr><td>${i}</td><td>${name}</td><td>${id}</td><td>${isPaid ? '✅ مسدد' : '❌ غير مسدد'}</td></tr>`;
-                }
-                html += `</table></body></html>`;
-                const blob = new Blob([html], { type: 'application/vnd.ms-excel;charset=utf-8' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `المسددين_${dept}_${section}.xls`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-            } catch (e) { alert('خطأ: ' + e.message); }
-        }
-
-        // ================================================================
-        // ===== ATTENDANCE =====
-        // ================================================================
-        async function loadAttDepts() {
-            const select = document.getElementById('attDept');
-            if (!db) return;
-            try {
-                const snap = await db.collection('settings').doc('departments').get();
-                const depts = snap.exists ? snap.data().departments || {} : {};
-                select.innerHTML = '<option value="">اختر الشعبة</option>';
-                for (const [key, val] of Object.entries(depts)) {
-                    select.innerHTML += `<option value="${key}">${val.name}</option>`;
-                }
-                if (isSectionLeader) {
-                    select.value = userDept;
-                    updateAttSections();
-                }
-            } catch (e) { console.warn(e); }
-        }
-
-        function updateAttSections() {
-            const deptKey = document.getElementById('attDept').value;
-            const select = document.getElementById('attSection');
-            select.innerHTML = '<option value="">اختر القسم</option>';
-            if (!deptKey) return;
-            db.collection('settings').doc('departments').get().then(snap => {
-                if (snap.exists) {
-                    const depts = snap.data().departments || {};
-                    const dept = depts[deptKey];
-                    if (dept && dept.sections) {
-                        dept.sections.forEach(s => {
-                            select.innerHTML += `<option value="${s}">${s}</option>`;
-                        });
-                        if (isSectionLeader && userSection) {
-                            select.value = userSection;
-                            updateAttSubjects();
-                        }
-                    }
-                }
-            }).catch(console.warn);
-        }
-
-        async function updateAttSubjects() {
-            const dept = document.getElementById('attDept').value;
-            const section = document.getElementById('attSection').value;
-            const select = document.getElementById('attSubject');
-            select.innerHTML = '<option value="">اختر المادة</option>';
-            if (!dept || !section) return;
-            try {
-                const docId = dept + '_' + section;
-                const snap = await db.collection('attendance').doc(docId).get();
-                const data = snap.exists ? snap.data() : { subjects: [] };
-                data.subjects.forEach(s => {
-                    select.innerHTML += `<option value="${s}">${s}</option>`;
-                });
-                // لو مفيش مواد، نضيف حقل لإضافة مادة
-                if (data.subjects.length === 0) {
-                    select.innerHTML += `<option value="__add__">➕ إضافة مادة جديدة</option>`;
-                }
-                loadAttendance();
-            } catch (e) { console.warn(e); }
-        }
-
-        async function loadAttendance() {
-            const box = document.getElementById('attendanceList');
-            const dept = document.getElementById('attDept').value;
-            const section = document.getElementById('attSection').value;
-            const subject = document.getElementById('attSubject').value;
-            if (!dept || !section || !subject) { box.innerHTML = '<p style="color:var(--gray);">اختر الشعبة والقسم والمادة</p>'; return; }
-            if (subject === '__add__') {
-                const newSubject = prompt('أدخل اسم المادة الجديدة:');
-                if (newSubject) {
-                    const docId = dept + '_' + section;
-                    const ref = db.collection('attendance').doc(docId);
-                    const snap = await ref.get();
-                    const data = snap.exists ? snap.data() : { subjects: [], lectures: {} };
-                    if (!data.subjects) data.subjects = [];
-                    if (!data.subjects.includes(newSubject)) {
-                        data.subjects.push(newSubject);
-                        await ref.set(data);
-                        updateAttSubjects();
-                    }
-                }
-                return;
-            }
-            box.innerHTML = 'جاري التحميل...';
-            try {
-                const docId = dept + '_' + section;
-                const snap = await db.collection('attendance').doc(docId).get();
-                const data = snap.exists ? snap.data() : { lectures: {} };
-                const lectures = data.lectures && data.lectures[subject] ? data.lectures[subject] : [];
-                if (lectures.length === 0) { box.innerHTML = '<p style="color:var(--gray);">لا توجد محاضرات مسجلة</p>'; return; }
-
-                // جلب طلاب القسم
-                const usersSnap = await db.collection('users').where('approved', '==', true).where('department', '==', dept).where('section', '==', section).get();
-                const students = [];
-                usersSnap.forEach(d => students.push({ id: d.id, name: d.data().name || d.id }));
-
-                let html = '';
-                lectures.forEach((lec, idx) => {
-                    html += `
-                        <div class="card-box" style="padding:12px;">
-                            <div style="display:flex;justify-content:space-between;flex-wrap:wrap;">
-                                <b>📅 ${lec.date || 'بدون تاريخ'}</b>
-                                <span style="font-size:12px;color:var(--gray);">${Object.keys(lec.students||{}).filter(id => lec.students[id]?.present).length} / ${Object.keys(lec.students||{}).length} حضور</span>
-                            </div>
-                            <div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px;">
-                                ${students.map(s => {
-                                    const present = lec.students && lec.students[s.id] && lec.students[s.id].present;
-                                    return `<label style="display:inline-flex;align-items:center;gap:4px;margin:2px 6px 2px 0;font-size:12px;background:${present ? '#e3f7e8' : '#ffe5e5'};padding:2px 8px;border-radius:6px;">
-                                        <input type="checkbox" ${present?'checked':''} onchange="toggleAttendance('${docId}','${subject}',${idx},'${s.id}',this.checked)">
-                                        ${s.name}
-                                    </label>`;
-                                }).join('')}
-                            </div>
-                            <button class="btn btn-reject btn-xs" onclick="deleteLecture('${docId}','${subject}',${idx})" style="margin-top:6px;">🗑 حذف المحاضرة</button>
-                        </div>
-                    `;
-                });
-                box.innerHTML = html;
-            } catch (e) { box.innerHTML = '<p style="color:var(--gray);">خطأ في التحميل</p>'; }
-        }
-
-        async function addLecture() {
-            const dept = document.getElementById('attDept').value;
-            const section = document.getElementById('attSection').value;
-            const subject = document.getElementById('attSubject').value;
-            const date = document.getElementById('attDate').value;
-            if (!dept || !section || !subject) return alert('اختر الشعبة والقسم والمادة');
-            if (!date) return alert('اختر التاريخ');
-            try {
-                const docId = dept + '_' + section;
-                const ref = db.collection('attendance').doc(docId);
-                const snap = await ref.get();
-                const data = snap.exists ? snap.data() : { subjects: [], lectures: {} };
-                if (!data.lectures) data.lectures = {};
-                if (!data.lectures[subject]) data.lectures[subject] = [];
-
-                // جلب طلاب القسم
-                const usersSnap = await db.collection('users').where('approved', '==', true).where('department', '==', dept).where('section', '==', section).get();
-                const students = {};
-                usersSnap.forEach(d => students[d.id] = d.data().name || d.id);
-
-                const studentsObj = {};
-                for (const [id, name] of Object.entries(students)) {
-                    studentsObj[id] = { name: name, present: true };
-                }
-
-                data.lectures[subject].push({
-                    date: date,
-                    students: studentsObj
-                });
-                await ref.set(data);
-                document.getElementById('attDate').value = '';
-                loadAttendance();
-            } catch (e) { alert('خطأ: ' + e.message); }
-        }
-
-        async function toggleAttendance(docId, subject, lectureIdx, studentId, checked) {
-            try {
-                const ref = db.collection('attendance').doc(docId);
-                const snap = await ref.get();
-                const data = snap.data();
-                if (data.lectures && data.lectures[subject] && data.lectures[subject][lectureIdx]) {
-                    data.lectures[subject][lectureIdx].students[studentId].present = checked;
-                    await ref.set(data);
-                }
-            } catch (e) { console.warn(e); }
-        }
-
-        async function deleteLecture(docId, subject, idx) {
-            if (!confirm('حذف هذه المحاضرة؟')) return;
-            try {
-                const ref = db.collection('attendance').doc(docId);
-                const snap = await ref.get();
-                const data = snap.data();
-                data.lectures[subject].splice(idx, 1);
-                await ref.set(data);
-                loadAttendance();
-            } catch (e) { alert('خطأ: ' + e.message); }
-        }
-
-        // ================================================================
-        // ===== POINTS =====
-        // ================================================================
-        async function loadPointsSettings() {
-            try {
-                const snap = await db.collection('settings').doc('points').get();
-                const val = snap.exists ? snap.data().summaryPoints || 10 : 10;
-                document.getElementById('summaryPointsInput').value = val;
-            } catch (e) { console.warn(e); }
-        }
-
-        async function saveSummaryPoints() {
-            const val = parseInt(document.getElementById('summaryPointsInput').value);
-            if (isNaN(val) || val < 0) { alert('أدخل رقماً صحيحاً'); return; }
-            await db.collection('settings').doc('points').set({ summaryPoints: val }, { merge: true });
-            document.getElementById('pointsMsg').textContent = '✅ تم الحفظ';
-            document.getElementById('pointsMsg').style.color = 'var(--success)';
-        }
-
-        async function loadPointsLeaderboard() {
-            const box = document.getElementById('pointsLeaderboardList');
-            box.innerHTML = 'جاري التحميل...';
-            try {
-                const snap = await db.collection('users').where('approved', '==', true).get();
-                let items = [];
-                snap.forEach(d => items.push(d.data()));
-                items.sort((a, b) => (b.points || 0) - (a.points || 0));
-                if (items.length === 0) { box.innerHTML = '<p style="color:var(--gray);">لا يوجد أعضاء</p>'; return; }
-                const medals = ['🥇', '🥈', '🥉'];
-                box.innerHTML = items.map((u, i) => `
-                    <div class="list-item">
-                        <div class="meta"><b>${i<3?medals[i]:i+1} ${u.name}</b><span>${u.phone}</span></div>
-                        <span style="font-weight:700;color:var(--gold);">${u.points||0} نقطة</span>
-                    </div>
-                `).join('');
-            } catch (e) { box.innerHTML = '<p style="color:var(--gray);">خطأ في التحميل</p>'; }
-        }
-
-        async function resetAllPoints() {
-            if (!confirm('تصفير كل النقاط نهائياً؟')) return;
-            try {
-                const snap = await db.collection('users').get();
-                const batch = db.batch();
-                snap.forEach(doc => batch.update(doc.ref, { points: 0 }));
-                await batch.commit();
-                document.getElementById('resetPointsMsg').textContent = '✅ تم التصفير';
-                document.getElementById('resetPointsMsg').style.color = 'var(--success)';
-                loadPointsLeaderboard();
-                loadDashboard();
-            } catch (e) { alert('خطأ: ' + e.message); }
-        }
-
-        // ================================================================
-        // ===== ACADEMIC =====
-        // ================================================================
-        async function searchAcademic() {
-            const query = document.getElementById('academicSearch').value.trim();
-            const box = document.getElementById('academicResult');
-            if (!query) { box.innerHTML = '<p style="color:var(--gray);">أدخل اسم أو رقم للبحث</p>'; return; }
-            box.innerHTML = 'جاري البحث...';
-            try {
-                let queryRef = db.collection('users').where('approved', '==', true);
-                const snap = await queryRef.get();
-                let found = null;
-                snap.forEach(doc => {
-                    const u = doc.data();
-                    if (u.phone === query || (u.name && u.name.includes(query))) {
-                        if (!isSectionLeader || (u.department === userDept && u.section === userSection)) {
-                            found = { id: doc.id, ...u };
-                        }
-                    }
-                });
-                if (!found) { box.innerHTML = '<p style="color:var(--gray);">لم يتم العثور على طالب</p>'; return; }
-                // جلب السجلات الأكاديمية
-                const acadSnap = await db.collection('academicRecords').doc(found.id).get();
-                const records = acadSnap.exists ? acadSnap.data().records || [] : [];
-                let html = `
-                    <div class="card-box">
-                        <b>${found.name}</b> — ${found.phone} — ${found.year} — ${found.department}/${found.section}
-                        <div style="margin-top:8px;font-size:13px;">
-                            <span>نقاط: ${found.points||0}</span>
-                            ${found.totalWarnings ? `<span style="color:var(--danger);margin-right:12px;">⚠️ إنذارات: ${found.totalWarnings}</span>` : ''}
-                        </div>
-                    </div>
-                `;
-                if (records.length === 0) {
-                    html += '<p style="color:var(--gray);">لا توجد سجلات أكاديمية</p>';
-                } else {
-                    html += records.map(r => `
-                        <div class="card-box" style="padding:12px;">
-                            <b>الترم ${r.term}</b> — GPA: ${r.gpa} — ${r.warnings ? '⚠️ إنذار' : ''}
-                            <div style="font-size:12px;color:var(--gray);">${r.advice || ''}</div>
-                            <div style="margin-top:4px;">
-                                ${(r.subjects||[]).map(s => `
-                                    <span style="display:inline-block;padding:2px 8px;border-radius:6px;margin:2px;background:${s.status==='ناجح'?'#e3f7e8':'#ffe5e5'};">
-                                        ${s.name} — ${s.grade} — ${s.status}
-                                    </span>
-                                `).join('')}
-                            </div>
-                        </div>
-                    `).join('');
-                }
-                box.innerHTML = html;
-            } catch (e) { box.innerHTML = '<p style="color:var(--gray);">خطأ في التحميل</p>'; }
-        }
-
-        // ================================================================
-        // ===== REPORTS =====
-        // ================================================================
-        async function loadReportStats() {
-            try {
-                const usersSnap = await db.collection('users').where('approved', '==', true).get();
-                document.getElementById('reportUsers').textContent = usersSnap.size;
-                const summariesSnap = await db.collection('summaries').get();
-                document.getElementById('reportSummaries').textContent = summariesSnap.size;
-                const booksSnap = await db.collection('books').get();
-                document.getElementById('reportBooks').textContent = booksSnap.size;
-                const quizzesSnap = await db.collection('quizzes').get();
-                document.getElementById('reportQuizzes').textContent = quizzesSnap.size;
-            } catch (e) { console.warn(e); }
-        }
-
-        function exportPlatformReport() {
-            alert('📊 سيتم توليد تقرير المنصة كامل (Excel) باستخدام الذكاء الاصطناعي قريباً');
-        }
-
-        function generateAIReport() {
-            const box = document.getElementById('aiReportResult');
-            box.innerHTML = '<div class="loading-spinner"></div> جاري توليد التقرير الذكي...';
-            setTimeout(() => {
-                box.innerHTML = `
-                    <div class="alert alert-success">
-                        <b>🤖 تقرير المنصة الذكي</b><br>
-                        - عدد الأعضاء: ${document.getElementById('reportUsers').textContent}<br>
-                        - إجمالي الملخصات: ${document.getElementById('reportSummaries').textContent}<br>
-                        - إجمالي الكتب: ${document.getElementById('reportBooks').textContent}<br>
-                        - إجمالي الكويزات: ${document.getElementById('reportQuizzes').textContent}<br>
-                        <br>
-                        <b>📈 التحليل:</b> المنصة تشهد نمواً مستمراً، مع زيادة في المحتوى التعليمي المقدم.
-                    </div>
-                `;
-            }, 1500);
-        }
-
-        // ================================================================
-        // ===== ANNOUNCEMENT =====
-        // ================================================================
-        async function loadAnnouncementSettings() {
-            try {
-                const snap = await db.collection('settings').doc('announcement').get();
-                const preview = document.getElementById('announcePreview');
-                if (snap.exists && snap.data().active && snap.data().text) {
-                    document.getElementById('announceTextInput').value = snap.data().text;
-                    preview.innerHTML = `<div class="alert alert-info">📢 التنبيه المنشور: ${snap.data().text}</div>`;
-                } else {
-                    preview.innerHTML = '<div class="alert alert-warning">لا يوجد تنبيه منشور</div>';
-                }
-            } catch (e) { console.warn(e); }
-        }
-
-        async function publishAnnouncement() {
-            const text = document.getElementById('announceTextInput').value.trim();
-            if (!text) return alert('أدخل نص التنبيه');
-            await db.collection('settings').doc('announcement').set({ text, active: true, time: Date.now() });
-            loadAnnouncementSettings();
-            alert('✅ تم النشر');
-        }
-
-        async function clearAnnouncement() {
-            await db.collection('settings').doc('announcement').set({ active: false }, { merge: true });
-            document.getElementById('announceTextInput').value = '';
-            loadAnnouncementSettings();
-        }
-
-        // ================================================================
-        // ===== INIT =====
-        // ================================================================
-        // تحميل التبويب الافتراضي
-        loadDashboard();
-
-        // إظهار/إخفاء بعض الأقسام حسب الصلاحية
-        if (!canPromote) {
-            document.getElementById('promoteSection').style.display = 'none';
-        }
-        if (!canViewAll && isSectionLeader) {
-            // بعض التعديلات للقائد
-        }
-        console.log('✅ لوحة الأدمن جاهزة');
-    </script>
+  if(!canPromote){ document.getElementById('promoteSectionSelect').style.display = 'none'; }
+  console.log('✅ admin.html جاهز (بدون AI)');
+</script>
 </body>
-  </html>
+    </html>
