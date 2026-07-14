@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>غيابي | قسم علوم ابتدائي</title>
+    <style>
+        :root {
+            --blue-deep: #0a2e5c;
+            --blue-main: #1565d8;
+            --blue-bright: #2f9bf0;
+            --ice: #eaf4ff;
+            --gold: #f5a623;
+            --success: #147a35;
+            --danger: #b00020;
+            --gray: #7a93ad;
+            --light-gray: #f0f4fa;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+        }
+        body {
+            background: var(--ice);
+            color: var(--blue-deep);
+            min-height: 100vh;
+        }
+
+        .topbar {
+            background: linear-gradient(135deg, var(--blue-main), var(--blue-deep));
+            color: #fff;
+            padding: 14px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 30;
+            box-shadow: 0 4px 14px rgba(10, 46, 92, 0.25);
+        }
+        .topbar .brand {
+            font-weight: 800;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .topbar .brand svg {
+            width: 26px;
+            height: 26px;
+            fill: #fff;
+        }
+        .topbar a {
+            color: #fff;
+            text-decoration: none;
+            font-size: 13px;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 8px 14px;
+            border-radius: 10px;
+            transition: 0.2s;
+        }
+        .topbar a:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .wrap {
+            max-width: 900px;
+            margin: 24px auto;
+            padding: 0 16px;
+        }
+
+        .section-title {
+            font-size: 21px;
+            color: var(--blue-deep);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-box {
+            background: #fff;
+            border-radius: 16px;
+            padding: 18px 20px;
+            box-shadow: 0 4px 14px rgba(10, 46, 92, 0.05);
+            margin-bottom: 14px;
+            transition: 0.2s;
+        }
+        .card-box:hover {
+            box-shadow: 0 6px 20px rgba(10, 46, 92, 0.08);
+        }
+
+        .form-line {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+        .form-line select,
+        .form-line input {
+            padding: 10px 14px;
+            border-radius: 10px;
+            border: 1.5px solid #cfe2f7;
+            font-size: 14px;
+            flex: 1;
+            min-width: 140px;
+            background: #fff;
+            transition: 0.2s;
+        }
+        .form-line select:focus,
+        .form-line input:focus {
+            border-color: var(--blue-main);
+            box-shadow: 0 0 0 3px rgba(21, 101, 216, 0.1);
+            outline: none;
+        }
+        .form-line label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--blue-deep);
+        }
+
+        .btn {
+            border: none;
+            border-radius: 10px;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .btn-blue {
+            background: var(--blue-main);
+            color: #fff;
+        }
+        .btn-blue:hover {
+            background: var(--blue-deep);
+        }
+        .btn-excel {
+            background: #1d6f42;
+            color: #fff;
+        }
+        .btn-excel:hover {
+            background: #14532d;
+        }
+        .btn-sm {
+            padding: 6px 14px;
+            font-size: 12px;
+        }
+
+        .attendance-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        .attendance-table th {
+            background: var(--blue-main);
+            color: #fff;
+            padding: 10px 12px;
+            text-align: center;
+            border: 1px solid var(--blue-main);
+        }
+        .attendance-table td {
+            padding: 8px 12px;
+            text-align: center;
+            border: 1px solid var(--light-gray);
+        }
+        .attendance-table tr:nth-child(even) {
+            background: #f8faff;
+        }
+        .attendance-table .present {
+            color: var(--success);
+            font-weight: 700;
+        }
+        .attendance-table .absent {
+            color: var(--danger);
+            font-weight: 700;
+        }
+        .attendance-table .summary-row {
+            background: var(--ice);
+            font-weight: 700;
+        }
+
+        .stats-box {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+        .stats-box .stat {
+            background: #f8faff;
+            padding: 10px 18px;
+            border-radius: 10px;
+            flex: 1;
+            min-width: 120px;
+            text-align: center;
+        }
+        .stats-box .stat .num {
+            font-size: 24px;
+            font-weight: 900;
+            color: var(--blue-deep);
+        }
+        .stats-box .stat .label {
+            font-size: 12px;
+            color: var(--gray);
+        }
+        .stats-box .stat.good .num {
+            color: var(--success);
+        }
+        .stats-box .stat.bad .num {
+            color: var(--danger);
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border: 3px solid var(--light-gray);
+            border-top-color: var(--blue-main);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .alert {
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-size: 13px;
+            margin-bottom: 10px;
+        }
+        .alert-info {
+            background: #e8f1fc;
+            color: var(--blue-deep);
+        }
+        .alert-warning {
+            background: #fff3e0;
+            color: #b76e00;
+        }
+
+        .footer-credit {
+            text-align: center;
+            font-size: 11.5px;
+            color: #9bb3cb;
+            padding: 18px 0;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 30px 20px;
+            color: var(--gray);
+        }
+        .empty-state .icon {
+            font-size: 40px;
+            margin-bottom: 8px;
+        }
+
+        @media(max-width:768px) {
+            .form-line {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .form-line select,
+            .form-line input {
+                min-width: auto;
+            }
+            .attendance-table {
+                font-size: 12px;
+            }
+            .attendance-table th,
+            .attendance-table td {
+                padding: 6px 8px;
+            }
+            .stats-box .stat .num {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== الشريط العلوي ===== -->
+    <div class="topbar">
+        <div class="brand">
+            <svg viewBox="0 0 24 24"><path d="M9 2v6.3L4.3 17a2 2 0 0 0 1.8 3h11.8a2 2 0 0 0 1.8-3L15 8.3V2H9z"/></svg>
+            غيابي
+        </div>
+        <a href="home.html">🏠 الرجوع للرئيسية</a>
+    </div>
+
+    <!-- ===== الحاوية ===== -->
+    <div class="wrap">
+
+        <div class="card-box">
+            <h2 class="section-title">📋 تقرير الغياب الشخصي</h2>
+            <p style="font-size:13px;color:var(--gray);margin-bottom:12px;">اختر المادة لعرض تفاصيل غيابك، أو حمّل تقرير كامل</p>
+
+            <div class="form-line">
+                <label>اختر المادة:</label>
+                <select id="subjectSelect" onchange="loadMyAttendance()">
+                    <option value="">-- اختر المادة --</option>
+                </select>
+                <button class="btn btn-excel btn-sm" onclick="exportMyAttendance()">📊 تحميل تقريري (Excel)</button>
+            </div>
+        </div>
+
+        <!-- ===== النتائج ===== -->
+        <div id="attendanceResult">
+            <div class="empty-state">
+                <div class="icon">📋</div>
+                <p>اختر مادة لعرض غيابك</p>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="footer-credit">تم إنشاء هذا الموقع بواسطة MF.mo.fayyad</div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+    <script>
+        // ================================================================
+        // ===== FIREBASE CONFIG =====
+        // ================================================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyBgI8VcLOdQAMgmcpxCzaMS1UCX1vyzSjw",
+            authDomain: "science-e2b52.firebaseapp.com",
+            projectId: "science-e2b52",
+            storageBucket: "science-e2b52.firebasestorage.app",
+            messagingSenderId: "1031434005860",
+            appId: "1:1031434005860:web:e68fccdd746017a5639e71",
+            measurementId: "G-JZ1SFVMM7P"
+        };
+        let db = null;
+        try {
+            firebase.initializeApp(firebaseConfig);
+            db = firebase.firestore();
+        } catch (e) { console.warn('Firebase error', e); }
+
+        // ================================================================
+        // ===== GET CURRENT USER =====
+        // ================================================================
+        function getCurrentUser() {
+            const raw = localStorage.getItem('currentUser');
+            return raw ? JSON.parse(raw) : null;
+        }
+        const user = getCurrentUser();
+        if (!user) window.location.href = 'login.html';
+
+        let attendanceData = null;
+        let currentSubject = '';
+
+        // ================================================================
+        // ===== LOAD SUBJECTS =====
+        // ================================================================
+        async function loadSubjects() {
+            const select = document.getElementById('subjectSelect');
+            if (!db) { select.innerHTML = '<option value="">لا يوجد اتصال</option>'; return; }
+
+            const docId = user.department + '_' + user.section;
+            try {
+                const snap = await db.collection('attendance').doc(docId).get();
+                if (!snap.exists || !snap.data().subjects || snap.data().subjects.length === 0) {
+                    select.innerHTML = '<option value="">لا توجد مواد مسجلة</option>';
+                    return;
+                }
+                const subjects = snap.data().subjects || [];
+                select.innerHTML = '<option value="">-- اختر المادة --</option>';
+                subjects.forEach(s => {
+                    select.innerHTML += `<option value="${s}">${s}</option>`;
+                });
+            } catch (e) {
+                select.innerHTML = '<option value="">خطأ في التحميل</option>';
+                console.warn(e);
+            }
+        }
+
+        // ================================================================
+        // ===== LOAD MY ATTENDANCE =====
+        // ================================================================
+        async function loadMyAttendance() {
+            const subject = document.getElementById('subjectSelect').value;
+            const resultDiv = document.getElementById('attendanceResult');
+
+            if (!subject) {
+                resultDiv.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">📋</div>
+                        <p>اختر مادة لعرض غيابك</p>
+                    </div>
+                `;
+                return;
+            }
+
+            currentSubject = subject;
+            resultDiv.innerHTML = `
+                <div style="text-align:center;padding:20px;">
+                    <div class="loading-spinner"></div>
+                    <p style="margin-top:10px;color:var(--gray);">جاري تحميل بيانات الغياب...</p>
+                </div>
+            `;
+
+            try {
+                const docId = user.department + '_' + user.section;
+                const snap = await db.collection('attendance').doc(docId).get();
+
+                if (!snap.exists || !snap.data().lectures || !snap.data().lectures[subject]) {
+                    resultDiv.innerHTML = `
+                        <div class="alert alert-info">📭 لا توجد محاضرات مسجلة لهذه المادة</div>
+                    `;
+                    return;
+                }
+
+                const lectures = snap.data().lectures[subject] || [];
+                if (lectures.length === 0) {
+                    resultDiv.innerHTML = `
+                        <div class="alert alert-info">📭 لا توجد محاضرات مسجلة لهذه المادة</div>
+                    `;
+                    return;
+                }
+
+                // استخراج غياب الطالب
+                let attendance = [];
+                let presentCount = 0;
+                let absentCount = 0;
+
+                lectures.forEach((lec, idx) => {
+                    const studentData = lec.students && lec.students[user.phone];
+                    const isPresent = studentData ? studentData.present : false;
+                    attendance.push({
+                        lecture: idx + 1,
+                        date: lec.date || 'بدون تاريخ',
+                        present: isPresent
+                    });
+                    if (isPresent) presentCount++;
+                    else absentCount++;
+                });
+
+                attendanceData = {
+                    subject: subject,
+                    attendance: attendance,
+                    presentCount: presentCount,
+                    absentCount: absentCount,
+                    total: attendance.length
+                };
+
+                // عرض النتائج
+                const presentPercent = attendance.length > 0 ? Math.round((presentCount / attendance.length) * 100) : 0;
+                const isGood = presentPercent >= 75;
+
+                resultDiv.innerHTML = `
+                    <div class="card-box">
+                        <div style="display:flex;justify-content:space-between;flex-wrap:wrap;align-items:center;margin-bottom:12px;">
+                            <h3 style="font-size:18px;color:var(--blue-deep);">📘 ${subject}</h3>
+                            <span style="font-size:13px;color:var(--gray);">نسبة الحضور: <b style="color:${isGood ? 'var(--success)' : 'var(--danger)'};">${presentPercent}%</b></span>
+                        </div>
+
+                        <div class="stats-box">
+                            <div class="stat good">
+                                <div class="num">${presentCount}</div>
+                                <div class="label">✅ حاضر</div>
+                            </div>
+                            <div class="stat bad">
+                                <div class="num">${absentCount}</div>
+                                <div class="label">❌ غائب</div>
+                            </div>
+                            <div class="stat">
+                                <div class="num">${attendance.length}</div>
+                                <div class="label">📋 إجمالي المحاضرات</div>
+                            </div>
+                        </div>
+
+                        <div style="overflow-x:auto;">
+                            <table class="attendance-table">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>التاريخ</th>
+                                        <th>الحضور</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${attendance.map(a => `
+                                        <tr>
+                                            <td>${a.lecture}</td>
+                                            <td>${a.date}</td>
+                                            <td class="${a.present ? 'present' : 'absent'}">${a.present ? '✅ حاضر' : '❌ غائب'}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div style="margin-top:12px;font-size:12px;color:var(--gray);">
+                            ${isGood ? '✅ أداء جيد، استمر بالمذاكرة والحضور' : '⚠️ نسبة الحضور منخفضة، ننصحك بتحسين الحضور'}
+                        </div>
+                    </div>
+                `;
+
+            } catch (e) {
+                resultDiv.innerHTML = `
+                    <div class="alert alert-warning">❌ خطأ في التحميل: ${e.message}</div>
+                `;
+                console.warn(e);
+            }
+        }
+
+        // ================================================================
+        // ===== EXPORT MY ATTENDANCE (Excel) =====
+        // ================================================================
+        function exportMyAttendance() {
+            if (!attendanceData) {
+                alert('اختر مادة أولاً لتحميل تقريرك');
+                return;
+            }
+
+            const data = attendanceData;
+            let html = `<html><head><meta charset="UTF-8"><title>تقرير غيابي</title></head><body>
+                <h2>تقرير الغياب - ${data.subject}</h2>
+                <p>الطالب: ${user.name} (${user.phone})</p>
+                <p>الفرقة: ${user.year} • الشعبة: ${user.department} • القسم: ${user.section}</p>
+                <br>
+                <table border="1" style="direction:rtl;font-family:Arial;font-size:13px;border-collapse:collapse;">
+                <tr style="background:#1565d8;color:#fff;font-weight:bold;">
+                    <th>#</th><th>التاريخ</th><th>الحالة</th>
+                </tr>`;
+
+            data.attendance.forEach(a => {
+                html += `<tr>
+                    <td>${a.lecture}</td>
+                    <td>${a.date}</td>
+                    <td style="color:${a.present ? 'green' : 'red'};font-weight:bold;">${a.present ? 'حاضر' : 'غائب'}</td>
+                </tr>`;
+            });
+
+            html += `
+                <tr style="background:#eaf4ff;font-weight:bold;">
+                    <td colspan="2">الإجمالي</td>
+                    <td>حاضر: ${data.presentCount} • غائب: ${data.absentCount} • نسبة الحضور: ${Math.round((data.presentCount/data.total)*100)}%</td>
+                </tr>
+                </table>
+                <br>
+                <p>تم إنشاء التقرير بواسطة قسم علوم ابتدائي</p>
+                </body></html>
+            `;
+
+            const blob = new Blob([html], { type: 'application/vnd.ms-excel;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `تقرير_غيابي_${data.subject}_${new Date().toLocaleDateString('ar')}.xls`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // ================================================================
+        // ===== INIT =====
+        // ================================================================
+        loadSubjects();
+        console.log('✅ صفحة غيابي جاهزة');
+        console.log('👤 المستخدم:', user);
+    </script>
+</body>
+  </html>
