@@ -86,6 +86,7 @@
       <button onclick="showTab('groups', this)">الجروبات</button>
       <button onclick="showTab('schedule', this)">جدول المحاضرات</button>
       <button onclick="showTab('books', this)">الكتب المقفولة</button>
+      <button onclick="showTab('bookPayments', this)">💳 مسددين الكتب</button>
       <button onclick="showTab('points', this)">النقاط وترتيب الفخر</button>
       <button onclick="showTab('announce', this)">التنبيهات</button>
       <button onclick="showTab('folders', this)">📁 المجلدات</button>
@@ -98,6 +99,7 @@
       <button onclick="showTab('whitelist', this)">✅ الأرقام المسموحة</button>
       <button onclick="showTab('scope', this)">🏷️ الشعب والأقسام</button>
       <button onclick="showTab('roles', this)">🧑‍🏫 الأدوار</button>
+      <button onclick="showTab('permissions', this)">🔑 الأذونات</button>
       <button onclick="showTab('advisingAdmin', this)">🎓 الإرشاد الأكاديمي</button>
       <button onclick="showTab('attendanceAdmin', this)">🗓️ دفتر الغياب</button>
     </div>
@@ -202,6 +204,15 @@
         <p style="font-size:11.5px;color:#9bb3cb;margin-top:2px;">📎 الملفات بتترفع على سحابة Cloudinary.</p>
       </div>
       <div id="booksAdminList"></div>
+    </div>
+
+    <!-- ===== مسددين الكتب ===== -->
+    <div class="section" id="tab-bookPayments">
+      <div class="card-box">
+        <b style="display:block;margin-bottom:8px;">💳 مسددين رسوم الكتب</b>
+        <p style="font-size:12px;color:#7a93ad;margin-bottom:8px;">الأعضاء هنا متقسمين حسب القسم. حط ✔️ قدام كل عضو دفع رسوم الكتب. الكتب هتظهر بس للأعضاء اللي عندهم ✔️.</p>
+        <div id="bookPaymentsList"><p style="font-size:13px;color:#7a93ad;">جاري التحميل...</p></div>
+      </div>
     </div>
 
     <!-- ===== النقاط وترتيب الفخر + ميداليات الموسم ===== -->
@@ -466,6 +477,15 @@
       </div>
     </div>
 
+    <!-- ===== الأذونات (صلاحيات ليدرز الأقسام على لوحة الأدمن) ===== -->
+    <div class="section" id="tab-permissions">
+      <div class="card-box">
+        <b style="display:block;margin-bottom:8px;">🔑 أذونات ليدرز الأقسام على لوحة الأدمن</b>
+        <p style="font-size:12px;color:#7a93ad;margin-bottom:8px;">حدد لكل ليدر قسم (المعينين من تبويب "الأدوار") هل يقدر يدخل لوحة الأدمن، ولو آه، حدد الصفحات اللي هتفتحله بس. الليدر هيشوف بيانات قسمه هو بس في أي صفحة تسمحله بيها، ومش هيقدر يفتح صفحات حساسة زي الأذونات أو الأدوار أو الأرقام المسموحة مهما حددتله.</p>
+        <div id="permissionsList"><p style="font-size:13px;color:#7a93ad;">جاري التحميل...</p></div>
+      </div>
+    </div>
+
     <!-- ===== الإرشاد الأكاديمي (أدمن) ===== -->
     <div class="section" id="tab-advisingAdmin">
       <div class="card-box" style="text-align:center;">
@@ -500,6 +520,23 @@
           <button class="btn btn-approve btn-sm" onclick="saveAdminTermResult()">💾 حفظ النتيجة</button>
           <div class="msg" id="resAdminMsg"></div>
         </div>
+      </div>
+      <div class="card-box">
+        <b style="display:block;margin-bottom:8px;">🎯 تحديد GPA مباشر لطالب (من غير رصد مواد)</b>
+        <p style="font-size:12px;color:#7a93ad;margin-bottom:8px;">فلتر بالفرقة والشعبة والقسم عشان تلاقي الطلاب بسرعة، وحط الـ GPA مباشرة لكل واحد.</p>
+        <div class="form-line">
+          <select id="gpaFilterYear">
+            <option value="">كل الفرق</option>
+            <option value="الأولى">الفرقة الأولى</option>
+            <option value="الثانية">الفرقة الثانية</option>
+            <option value="الثالثة">الفرقة الثالثة</option>
+            <option value="الرابعة">الفرقة الرابعة</option>
+          </select>
+          <select id="gpaFilterDivision"><option value="">كل الشعب</option></select>
+          <select id="gpaFilterDepartment"><option value="">كل الأقسام</option></select>
+          <button class="btn btn-blue" onclick="loadGpaManualList()">🔍 عرض الطلاب</button>
+        </div>
+        <div id="gpaManualList"></div>
       </div>
       <div class="card-box">
         <b style="display:block;margin-bottom:8px;">⚠️ الطلاب اللي عليهم إنذار حاليًا</b>
@@ -561,6 +598,87 @@
   const ADMIN_PHONE = "01229914072";
   const ADMIN_PASS  = "197197";
 
+  // ===== نظام التحقق من الهوية الحقيقي (مش مجرد كلمة سر ظاهرة في الكود) =====
+  let CURRENT_USER_PHONE = null;
+  let CURRENT_USER_ROLE = null;
+  let ADMIN_MODE = 'none'; // 'admin' | 'leader' | 'none'
+  let LEADER_DEPT = null;
+  let LEADER_ALLOWED_TABS = [];
+  const LEADER_FORBIDDEN_TABS = ['permissions','roles','admins','whitelist','aboutEdit','scope']; // تبويبات حساسة ممنوعة على الليدر مهما كان
+
+  async function verifyIsAdmin(){
+    if(!CURRENT_USER_PHONE) return false;
+    try{
+      const snap = await db.collection('users').doc(CURRENT_USER_PHONE).get();
+      return snap.exists && snap.data().role === 'admin';
+    }catch(e){ return false; }
+  }
+
+  async function initAccessControl(){
+    if(!db){
+      document.getElementById('lockMsg').textContent = 'لوحة الأدمن تحتاج اتصال بالإنترنت';
+      return;
+    }
+    const raw = localStorage.getItem('currentUser');
+    let stored = null;
+    try{ stored = raw ? JSON.parse(raw) : null; }catch(e){ stored = null; }
+    if(!stored || !stored.phone){ showUnauthorized(); return; }
+    try{
+      const snap = await db.collection('users').doc(stored.phone).get();
+      if(!snap.exists){ showUnauthorized(); return; }
+      const u = snap.data();
+      CURRENT_USER_PHONE = stored.phone;
+      CURRENT_USER_ROLE = u.role || 'student';
+      if(u.role === 'admin'){
+        ADMIN_MODE = 'admin';
+        // بنسيب شاشة كلمة المرور زي ما هي كطبقة حماية إضافية فوق التحقق من الهوية
+        return;
+      }
+      if(u.departmentLeaderOf && u.adminAccess && u.adminAccess.enabled){
+        ADMIN_MODE = 'leader';
+        LEADER_DEPT = u.departmentLeaderOf;
+        LEADER_ALLOWED_TABS = (Array.isArray(u.adminAccess.tabs) ? u.adminAccess.tabs : []).filter(t=>!LEADER_FORBIDDEN_TABS.includes(t));
+        enterLeaderPanel();
+        return;
+      }
+      showUnauthorized();
+    }catch(e){
+      console.warn('تعذر التحقق من الصلاحيات', e);
+      showUnauthorized();
+    }
+  }
+
+  function showUnauthorized(){
+    document.getElementById('lockScreen').innerHTML = `
+      <div class="lock-box">
+        <h2 style="margin-bottom:6px">🚫 غير مصرح لك</h2>
+        <p style="font-size:12.5px;color:#7a93ad">لازم تسجل دخول بحساب عنده صلاحية دخول لوحة الأدمن</p>
+        <a href="home.html" style="display:block;margin-top:14px;color:#1565d8;font-weight:800;text-decoration:none;">⬅️ رجوع للرئيسية</a>
+      </div>`;
+  }
+
+  function enterLeaderPanel(){
+    document.getElementById('lockScreen').style.display='none';
+    document.getElementById('adminPanel').style.display='block';
+    let firstBtn = null;
+    document.querySelectorAll('.tabs button').forEach(btn=>{
+      const m = (btn.getAttribute('onclick')||'').match(/showTab\('([^']+)'/);
+      const tabId = m ? m[1] : null;
+      const isAllowed = tabId && (tabId==='dashboard' || LEADER_ALLOWED_TABS.includes(tabId)) && !LEADER_FORBIDDEN_TABS.includes(tabId);
+      if(!isAllowed){ btn.style.display='none'; }
+      else if(!firstBtn){ firstBtn = btn; }
+    });
+    const topbarEl = document.querySelector('.topbar');
+    const banner = document.createElement('div');
+    banner.style.cssText='background:#f5a623;color:#5c3d00;padding:7px 20px;font-size:12.5px;font-weight:800;text-align:center;';
+    banner.textContent = `🧑‍💼 دخلت كليدر قسم "${LEADER_DEPT}" — صلاحيات محدودة وبيانات قسمك بس`;
+    topbarEl.insertAdjacentElement('afterend', banner);
+    loadAll();
+    if(firstBtn) firstBtn.click();
+  }
+
+  document.addEventListener('DOMContentLoaded', initAccessControl);
+
   // مقياس التقديرات بالنظام الإنجليزي (زي الجامعات) — نفس نظام صفحة الإرشاد الأكاديمي
   const GRADE_SCALE = {
     'A+': 4.0, 'A': 3.7, 'A-': 3.5, 'B+': 3.3, 'B': 3.0, 'B-': 2.7,
@@ -574,6 +692,10 @@
   function checkAdminPass(){
     const val = document.getElementById('adminPassInput').value;
     if(!db){ document.getElementById('lockMsg').textContent='لوحة الأدمن تحتاج اتصال بالإنترنت'; return; }
+    if(ADMIN_MODE !== 'admin' || !CURRENT_USER_PHONE || CURRENT_USER_ROLE !== 'admin'){
+      document.getElementById('lockMsg').textContent='الحساب المسجل دخوله مش أدمن';
+      return;
+    }
     if(val === ADMIN_PASS){
       document.getElementById('lockScreen').style.display='none';
       document.getElementById('adminPanel').style.display='block';
@@ -603,8 +725,10 @@
     if(id === 'forumManage') { loadForumAdmin(); }
     if(id === 'whitelist') { loadWhitelist(); }
     if(id === 'books') { loadBookFolders(); loadBooks(); }
+    if(id === 'bookPayments') { loadBookPayments(); }
     if(id === 'scope') { loadScopeLists(); }
     if(id === 'roles') { loadRoleLists(); }
+    if(id === 'permissions') { loadPermissionsList(); }
     if(id === 'advisingAdmin') { loadWarnedStudents(); }
   }
 
@@ -618,6 +742,7 @@
     loadSchedule();
     loadBooks();
     loadBookFolders();
+    loadBookPayments();
     loadPointsSettings();
     loadPointsLeaderboard();
     loadAnnouncementSettings();
@@ -1614,11 +1739,10 @@
     snap.forEach(doc => users.push({ id: doc.id, ...doc.data() }));
     users.sort((a,b) => (a.name || '').localeCompare(b.name || ''));
     
-    const currentUserSnap = await db.collection('users').doc(ADMIN_PHONE).get();
-    const currentUser = currentUserSnap.exists ? currentUserSnap.data() : null;
-    const isAdmin = currentUser && currentUser.role === 'admin';
+    const isAdmin = await verifyIsAdmin();
+    const scopedUsers = (ADMIN_MODE === 'leader' && LEADER_DEPT) ? users.filter(u => u.department === LEADER_DEPT) : users;
 
-    users.forEach(u => {
+    scopedUsers.forEach(u => {
       const el = document.createElement('div');
       el.className='card-box';
       const roleLabel = u.role==='admin'?'👑 أدمن':u.role==='co-admin'?'🔑 مشرف':'طالب';
@@ -1690,8 +1814,7 @@
   }
   
   async function makeCoAdmin(phone){ 
-    const currentUserSnap = await db.collection('users').doc(ADMIN_PHONE).get();
-    if (!currentUserSnap.exists || currentUserSnap.data().role !== 'admin') {
+    if (!(await verifyIsAdmin())) {
       alert('⛔ فقط الأدمن يمكنه ترقية الأعضاء');
       return;
     }
@@ -1701,8 +1824,7 @@
   }
   
   async function removeCoAdmin(phone){ 
-    const currentUserSnap = await db.collection('users').doc(ADMIN_PHONE).get();
-    if (!currentUserSnap.exists || currentUserSnap.data().role !== 'admin') {
+    if (!(await verifyIsAdmin())) {
       alert('⛔ فقط الأدمن يمكنه إزالة المشرفين');
       return;
     }
@@ -1712,8 +1834,7 @@
   }
   
   async function removeUser(phone){ 
-    const currentUserSnap = await db.collection('users').doc(ADMIN_PHONE).get();
-    if (!currentUserSnap.exists || currentUserSnap.data().role !== 'admin') {
+    if (!(await verifyIsAdmin())) {
       alert('⛔ فقط الأدمن يمكنه حذف الأعضاء');
       return;
     }
@@ -1724,8 +1845,7 @@
   }
   
   async function forceLogout(phone){ 
-    const currentUserSnap = await db.collection('users').doc(ADMIN_PHONE).get();
-    if (!currentUserSnap.exists || currentUserSnap.data().role !== 'admin') {
+    if (!(await verifyIsAdmin())) {
       alert('⛔ فقط الأدمن يمكنه إنهاء الجلسات');
       return;
     }
@@ -1736,13 +1856,14 @@
   async function createGroup(){
     const name = document.getElementById('newGroupName').value.trim();
     if(!name) return;
+    const creatorPhone = CURRENT_USER_PHONE || ADMIN_PHONE;
     await db.collection('groups').add({
       name,
-      members: [ADMIN_PHONE],
-      admins: [ADMIN_PHONE],
+      members: [creatorPhone],
+      admins: [creatorPhone],
       onlyAdminsCanSend: false,
-      createdBy: ADMIN_PHONE,
-      memberJoinTimes: { [ADMIN_PHONE]: Date.now() },
+      createdBy: creatorPhone,
+      memberJoinTimes: { [creatorPhone]: Date.now() },
       createdAt: Date.now()
     });
     document.getElementById('newGroupName').value='';
@@ -1939,6 +2060,13 @@
     fillSelect('leaderDepartmentInput', scope.departments, '<option value="">اختر القسم</option>');
     fillSelect('batchDivision', scope.divisions, '<option value="">تعديل الشعبة...</option>');
     fillSelect('batchDepartment', scope.departments, '<option value="">تعديل القسم...</option>');
+    fillSelect('gpaFilterDivision', scope.divisions, '<option value="">كل الشعب</option>');
+    fillSelect('gpaFilterDepartment', scope.departments, '<option value="">كل الأقسام</option>');
+    // في وضع الليدر: قفل فلتر القسم على قسمه هو بس
+    if(ADMIN_MODE === 'leader' && LEADER_DEPT){
+      const depSel = document.getElementById('gpaFilterDepartment');
+      if(depSel){ depSel.innerHTML = `<option value="${LEADER_DEPT}">${LEADER_DEPT}</option>`; depSel.value = LEADER_DEPT; depSel.disabled = true; }
+    }
   }
   async function addScopeItem(kind){
     const inputId = kind==='divisions' ? 'newDivisionInput' : 'newDepartmentInput';
@@ -2160,11 +2288,166 @@
     let html = '';
     snap.forEach(doc=>{
       const u = doc.data();
+      if(ADMIN_MODE === 'leader' && LEADER_DEPT && u.department !== LEADER_DEPT) return;
       if((u.warnings||0) > 0){
         html += `<div class="card-box row"><div class="meta"><b>${u.name||u.phone}</b><span>${u.phone} — ${u.year||''} ${u.division||''} ${u.department||''}</span></div><span class="chip" style="background:#ffe5e5;color:#b00020;">⚠️ ${u.warnings} إنذار</span></div>`;
       }
     });
     box.innerHTML = html || '<p style="font-size:13px;color:#7a93ad">لا يوجد طلاب عليهم إنذار حاليًا 🎉</p>';
+  }
+
+  // ==================== GPA مباشر ====================
+  async function loadGpaManualList(){
+    const year = document.getElementById('gpaFilterYear').value;
+    const division = document.getElementById('gpaFilterDivision').value;
+    const department = (ADMIN_MODE === 'leader' && LEADER_DEPT) ? LEADER_DEPT : document.getElementById('gpaFilterDepartment').value;
+    const box = document.getElementById('gpaManualList');
+    box.innerHTML = 'جاري التحميل...';
+    try{
+      let query = db.collection('users').where('approved','==',true);
+      if(year) query = query.where('year','==',year);
+      if(division) query = query.where('division','==',division);
+      if(department) query = query.where('department','==',department);
+      const snap = await query.get();
+      const list = [];
+      snap.forEach(doc=>{
+        const u = doc.data();
+        if(u.role === 'admin' || u.role === 'co-admin') return;
+        list.push({ phone: doc.id, ...u });
+      });
+      list.sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+      box.innerHTML = list.length ? list.map(u=>`
+        <div class="card-box row" data-phone="${u.phone}">
+          <div class="meta"><b>${u.name||u.phone}</b><span>${u.phone} — ${u.year||''} ${u.division||''} ${u.department||''}</span></div>
+          <div style="display:flex;gap:6px;align-items:center;">
+            <input type="number" step="0.1" min="0" max="4" class="points-input" value="${u.lastGpa!=null ? u.lastGpa : ''}" id="gpaInput_${u.phone}" placeholder="GPA">
+            <button class="btn btn-approve btn-sm" onclick="saveManualGpa('${u.phone}')">💾 حفظ</button>
+          </div>
+        </div>`).join('') : '<p style="font-size:13px;color:#7a93ad;">لا يوجد طلاب مطابقين لهذا الفلتر</p>';
+    }catch(e){
+      box.innerHTML = '<p style="font-size:13px;color:#b00020;">خطأ في التحميل: '+e.message+'</p>';
+    }
+  }
+  async function saveManualGpa(phone){
+    const input = document.getElementById('gpaInput_'+phone);
+    const val = parseFloat(input.value);
+    if(isNaN(val) || val < 0 || val > 4){ alert('⚠️ أدخل GPA صحيح بين 0 و 4'); return; }
+    if(ADMIN_MODE === 'leader' && LEADER_DEPT){
+      const snap = await db.collection('users').doc(phone).get();
+      if(!snap.exists || snap.data().department !== LEADER_DEPT){ alert('⛔ مسموح لك بتعديل طلاب قسمك بس'); return; }
+    }
+    await db.collection('users').doc(phone).update({ lastGpa: +val.toFixed(2) });
+    alert('✅ تم حفظ الـ GPA');
+  }
+
+  // ==================== مسددين الكتب ====================
+  async function loadBookPayments(){
+    const box = document.getElementById('bookPaymentsList');
+    if(!box) return;
+    box.innerHTML = 'جاري التحميل...';
+    try{
+      let query = db.collection('users').where('approved','==',true);
+      if(ADMIN_MODE === 'leader' && LEADER_DEPT) query = query.where('department','==', LEADER_DEPT);
+      const snap = await query.get();
+      const byDept = {};
+      snap.forEach(doc=>{
+        const u = doc.data();
+        if(u.role === 'admin' || u.role === 'co-admin') return;
+        const dep = u.department || 'بدون قسم';
+        if(!byDept[dep]) byDept[dep] = [];
+        byDept[dep].push({ phone: doc.id, ...u });
+      });
+      const depNames = Object.keys(byDept).sort();
+      let html = '';
+      depNames.forEach(dep=>{
+        const list = byDept[dep].sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+        html += `<div class="card-box"><b style="display:block;margin-bottom:8px;">🏷️ ${dep} <span style="font-weight:400;font-size:12px;color:#7a93ad;">(${list.filter(u=>u.booksPaid).length}/${list.length} سددوا)</span></b>`;
+        html += list.map(u=>`
+          <label style="display:flex;align-items:center;gap:8px;justify-content:space-between;padding:6px 2px;border-bottom:1px solid #eef4fa;font-size:13px;">
+            <span>${u.name||u.phone} <span style="color:#9bb3cb;font-size:11px;">— ${u.phone} — ${u.year||''} ${u.division||''}</span></span>
+            <input type="checkbox" style="width:18px;height:18px;cursor:pointer;" ${u.booksPaid?'checked':''} onchange="toggleBookPaid('${u.phone}', this.checked)">
+          </label>`).join('');
+        html += `</div>`;
+      });
+      box.innerHTML = html || '<p style="font-size:13px;color:#7a93ad;">لا يوجد أعضاء</p>';
+    }catch(e){
+      box.innerHTML = '<p style="font-size:13px;color:#b00020;">خطأ في التحميل: '+e.message+'</p>';
+    }
+  }
+  async function toggleBookPaid(phone, checked){
+    if(ADMIN_MODE === 'leader' && LEADER_DEPT){
+      const snap = await db.collection('users').doc(phone).get();
+      if(!snap.exists || snap.data().department !== LEADER_DEPT){ alert('⛔ مسموح لك بتعديل طلاب قسمك بس'); loadBookPayments(); return; }
+    }
+    await db.collection('users').doc(phone).update({ booksPaid: checked });
+  }
+
+  // ==================== الأذونات (صلاحيات الليدرز على لوحة الأدمن) ====================
+  const ASSIGNABLE_ADMIN_TABS = [
+    {id:'pending', label:'طلبات التسجيل'},
+    {id:'users', label:'كل الأعضاء'},
+    {id:'groups', label:'الجروبات'},
+    {id:'schedule', label:'جدول المحاضرات'},
+    {id:'books', label:'الكتب المقفولة'},
+    {id:'bookPayments', label:'💳 مسددين الكتب'},
+    {id:'points', label:'النقاط وترتيب الفخر'},
+    {id:'announce', label:'التنبيهات'},
+    {id:'folders', label:'📁 المجلدات'},
+    {id:'reports', label:'📊 التقارير'},
+    {id:'quizzes', label:'📝 الكويزات'},
+    {id:'contactManage', label:'📞 تواصل معنا'},
+    {id:'studentEval', label:'📊 تقييم الطلاب'},
+    {id:'forumManage', label:'🗣️ إدارة المنتدى'},
+    {id:'advisingAdmin', label:'🎓 الإرشاد الأكاديمي'},
+    {id:'attendanceAdmin', label:'🗓️ دفتر الغياب'}
+  ];
+  async function loadPermissionsList(){
+    const box = document.getElementById('permissionsList');
+    box.innerHTML = 'جاري التحميل...';
+    try{
+      const snap = await db.collection('users').get();
+      let html = '';
+      snap.forEach(doc=>{
+        const u = doc.data();
+        if(!u.departmentLeaderOf) return;
+        const access = u.adminAccess || {enabled:false, tabs:[]};
+        html += `
+          <div class="card-box" data-phone="${doc.id}">
+            <div class="row">
+              <div class="meta"><b>${u.name||doc.id}</b><span>قسم: ${u.departmentLeaderOf} — ${doc.id}</span></div>
+              <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;">
+                <input type="checkbox" class="permEnable" ${access.enabled?'checked':''} onchange="togglePermTabsBox('${doc.id}', this.checked)">
+                تظهر له لوحة الأدمن
+              </label>
+            </div>
+            <div id="permTabsBox_${doc.id}" style="margin-top:8px;${access.enabled?'':'display:none;'}">
+              ${ASSIGNABLE_ADMIN_TABS.map(t=>`
+                <label style="display:inline-flex;align-items:center;gap:4px;margin:3px 8px 3px 0;font-size:12px;">
+                  <input type="checkbox" class="permTab" value="${t.id}" ${(access.tabs||[]).includes(t.id)?'checked':''}>
+                  ${t.label}
+                </label>`).join('')}
+              <div style="margin-top:8px;">
+                <button class="btn btn-approve btn-sm" onclick="savePermissions('${doc.id}')">💾 حفظ</button>
+              </div>
+            </div>
+          </div>`;
+      });
+      box.innerHTML = html || '<p style="font-size:13px;color:#9bb3cb;">لا يوجد ليدرز أقسام معينين بعد. عيّن ليدر أولًا من تبويب "🧑‍🏫 الأدوار".</p>';
+    }catch(e){
+      box.innerHTML = '<p style="font-size:13px;color:#b00020;">خطأ في التحميل: '+e.message+'</p>';
+    }
+  }
+  function togglePermTabsBox(phone, checked){
+    document.getElementById('permTabsBox_'+phone).style.display = checked ? 'block' : 'none';
+    if(!checked) savePermissions(phone, true);
+  }
+  async function savePermissions(phone, forceDisable){
+    const cardEl = document.querySelector(`#permissionsList .card-box[data-phone="${phone}"]`);
+    if(!cardEl) return;
+    const enabled = forceDisable ? false : cardEl.querySelector('.permEnable').checked;
+    const tabs = forceDisable ? [] : Array.from(cardEl.querySelectorAll('.permTab:checked')).map(cb=>cb.value);
+    await db.collection('users').doc(phone).update({ adminAccess: { enabled, tabs } });
+    if(!forceDisable) alert('✅ تم حفظ الأذونات');
   }
   async function exportAdvisingExcel(){
     if(typeof XLSX === 'undefined'){ alert('تعذر تحميل مكتبة Excel، تأكد من الاتصال بالإنترنت'); return; }
