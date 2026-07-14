@@ -1,169 +1,587 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>حسابي | قسم علوم ابتدائي</title>
-<style>
-  :root{--blue-deep:#0a2e5c;--blue-main:#1565d8;--blue-bright:#2f9bf0;--ice:#eaf4ff;--gold:#f5a623;}
-  *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Tahoma,Arial,sans-serif;}
-  body{background:var(--ice);color:#0a2e5c;min-height:100vh;}
-  .topbar{background:linear-gradient(135deg,var(--blue-main),var(--blue-deep));color:#fff;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:30;box-shadow:0 4px 14px rgba(10,46,92,0.25);}
-  .topbar a{color:#fff;text-decoration:none;font-size:13px;background:rgba(255,255,255,0.15);padding:8px 14px;border-radius:10px;transition:0.2s;}
-  .topbar a:hover{background:rgba(255,255,255,0.25);}
-  .wrap{max-width:600px;margin:24px auto;padding:0 16px;}
-  .card-box{background:#fff;border-radius:16px;padding:24px;box-shadow:0 6px 18px rgba(10,46,92,0.06);margin-bottom:14px;}
-  .avatar-upload{display:flex;flex-direction:column;align-items:center;margin-bottom:16px;}
-  .avatar-upload .av-img{width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid var(--blue-main);}
-  .avatar-upload .av-ph{width:80px;height:80px;border-radius:50%;background:var(--blue-bright);display:flex;align-items:center;justify-content:center;font-size:28px;color:#fff;font-weight:800;border:3px solid var(--blue-main);}
-  .avatar-upload label{margin-top:8px;background:var(--ice);color:var(--blue-main);border:1.5px solid var(--blue-main);border-radius:10px;padding:6px 14px;font-size:12.5px;font-weight:700;cursor:pointer;}
-  .account-field{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f0f4fa;font-size:14px;}
-  .account-field b{color:#7a93ad;font-weight:600;}
-  .form-group{margin-top:16px;}
-  .form-group label{font-size:12.5px;font-weight:700;color:var(--blue-deep);display:block;margin-bottom:4px;}
-  .form-group .row{display:flex;gap:8px;}
-  .form-group .row input{flex:1;padding:10px;border-radius:10px;border:1.5px solid #cfe2f7;font-size:14px;}
-  .form-group .row button{background:var(--blue-main);color:#fff;border:none;border-radius:10px;padding:0 18px;cursor:pointer;font-weight:700;font-size:14px;}
-  .msg{font-size:12.5px;margin-top:8px;color:#147a35;}
-  .msg.error{color:#b00020;}
-  .footer{text-align:center;font-size:11.5px;color:#9bb3cb;padding:18px 0;}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>حسابي | قسم علوم ابتدائي</title>
+    <style>
+        :root {
+            --blue-deep: #0a2e5c;
+            --blue-main: #1565d8;
+            --blue-bright: #2f9bf0;
+            --ice: #eaf4ff;
+            --gold: #f5a623;
+            --success: #147a35;
+            --danger: #b00020;
+            --gray: #7a93ad;
+            --light-gray: #f0f4fa;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+        }
+        body {
+            background: var(--ice);
+            color: var(--blue-deep);
+            min-height: 100vh;
+        }
+
+        .topbar {
+            background: linear-gradient(135deg, var(--blue-main), var(--blue-deep));
+            color: #fff;
+            padding: 14px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 30;
+            box-shadow: 0 4px 14px rgba(10, 46, 92, 0.25);
+        }
+        .topbar .brand {
+            font-weight: 800;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .topbar .brand svg {
+            width: 26px;
+            height: 26px;
+            fill: #fff;
+        }
+        .topbar a {
+            color: #fff;
+            text-decoration: none;
+            font-size: 13px;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 8px 14px;
+            border-radius: 10px;
+            transition: 0.2s;
+        }
+        .topbar a:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .wrap {
+            max-width: 900px;
+            margin: 24px auto;
+            padding: 0 16px;
+        }
+
+        .section-title {
+            font-size: 21px;
+            color: var(--blue-deep);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-box {
+            background: #fff;
+            border-radius: 16px;
+            padding: 18px 20px;
+            box-shadow: 0 4px 14px rgba(10, 46, 92, 0.05);
+            margin-bottom: 14px;
+            transition: 0.2s;
+        }
+        .card-box:hover {
+            box-shadow: 0 6px 20px rgba(10, 46, 92, 0.08);
+        }
+
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .profile-header .avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--blue-main);
+        }
+        .profile-header .avatar-ph {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: var(--blue-bright);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            color: #fff;
+            font-weight: 800;
+            border: 3px solid var(--blue-main);
+        }
+        .profile-header .info h2 {
+            font-size: 22px;
+            color: var(--blue-deep);
+        }
+        .profile-header .info p {
+            color: var(--gray);
+            font-size: 14px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 12px;
+        }
+        .info-grid .item {
+            background: #f8faff;
+            padding: 10px 14px;
+            border-radius: 10px;
+            border-right: 3px solid var(--blue-main);
+        }
+        .info-grid .item .label {
+            font-size: 11px;
+            color: var(--gray);
+        }
+        .info-grid .item .value {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--blue-deep);
+        }
+
+        .warning-badge {
+            display: inline-block;
+            padding: 4px 16px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 14px;
+        }
+        .warning-badge.danger {
+            background: #ffe5e5;
+            color: var(--danger);
+        }
+        .warning-badge.success {
+            background: #e3f7e8;
+            color: var(--success);
+        }
+
+        .term-card {
+            border-right: 4px solid var(--blue-main);
+            padding: 12px 16px;
+            background: #f8faff;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .term-card:hover {
+            background: #eaf4ff;
+        }
+        .term-card .term-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .term-card .term-header b {
+            font-size: 16px;
+            color: var(--blue-deep);
+        }
+        .term-card .term-details {
+            display: none;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid var(--light-gray);
+        }
+        .term-card.open .term-details {
+            display: block;
+        }
+
+        .subject-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            border-bottom: 1px solid var(--light-gray);
+            font-size: 14px;
+        }
+        .subject-item .status-pass {
+            color: var(--success);
+            font-weight: 700;
+        }
+        .subject-item .status-fail {
+            color: var(--danger);
+            font-weight: 700;
+        }
+
+        .btn {
+            border: none;
+            border-radius: 10px;
+            padding: 8px 16px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .btn-blue {
+            background: var(--blue-main);
+            color: #fff;
+        }
+        .btn-blue:hover {
+            background: var(--blue-deep);
+        }
+        .btn-excel {
+            background: #1d6f42;
+            color: #fff;
+        }
+        .btn-excel:hover {
+            background: #14532d;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border: 3px solid var(--light-gray);
+            border-top-color: var(--blue-main);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .footer-credit {
+            text-align: center;
+            font-size: 11.5px;
+            color: #9bb3cb;
+            padding: 18px 0;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 20px;
+            color: var(--gray);
+        }
+        .empty-state .icon {
+            font-size: 36px;
+            margin-bottom: 6px;
+        }
+
+        @media(max-width:768px) {
+            .profile-header {
+                flex-direction: column;
+                text-align: center;
+            }
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+            .term-card .term-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
 </head>
 <body>
 
-<div class="topbar">
-  <div class="brand" style="font-weight:800;font-size:16px;">👤 حسابي</div>
-  <a href="home.html">🏠 الرجوع للرئيسية</a>
-</div>
-
-<div class="wrap">
-  <div class="card-box">
-    <div class="avatar-upload">
-      <div id="accAvatarWrap"><div class="av-ph" id="accAvatarPh">؟</div></div>
-      <label>📷 تغيير الصورة<input type="file" id="avatarInput" accept="image/*" style="display:none" onchange="uploadAvatar()"></label>
-      <div id="avatarMsg" style="font-size:12px;color:#7a93ad;margin-top:4px"></div>
+    <!-- ===== الشريط العلوي ===== -->
+    <div class="topbar">
+        <div class="brand">
+            <svg viewBox="0 0 24 24"><path d="M9 2v6.3L4.3 17a2 2 0 0 0 1.8 3h11.8a2 2 0 0 0 1.8-3L15 8.3V2H9z"/></svg>
+            حسابي
+        </div>
+        <a href="home.html">🏠 الرجوع للرئيسية</a>
     </div>
 
-    <div class="account-field"><b>الاسم</b><span id="accName"></span></div>
-    <div class="account-field"><b>رقم الموبايل</b><span id="accPhone"></span></div>
-    <div class="account-field"><b>الفرقة</b><span id="accYear"></span></div>
-    <div class="account-field"><b>نقاط الفخر</b><span id="accPoints"></span></div>
+    <!-- ===== الحاوية ===== -->
+    <div class="wrap">
 
-    <div class="form-group">
-      <label>كلمة مرور جديدة</label>
-      <div class="row">
-        <input type="password" id="newPass" placeholder="أدخل كلمة المرور الجديدة">
-        <button onclick="updatePassword()">حفظ</button>
-      </div>
-      <div id="accMsg" class="msg"></div>
+        <!-- ===== الملف الشخصي ===== -->
+        <div class="card-box">
+            <div class="profile-header" id="profileHeader">
+                <div id="avatarWrap"><div class="avatar-ph">?</div></div>
+                <div class="info">
+                    <h2 id="userName">...</h2>
+                    <p id="userPhone">...</p>
+                    <div style="margin-top:6px;">
+                        <span id="userYear" style="background:var(--ice);padding:2px 12px;border-radius:12px;font-size:13px;">...</span>
+                        <span id="userDept" style="background:var(--ice);padding:2px 12px;border-radius:12px;font-size:13px;margin-right:6px;">...</span>
+                        <span id="userSection" style="background:var(--ice);padding:2px 12px;border-radius:12px;font-size:13px;margin-right:6px;">...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== الإنذارات ===== -->
+        <div class="card-box">
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;">
+                <h3 style="font-size:18px;color:var(--blue-deep);">⚠️ الإنذارات الأكاديمية</h3>
+                <span id="warningsBadge" class="warning-badge danger">جاري التحميل...</span>
+            </div>
+            <div id="warningsDetails" style="margin-top:8px;font-size:14px;color:var(--gray);"></div>
+        </div>
+
+        <!-- ===== السجلات الأكاديمية ===== -->
+        <div class="card-box">
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-bottom:12px;">
+                <h3 style="font-size:18px;color:var(--blue-deep);">📘 سجلاتي الأكاديمية</h3>
+                <button class="btn btn-excel btn-sm" onclick="exportAcademicRecords()">📊 تحميل التقرير (Excel)</button>
+            </div>
+            <div id="recordsList">
+                <div style="text-align:center;padding:20px;">
+                    <div class="loading-spinner"></div>
+                    <p style="margin-top:10px;color:var(--gray);">جاري التحميل...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== نقاط الفخر ===== -->
+        <div class="card-box">
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;">
+                <h3 style="font-size:18px;color:var(--blue-deep);">⭐ نقاط الفخر</h3>
+                <span id="pointsDisplay" style="font-size:22px;font-weight:900;color:var(--gold);">0</span>
+            </div>
+        </div>
+
     </div>
-  </div>
-</div>
 
-<div class="footer">تم إنشاء هذا الموقع بواسطة MF.mo.fayyad</div>
+    <div class="footer-credit">تم إنشاء هذا الموقع بواسطة MF.mo.fayyad</div>
 
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
-<script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyBgI8VcLOdQAMgmcpxCzaMS1UCX1vyzSjw",
-    authDomain: "science-e2b52.firebaseapp.com",
-    projectId: "science-e2b52",
-    storageBucket: "science-e2b52.firebasestorage.app",
-    messagingSenderId: "1031434005860",
-    appId: "1:1031434005860:web:e68fccdd746017a5639e71",
-    measurementId: "G-JZ1SFVMM7P"
-  };
-  let db = null;
-  try {
-    firebase.initializeApp(firebaseConfig);
-    db = firebase.firestore();
-  } catch (e) { console.warn('لا يوجد اتصال بالإنترنت', e); }
-  
-  // بيانات Cloudinary
-  const CLOUD_NAME = 'dgbuovcf';
-  const UPLOAD_PRESET = 'Science_app';
+    <script>
+        // ================================================================
+        // ===== FIREBASE CONFIG =====
+        // ================================================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyBgI8VcLOdQAMgmcpxCzaMS1UCX1vyzSjw",
+            authDomain: "science-e2b52.firebaseapp.com",
+            projectId: "science-e2b52",
+            storageBucket: "science-e2b52.firebasestorage.app",
+            messagingSenderId: "1031434005860",
+            appId: "1:1031434005860:web:e68fccdd746017a5639e71",
+            measurementId: "G-JZ1SFVMM7P"
+        };
+        let db = null;
+        try {
+            firebase.initializeApp(firebaseConfig);
+            db = firebase.firestore();
+            db.enablePersistence({ synchronizeTabs: true }).catch(() => {});
+        } catch (e) { console.warn('Firebase error', e); }
 
-  function getCurrentUser() {
-    const raw = localStorage.getItem('currentUser');
-    return raw ? JSON.parse(raw) : null;
-  }
-  function requireLogin() {
-    const u = getCurrentUser();
-    if (!u) { window.location.href = 'login.html'; return null; }
-    return u;
-  }
-  const user = requireLogin();
-  if (!user) throw new Error('no user');
+        // ================================================================
+        // ===== GET CURRENT USER =====
+        // ================================================================
+        function getCurrentUser() {
+            const raw = localStorage.getItem('currentUser');
+            return raw ? JSON.parse(raw) : null;
+        }
+        const user = getCurrentUser();
+        if (!user) window.location.href = 'login.html';
 
-  async function loadUserData() {
-    if (!db) return;
-    try {
-      const snap = await db.collection('users').doc(user.phone).get();
-      const data = snap.data();
-      if (!data) return;
-      document.getElementById('accName').textContent = data.name || '';
-      document.getElementById('accPhone').textContent = data.phone || '';
-      document.getElementById('accYear').textContent = data.year || '—';
-      document.getElementById('accPoints').textContent = (data.points || 0) + ' نقطة';
-      if (data.avatar) {
-        document.getElementById('accAvatarWrap').innerHTML = `<img class="av-img" src="${data.avatar}">`;
-      }
-    } catch (e) { console.error(e); }
-  }
-  loadUserData();
+        // ================================================================
+        // ===== LOAD USER DATA =====
+        // ================================================================
+        async function loadUserData() {
+            if (!db) return;
 
-  // رفع الصورة الشخصية على Cloudinary
-  async function uploadAvatar() {
-    const file = document.getElementById('avatarInput').files[0];
-    const msg = document.getElementById('avatarMsg');
-    if (!file) return;
-    if (!db) { msg.textContent = 'تغيير الصورة يحتاج اتصال بالإنترنت'; return; }
-    msg.textContent = 'جاري رفع الصورة على Cloudinary...';
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('upload_preset', UPLOAD_PRESET);
-      
-      const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/upload`, { method: 'POST', body: formData });
-      const data = await response.json();
-      const fileUrl = data.secure_url;
+            try {
+                const snap = await db.collection('users').doc(user.phone).get();
+                if (!snap.exists) return;
+                const data = snap.data();
 
-      await db.collection('users').doc(user.phone).update({ avatar: fileUrl });
-      document.getElementById('accAvatarWrap').innerHTML = `<img class="av-img" src="${fileUrl}">`;
-      msg.textContent = 'تم تحديث الصورة بنجاح ✅';
-      msg.style.color = '#147a35';
-    } catch (e) {
-      msg.textContent = 'حدث خطأ: ' + e.message;
-      msg.style.color = '#b00020';
-    }
-  }
+                // عرض البيانات الشخصية
+                document.getElementById('userName').textContent = data.name || user.name || 'غير معروف';
+                document.getElementById('userPhone').textContent = data.phone || user.phone || '';
+                document.getElementById('userYear').textContent = data.year || '—';
+                document.getElementById('userDept').textContent = data.department || '—';
+                document.getElementById('userSection').textContent = data.section || '—';
 
-  async function updatePassword() {
-    const np = document.getElementById('newPass').value;
-    const msg = document.getElementById('accMsg');
-    if (np.length < 6) {
-      msg.textContent = 'كلمة المرور يجب ألا تقل عن 6 أحرف';
-      msg.className = 'msg error';
-      return;
-    }
-    if (!db) {
-      msg.textContent = 'هذه العملية تحتاج اتصال بالإنترنت';
-      msg.className = 'msg error';
-      return;
-    }
-    try {
-      await db.collection('users').doc(user.phone).update({ password: np });
-      msg.textContent = '✅ تم تحديث كلمة المرور بنجاح';
-      msg.className = 'msg';
-      document.getElementById('newPass').value = '';
-    } catch (e) {
-      msg.textContent = 'حدث خطأ: ' + e.message;
-      msg.className = 'msg error';
-    }
-  }
-</script>
+                // الصورة الشخصية
+                const avatarWrap = document.getElementById('avatarWrap');
+                if (data.avatar) {
+                    avatarWrap.innerHTML = `<img class="avatar" src="${data.avatar}">`;
+                } else {
+                    avatarWrap.innerHTML = `<div class="avatar-ph">${(data.name || '?')[0]}</div>`;
+                }
+
+                // النقاط
+                document.getElementById('pointsDisplay').textContent = data.points || 0;
+
+                // الإنذارات
+                const totalWarnings = data.totalWarnings || 0;
+                const badge = document.getElementById('warningsBadge');
+                if (totalWarnings > 0) {
+                    badge.className = 'warning-badge danger';
+                    badge.textContent = `⚠️ ${totalWarnings} إنذار`;
+                } else {
+                    badge.className = 'warning-badge success';
+                    badge.textContent = '✅ لا يوجد إنذارات';
+                }
+                document.getElementById('warningsDetails').innerHTML = totalWarnings > 0 ?
+                    'لديك إنذارات أكاديمية. يُرجى التواصل مع الإرشاد الأكاديمي لتحسين أدائك.' :
+                    'أداؤك الأكاديمي جيد، استمر بنفس المستوى.';
+
+                // السجلات الأكاديمية
+                await loadRecords();
+
+            } catch (e) {
+                console.warn(e);
+                document.getElementById('warningsBadge').textContent = '⚠️ خطأ في التحميل';
+            }
+        }
+
+        // ================================================================
+        // ===== LOAD RECORDS =====
+        // ================================================================
+        async function loadRecords() {
+            const box = document.getElementById('recordsList');
+            try {
+                const snap = await db.collection('academicRecords').doc(user.phone).get();
+
+                if (!snap.exists || !snap.data().records || snap.data().records.length === 0) {
+                    box.innerHTML = `
+                        <div class="empty-state">
+                            <div class="icon">📭</div>
+                            <p>لا توجد سجلات أكاديمية</p>
+                            <p style="font-size:12px;">اذهب إلى <a href="academic.html" style="color:var(--blue-main);">الإرشاد الأكاديمي</a> لإضافة سجلك الأول</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                const records = snap.data().records;
+                records.sort((a, b) => b.term - a.term);
+
+                let html = '';
+                records.forEach(r => {
+                    const isOpen = r.term === records[0]?.term;
+                    const failedSubjects = r.subjects ? r.subjects.filter(s => s.status === 'راسب') : [];
+
+                    html += `
+                        <div class="term-card ${isOpen ? 'open' : ''}" onclick="toggleTerm(this)">
+                            <div class="term-header">
+                                <div>
+                                    <b>📘 الترم ${r.term}</b>
+                                    <span style="font-size:12px;color:var(--gray);margin-right:8px;">
+                                        ${r.subjects ? r.subjects.length : 0} مادة
+                                    </span>
+                                </div>
+                                <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+                                    <span style="font-weight:700;color:var(--blue-main);">GPA: ${r.gpa || '—'}</span>
+                                    ${r.warnings > 0 ? `<span class="warning-badge danger" style="font-size:12px;padding:2px 10px;">⚠️ ${r.warnings}</span>` : `<span class="warning-badge success" style="font-size:12px;padding:2px 10px;">✅</span>`}
+                                </div>
+                            </div>
+                            <div class="term-details">
+                                ${r.subjects ? r.subjects.map(s => `
+                                    <div class="subject-item">
+                                        <span>${s.name} (${s.hours || '?'} ساعة)</span>
+                                        <span>${s.grade || '?'}% — <span class="${s.status === 'ناجح' || s.status === 'ناجح (صيفي)' ? 'status-pass' : 'status-fail'}">${s.status || '—'}</span></span>
+                                    </div>
+                                `).join('') : '<p style="color:var(--gray);">لا توجد مواد</p>'}
+                                ${failedSubjects.length > 0 ? `
+                                    <div style="margin-top:6px;padding:6px 12px;background:#ffe5e5;border-radius:6px;">
+                                        <b style="color:var(--danger);">⚠️ المواد الراسبة:</b>
+                                        ${failedSubjects.map(s => s.name).join('، ')}
+                                    </div>
+                                ` : ''}
+                                ${r.advice ? `<div style="margin-top:6px;font-size:12px;color:var(--gray);">📝 ${r.advice}</div>` : ''}
+                                ${r.summerImageUrl ? `<div style="margin-top:4px;font-size:11px;color:var(--gray);">🌞 تم تعديل صيفي</div>` : ''}
+                            </div>
+                        </div>
+                    `;
+                });
+
+                box.innerHTML = html;
+
+            } catch (e) {
+                box.innerHTML = `<p style="color:var(--gray);">خطأ في التحميل: ${e.message}</p>`;
+                console.warn(e);
+            }
+        }
+
+        function toggleTerm(el) {
+            el.classList.toggle('open');
+        }
+
+        // ================================================================
+        // ===== EXPORT ACADEMIC RECORDS (Excel) =====
+        // ================================================================
+        async function exportAcademicRecords() {
+            try {
+                const snap = await db.collection('academicRecords').doc(user.phone).get();
+                if (!snap.exists || !snap.data().records || snap.data().records.length === 0) {
+                    alert('لا توجد سجلات أكاديمية لتصديرها');
+                    return;
+                }
+
+                const records = snap.data().records;
+                let html = `<html><head><meta charset="UTF-8"><title>سجلاتي الأكاديمية</title></head><body>
+                    <h2>📘 السجلات الأكاديمية - ${user.name}</h2>
+                    <p>الرقم: ${user.phone} • الفرقة: ${user.year} • الشعبة: ${user.department} • القسم: ${user.section}</p>
+                    <br>
+                    <table border="1" style="direction:rtl;font-family:Arial;font-size:12px;border-collapse:collapse;">`;
+
+                records.sort((a, b) => a.term - b.term);
+
+                records.forEach(r => {
+                    html += `
+                        <tr style="background:#1565d8;color:#fff;font-weight:bold;">
+                            <th colspan="5">الترم ${r.term} — GPA: ${r.gpa || '—'} — ${r.warnings > 0 ? '⚠️ ' + r.warnings + ' إنذار' : '✅ لا يوجد إنذارات'}</th>
+                        </tr>
+                        <tr style="background:#eaf4ff;font-weight:bold;">
+                            <th>#</th><th>المادة</th><th>الساعات</th><th>الدرجة</th><th>الحالة</th>
+                        </tr>`;
+
+                    if (r.subjects) {
+                        r.subjects.forEach((s, i) => {
+                            html += `<tr>
+                                <td>${i+1}</td>
+                                <td>${s.name}</td>
+                                <td>${s.hours || '?'}</td>
+                                <td>${s.grade || '?'}%</td>
+                                <td style="color:${s.status === 'ناجح' || s.status === 'ناجح (صيفي)' ? 'green' : 'red'};font-weight:bold;">${s.status || '—'}</td>
+                            </tr>`;
+                        });
+                    }
+
+                    html += `<tr><td colspan="5" style="padding:4px;"></td></tr>`;
+                });
+
+                html += `</table></body></html>`;
+
+                const blob = new Blob([html], { type: 'application/vnd.ms-excel;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `سجلاتي_الأكاديمية_${new Date().toLocaleDateString('ar')}.xls`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+
+            } catch (e) {
+                alert('❌ خطأ: ' + e.message);
+            }
+        }
+
+        // ================================================================
+        // ===== INIT =====
+        // ================================================================
+        loadUserData();
+        console.log('✅ صفحة الحساب جاهزة');
+        console.log('👤 المستخدم:', user);
+    </script>
 </body>
-</html>
+                  </html>
