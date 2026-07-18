@@ -693,7 +693,7 @@
     if(!CURRENT_USER_PHONE) return false;
     try{
       const snap = await db.collection('users').doc(CURRENT_USER_PHONE).get();
-      return snap.exists && snap.data().role === 'admin';
+      return snap.exists && (snap.data().role === 'admin' || snap.data().role === 'co-admin');
     }catch(e){ return false; }
   }
 
@@ -712,7 +712,7 @@
       const u = snap.data();
       CURRENT_USER_PHONE = stored.phone;
       CURRENT_USER_ROLE = u.role || 'student';
-      if(u.role === 'admin'){
+      if(u.role === 'admin' || u.role === 'co-admin'){
         ADMIN_MODE = 'admin';
         // بنسيب شاشة كلمة المرور زي ما هي كطبقة حماية إضافية فوق التحقق من الهوية
         return;
@@ -803,8 +803,8 @@
   function checkAdminPass(){
     const val = document.getElementById('adminPassInput').value;
     if(!db){ document.getElementById('lockMsg').textContent='لوحة الأدمن تحتاج اتصال بالإنترنت'; return; }
-    if(ADMIN_MODE !== 'admin' || !CURRENT_USER_PHONE || CURRENT_USER_ROLE !== 'admin'){
-      document.getElementById('lockMsg').textContent='الحساب المسجل دخوله مش أدمن';
+    if(ADMIN_MODE !== 'admin' || !CURRENT_USER_PHONE || (CURRENT_USER_ROLE !== 'admin' && CURRENT_USER_ROLE !== 'co-admin')){
+      document.getElementById('lockMsg').textContent='الحساب المسجل دخوله مش أدمن ولا مشرف';
       return;
     }
     if(val === ADMIN_PASS){
