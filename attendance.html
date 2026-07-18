@@ -120,6 +120,12 @@
         <button class="btn btn-sm btn-approve" onclick="toggleAll(true)">تحديد الكل حاضر</button>
         <button class="btn btn-sm btn-reject" onclick="toggleAll(false)">تحديد الكل غائب</button>
       </div>
+      <div style="background:#f8faff;border:1.5px dashed #b8d4f5;border-radius:10px;padding:10px;margin-bottom:12px;">
+        <b style="font-size:13px;display:block;margin-bottom:6px;">📷 رفع صورة بأسماء الطلبة الحاضرين (تحضير تلقائي)</b>
+        <input type="file" id="attImageInput" accept="image/*" onchange="processAttendanceImage(this.files[0])">
+        <p id="ocrStatus" style="font-size:11.5px;color:#7a93ad;margin-top:6px;"></p>
+        <p style="font-size:11px;color:#9bb3cb;">⚠️ القراءة تلقائية وممكن تخطئ في بعض الأسماء، راجع القائمة تحت قبل الحفظ.</p>
+      </div>
       <div id="studentsList"></div>
       <button class="btn btn-approve" style="margin-top:14px;" onclick="saveAttendance()">💾 حفظ الحضور</button>
       <div class="msg" id="saveAttMsg"></div>
@@ -140,6 +146,7 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
 <script>
   const firebaseConfig = {
@@ -176,17 +183,28 @@
     document.getElementById(id==='mine'?'tabBtnMine':'tabBtnRecord').classList.add('active');
   }
 
+  // صلاحيات الوصول لدفتر الغياب:
+  // - isFullAccess: أدمن / كو-أدمن / مشرف إدارة → يشتغل في أي مادة/قسم
+  // - isDoctorOnly: دكتور مادة (وملوش صلاحية كاملة) → مادته بس، مقفولة ومش قابلة للتعديل
+  // - isLeaderOnly: ليدر قسم (وملوش صلاحية كاملة) → قسمه بس، مقفول ومش قابل للتعديل
+  let isFullAccess = false, isDoctorOnly = false, isLeaderOnly = false;
+
   async function initPage(){
     if(!db) return;
     const snap = await db.collection('users').doc(user.phone).get();
     fullUserData = snap.data() || {};
-    const canRecord = fullUserData.role==='admin' || fullUserData.role==='co-admin' || fullUserData.collegeSupervisor || fullUserData.subjectDoctorOf || fullUserData.departmentLeaderOf;
+    isFullAccess = fullUserData.role==='admin' || fullUserData.role==='co-admin' || !!fullUserData.collegeSupervisor;
+    isDoctorOnly = !isFullAccess && !!fullUserData.subjectDoctorOf;
+    isLeaderOnly = !isFullAccess && !!fullUserData.departmentLeaderOf;
+    const canRecord = isFullAccess || isDoctorOnly || isLeaderOnly;
     if(canRecord){
       document.getElementById('tabBtnRecord').style.display='inline-block';
-      if(fullUserData.subjectDoctorOf) document.getElementById('recSubject').value = fullUserData.subjectDoctorOf;
-      if(fullUserData.departmentLeaderOf){
-        // هنملى قايمة الأقسام بعدين ونحدد القيمة
-        setTimeout(()=>{ document.getElementById('recDepartment').value = fullUserData.departmentLeaderOf; }, 400);
+      if(isDoctorOnly){
+        const subjEl = document.getElementById('recSubject');
+        subjEl.value = fullUserData.subjectDoctorOf;
+        subjEl.readOnly = true;
+        subjEl.style.background = '#eef2f7';
+        subjEl.title = 'مقفول: مسموح لك بمادتك بس';
       }
       loadRecentSessions();
     }
@@ -194,8 +212,15 @@
     const scopeSnap = await db.collection('settings').doc('academicScope').get();
     const scope = scopeSnap.exists ? scopeSnap.data() : {divisions:[],departments:[]};
     document.getElementById('recDivision').innerHTML = '<option value="">الكل</option>' + (scope.divisions||[]).map(d=>`<option value="${d}">${d}</option>`).join('');
-    document.getElementById('recDepartment').innerHTML = '<option value="">اختر القسم</option>' + (scope.departments||[]).map(d=>`<option value="${d}">${d}</option>`).join('');
-    if(fullUserData.departmentLeaderOf) document.getElementById('recDepartment').value = fullUserData.departmentLeaderOf;
+    if(isLeaderOnly){
+      // ليدر القسم مقفول على قسمه بس، مينفعش يعدله ولا يشتغل بقسم تاني
+      const depEl = document.getElementById('recDepartment');
+      depEl.innerHTML = `<option value="${fullUserData.departmentLeaderOf}">${fullUserData.departmentLeaderOf}</option>`;
+      depEl.value = fullUserData.departmentLeaderOf;
+      depEl.disabled = true;
+    } else {
+      document.getElementById('recDepartment').innerHTML = '<option value="">اختر القسم</option>' + (scope.departments||[]).map(d=>`<option value="${d}">${d}</option>`).join('');
+    }
     document.getElementById('recDate').value = new Date().toISOString().slice(0,10);
   }
   initPage();
@@ -210,9 +235,13 @@
       msg.className='msg error'; msg.textContent='من فضلك أكمل كل الحقول (الفرقة، القسم، المادة، رقم المحاضرة، التاريخ)';
       return;
     }
-    // لو الدكتور معين لمادة محددة، تأكد إن ده هو نفس اسم المادة
-    if(fullUserData.subjectDoctorOf && fullUserData.role==='student' && fullUserData.subjectDoctorOf !== subject){
-      msg.className='msg error'; msg.textContent='أنت مسموح لك بتسجيل حضور مادتك المحددة فقط: '+fullUserData.subjectDoctorOf;
+    // تحقق فعلي من الصلاحية (مش بس شكلي) قبل تحميل أي طلاب
+    if(isDoctorOnly && subject !== fullUserData.subjectDoctorOf){
+      msg.className='msg error'; msg.textContent='⛔ أنت مسموح لك بتسجيل حضور مادتك المحددة فقط: '+fullUserData.subjectDoctorOf;
+      return;
+    }
+    if(isLeaderOnly && department !== fullUserData.departmentLeaderOf){
+      msg.className='msg error'; msg.textContent='⛔ أنت مسموح لك بقسمك بس: '+fullUserData.departmentLeaderOf;
       return;
     }
     msg.className='msg info'; msg.textContent='جاري تحميل الطلاب...';
@@ -256,6 +285,63 @@
     document.querySelectorAll('.present-check').forEach(c=>c.checked=present);
   }
 
+  // تطبيع النص العربي عشان المطابقة تتحمل فروقات الهمزات/التشكيل/المسافات
+  function normalizeArabicName(s){
+    return (s||'')
+      .replace(/[\u064B-\u0652]/g,'')      // إزالة التشكيل
+      .replace(/[إأآا]/g,'ا')
+      .replace(/ى/g,'ي')
+      .replace(/ة/g,'ه')
+      .replace(/[^\u0600-\u06FFa-zA-Z0-9 ]/g,'')
+      .replace(/\s+/g,' ')
+      .trim()
+      .toLowerCase();
+  }
+  // نسبة تشابه بسيطة بالاعتماد على عدد الكلمات المشتركة
+  function nameSimilarity(a, b){
+    const wa = normalizeArabicName(a).split(' ').filter(Boolean);
+    const wb = normalizeArabicName(b).split(' ').filter(Boolean);
+    if(!wa.length || !wb.length) return 0;
+    let common = 0;
+    wa.forEach(w=>{ if(wb.includes(w)) common++; });
+    return common / Math.max(wa.length, wb.length);
+  }
+
+  async function processAttendanceImage(file){
+    if(!file) return;
+    const status = document.getElementById('ocrStatus');
+    if(typeof Tesseract === 'undefined'){ status.textContent='⚠️ تعذر تحميل مكتبة قراءة الصور، تأكد من الاتصال بالإنترنت'; return; }
+    status.textContent = '⏳ جاري قراءة الصورة (ممكن تاخد شوية ثواني)...';
+    try{
+      const { data } = await Tesseract.recognize(file, 'ara', {
+        logger: m => { if(m.status==='recognizing text') status.textContent = `⏳ جاري القراءة... ${Math.round((m.progress||0)*100)}%`; }
+      });
+      const lines = (data.text || '').split('\n').map(l=>l.trim()).filter(l=>l.length>1);
+      if(!lines.length){ status.textContent = '❌ مقدرش أقرا أي أسماء واضحة من الصورة'; return; }
+
+      const checks = document.querySelectorAll('.present-check');
+      if(!checks.length){ status.textContent = '⚠️ حمّل قائمة الطلبة الأول قبل رفع الصورة'; return; }
+
+      // كل طالب في القائمة، هل فيه سطر في الصورة شبهه؟ لو آه يبقى حاضر
+      let matchedCount = 0;
+      checks.forEach(c=>{
+        const label = c.closest('label');
+        const studentName = label ? label.textContent.replace(`(${c.dataset.phone})`, '').trim() : '';
+        let bestScore = 0;
+        lines.forEach(line=>{
+          const score = nameSimilarity(studentName, line);
+          if(score > bestScore) bestScore = score;
+        });
+        const isPresent = bestScore >= 0.5; // على الأقل نص كلمات الاسم اتطابقت
+        c.checked = isPresent;
+        if(isPresent) matchedCount++;
+      });
+      status.textContent = `✅ تم التحضير التلقائي: ${matchedCount} من ${checks.length} طالب اتعرفوا من الصورة (راجع القائمة قبل الحفظ، ممكن تعديل يدوي)`;
+    }catch(e){
+      status.textContent = '❌ حدث خطأ أثناء قراءة الصورة: ' + e.message;
+    }
+  }
+
   async function saveAttendance(){
     const msg = document.getElementById('saveAttMsg');
     const year = document.getElementById('recYear').value;
@@ -265,6 +351,13 @@
     const lecture = document.getElementById('recLecture').value;
     const date = document.getElementById('recDate').value;
 
+    if(isDoctorOnly && subject !== fullUserData.subjectDoctorOf){
+      msg.className='msg error'; msg.textContent='⛔ أنت مسموح لك بمادتك بس: '+fullUserData.subjectDoctorOf; return;
+    }
+    if(isLeaderOnly && department !== fullUserData.departmentLeaderOf){
+      msg.className='msg error'; msg.textContent='⛔ أنت مسموح لك بقسمك بس: '+fullUserData.departmentLeaderOf; return;
+    }
+
     const presentPhones = [];
     const absentPhones = [];
     document.querySelectorAll('.present-check').forEach(c=>{
@@ -273,12 +366,22 @@
 
     msg.className='msg info'; msg.textContent='جاري الحفظ...';
     try{
-      await db.collection('attendance').add({
-        year, division, department, subject, lecture: Number(lecture), date,
-        presentPhones, absentPhones,
-        createdBy: user.phone, createdAt: Date.now()
-      });
-      msg.className='msg success'; msg.textContent='✅ تم حفظ الحضور بنجاح';
+      if(editingSessionId){
+        await db.collection('attendance').doc(editingSessionId).update({
+          year, division, department, subject, lecture: Number(lecture), date,
+          presentPhones, absentPhones,
+          updatedBy: user.phone, updatedAt: Date.now()
+        });
+        msg.className='msg success'; msg.textContent='✅ تم تحديث المحاضرة بنجاح';
+        editingSessionId = null;
+      } else {
+        await db.collection('attendance').add({
+          year, division, department, subject, lecture: Number(lecture), date,
+          presentPhones, absentPhones,
+          createdBy: user.phone, createdAt: Date.now()
+        });
+        msg.className='msg success'; msg.textContent='✅ تم حفظ الحضور بنجاح';
+      }
       loadRecentSessions();
     }catch(e){
       msg.className='msg error'; msg.textContent='حدث خطأ: '+e.message;
@@ -288,22 +391,69 @@
   async function loadRecentSessions(){
     const box = document.getElementById('recentSessionsList');
     try{
-      const snap = await db.collection('attendance').orderBy('createdAt','desc').limit(15).get();
+      let snap;
+      if(isDoctorOnly){
+        snap = await db.collection('attendance').where('subject','==', fullUserData.subjectDoctorOf).limit(50).get();
+      } else if(isLeaderOnly){
+        snap = await db.collection('attendance').where('department','==', fullUserData.departmentLeaderOf).limit(50).get();
+      } else {
+        snap = await db.collection('attendance').orderBy('createdAt','desc').limit(15).get();
+      }
       if(snap.empty){ box.innerHTML = '<p style="font-size:13px;color:#7a93ad;">لا توجد محاضرات مسجلة بعد</p>'; return; }
+      let docs = snap.docs;
+      if(isDoctorOnly || isLeaderOnly){
+        docs = docs.sort((a,b)=> (b.data().createdAt||0) - (a.data().createdAt||0)).slice(0,15);
+      }
       let html = '';
-      snap.forEach(doc=>{
+      docs.forEach(doc=>{
         const d = doc.data();
+        const canManage = isFullAccess || (isDoctorOnly && d.subject===fullUserData.subjectDoctorOf) || (isLeaderOnly && d.department===fullUserData.departmentLeaderOf);
         html += `<div class="record-item present" style="background:#f8faff;">
           <span>${d.subject} — محاضرة ${d.lecture} — ${d.date} — ${d.year} ${d.division||''} ${d.department||''}</span>
-          <div style="display:flex;gap:6px;">
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
             <span style="font-size:11.5px;color:#147a35;">حاضر: ${(d.presentPhones||[]).length}</span>
             <span style="font-size:11.5px;color:#b00020;">غايب: ${(d.absentPhones||[]).length}</span>
             <button class="btn btn-excel btn-sm" onclick='exportSessionExcel(${JSON.stringify(JSON.stringify(d))})'>Excel</button>
+            ${canManage ? `<button class="btn btn-blue btn-sm" onclick='editSession("${doc.id}", ${JSON.stringify(JSON.stringify(d))})'>✏️ تعديل</button>
+            <button class="btn btn-reject btn-sm" onclick="deleteSession('${doc.id}')">🗑️ حذف</button>` : ''}
           </div>
         </div>`;
       });
       box.innerHTML = html;
     }catch(e){ box.innerHTML = '<p style="font-size:12px;color:#b00020;">تعذر تحميل المحاضرات الأخيرة</p>'; }
+  }
+
+  let editingSessionId = null;
+  async function editSession(docId, dJson){
+    const d = JSON.parse(dJson);
+    const canManage = isFullAccess || (isDoctorOnly && d.subject===fullUserData.subjectDoctorOf) || (isLeaderOnly && d.department===fullUserData.departmentLeaderOf);
+    if(!canManage){ alert('⛔ مش مسموح لك تعدل المحاضرة دي'); return; }
+    editingSessionId = docId;
+    document.getElementById('recYear').value = d.year || '';
+    document.getElementById('recDivision').value = d.division || '';
+    if(!isLeaderOnly) document.getElementById('recDepartment').value = d.department || '';
+    if(!isDoctorOnly) document.getElementById('recSubject').value = d.subject || '';
+    document.getElementById('recLecture').value = d.lecture || '';
+    document.getElementById('recDate').value = d.date || '';
+    await loadStudentsForAttendance();
+    (d.presentPhones||[]).forEach(()=>{});
+    document.querySelectorAll('.present-check').forEach(c=>{
+      c.checked = (d.presentPhones||[]).includes(c.dataset.phone);
+    });
+    document.getElementById('saveAttMsg').className='msg info';
+    document.getElementById('saveAttMsg').textContent='بتعدّل محاضرة موجودة — اضغط "حفظ الحضور" لتحديثها';
+    window.scrollTo({top: document.getElementById('studentsBox').offsetTop - 20, behavior:'smooth'});
+  }
+  async function deleteSession(docId){
+    if(!confirm('حذف المحاضرة دي نهائيًا؟')) return;
+    try{
+      const doc = await db.collection('attendance').doc(docId).get();
+      const d = doc.exists ? doc.data() : {};
+      const canManage = isFullAccess || (isDoctorOnly && d.subject===fullUserData.subjectDoctorOf) || (isLeaderOnly && d.department===fullUserData.departmentLeaderOf);
+      if(!canManage){ alert('⛔ مش مسموح لك تمسح المحاضرة دي'); return; }
+      await db.collection('attendance').doc(docId).delete();
+      loadRecentSessions();
+    }catch(e){ alert('حدث خطأ: '+e.message); }
   }
 
   async function exportSessionExcel(dJson){

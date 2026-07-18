@@ -85,8 +85,7 @@
       <button onclick="showTab('admins', this)">المشرفون</button>
       <button onclick="showTab('groups', this)">الجروبات</button>
       <button onclick="showTab('schedule', this)">جدول المحاضرات</button>
-      <button onclick="showTab('books', this)">الكتب المقفولة</button>
-      <button onclick="showTab('bookPayments', this)">💳 مسددين الكتب</button>
+      <button onclick="showTab('books', this)">الكتب</button>
       <button onclick="showTab('points', this)">النقاط وترتيب الفخر</button>
       <button onclick="showTab('announce', this)">التنبيهات</button>
       <button onclick="showTab('folders', this)">📁 المجلدات</button>
@@ -102,23 +101,36 @@
       <button onclick="showTab('permissions', this)">🔑 الأذونات</button>
       <button onclick="showTab('advisingAdmin', this)">🎓 الإرشاد الأكاديمي</button>
       <button onclick="showTab('attendanceAdmin', this)">🗓️ دفتر الغياب</button>
+      <button onclick="showTab('subjectDoctor', this)">🧑‍🏫 إدارة دكتور المادة</button>
     </div>
 
     <!-- ===== لوحة الاحصائيات ===== -->
     <div class="section active" id="tab-dashboard">
-      <div class="stats-grid" id="statsGrid">
-        <div class="stat-card"><div class="num" id="statUsers">0</div><div class="label">👥 إجمالي الأعضاء</div></div>
-        <div class="stat-card gold"><div class="num" id="statGroups">0</div><div class="label">💬 عدد الجروبات</div></div>
-        <div class="stat-card green"><div class="num" id="statMessages">0</div><div class="label">📨 إجمالي الرسائل</div></div>
-        <div class="stat-card purple"><div class="num" id="statSummaries">0</div><div class="label">📝 إجمالي الملخصات</div></div>
-        <div class="stat-card orange"><div class="num" id="statBooks">0</div><div class="label">📚 إجمالي الكتب</div></div>
-      </div>
-      <div class="card-box">
-        <b style="display:block;margin-bottom:10px;">🏆 أعلى 5 طلاب في النقاط</b>
-        <div id="topStudentsList"></div>
+      <div id="dashboardCaptureArea">
+        <div class="stats-grid" id="statsGrid">
+          <div class="stat-card"><div class="num" id="statUsers">0</div><div class="label">👥 إجمالي الأعضاء</div></div>
+          <div class="stat-card gold"><div class="num" id="statGroups">0</div><div class="label">💬 عدد الجروبات</div></div>
+          <div class="stat-card green"><div class="num" id="statMessages">0</div><div class="label">📨 إجمالي الرسائل</div></div>
+          <div class="stat-card purple"><div class="num" id="statSummaries">0</div><div class="label">📝 إجمالي الملخصات</div></div>
+          <div class="stat-card orange"><div class="num" id="statBooks">0</div><div class="label">📚 إجمالي الكتب</div></div>
+        </div>
+        <div class="card-box">
+          <b style="display:block;margin-bottom:10px;">📊 توزيع الأعضاء حسب الفرقة</b>
+          <canvas id="chartByYear" height="120"></canvas>
+        </div>
+        <div class="card-box">
+          <b style="display:block;margin-bottom:10px;">📊 توزيع الأعضاء حسب القسم</b>
+          <canvas id="chartByDepartment" height="120"></canvas>
+        </div>
+        <div class="card-box">
+          <b style="display:block;margin-bottom:10px;">🏆 أعلى 5 طلاب في النقاط</b>
+          <div id="topStudentsList"></div>
+          <canvas id="chartTopStudents" height="120" style="margin-top:10px;"></canvas>
+        </div>
       </div>
       <div class="card-box" style="text-align:center;">
         <button class="btn btn-excel" onclick="exportExcel()" style="padding:12px 30px;font-size:16px;">📊 تحميل بيانات الأعضاء (Excel)</button>
+        <button class="btn btn-pdf" onclick="exportDashboardPdf()" style="padding:12px 30px;font-size:16px;background:#b0201f;color:#fff;border:none;border-radius:10px;font-weight:700;cursor:pointer;">📄 تحميل الإحصائيات (PDF)</button>
         <p style="font-size:12px;color:#7a93ad;margin-top:6px;">ملف Excel يحتوي على: الاسم، الرقم، الفرقة، النقاط، الحالة</p>
       </div>
     </div>
@@ -151,6 +163,9 @@
         </select>
         <button class="btn btn-approve btn-sm" onclick="batchUpdateUsers()">💾 تطبيق</button>
         <span id="batchMsg" style="font-size:12px;color:#7a93ad;"></span>
+      </div>
+      <div class="card-box" style="padding:12px;">
+        <input type="text" id="userSearchInput" placeholder="🔍 دور بالاسم / الرقم / الفرقة / القسم / الشعبة / الحالة (مستجد أو باقي)" style="width:100%;padding:10px 12px;border-radius:10px;border:1.5px solid #cfe2f7;font-size:13.5px;" oninput="filterUsersList()">
       </div>
       <div id="usersList"></div>
     </div>
@@ -204,13 +219,11 @@
         <p style="font-size:11.5px;color:#9bb3cb;margin-top:2px;">📎 الملفات بتترفع على سحابة Cloudinary.</p>
       </div>
       <div id="booksAdminList"></div>
-    </div>
 
-    <!-- ===== مسددين الكتب ===== -->
-    <div class="section" id="tab-bookPayments">
-      <div class="card-box">
+      <!-- مسددين الكتب (مدموجة هنا) -->
+      <div class="card-box" style="border-right:4px solid #1d6f42;">
         <b style="display:block;margin-bottom:8px;">💳 مسددين رسوم الكتب</b>
-        <p style="font-size:12px;color:#7a93ad;margin-bottom:8px;">الأعضاء هنا متقسمين حسب القسم. حط ✔️ قدام كل عضو دفع رسوم الكتب. الكتب هتظهر بس للأعضاء اللي عندهم ✔️.</p>
+        <p style="font-size:12px;color:#7a93ad;margin-bottom:8px;">الأعضاء هنا متقسمين حسب القسم. حط ✔️ قدام كل عضو دفع رسوم الكتب. الكتب المقفولة هتظهر بس للأعضاء اللي عندهم ✔️.</p>
         <div id="bookPaymentsList"><p style="font-size:13px;color:#7a93ad;">جاري التحميل...</p></div>
       </div>
     </div>
@@ -427,6 +440,14 @@
       <div class="card-box">
         <b style="display:block;margin-bottom:8px;">📅 جدول محاضرات خاص بشعبة/قسم معين (اختياري)</b>
         <p style="font-size:12px;color:#7a93ad;margin-bottom:8px;">لو محتاج جدول مختلف لكل شعبة، اختار الفرقة/الشعبة/القسم وحدد الجدول الخاص بيهم. لو سبتها فاضية هيشوفوا الجدول العام العادي.</p>
+        <div style="background:#f8faff;border:1.5px dashed #b8d4f5;border-radius:10px;padding:10px;margin-bottom:10px;">
+          <b style="font-size:13px;display:block;margin-bottom:6px;">📷 رفع صورة الجدول (استخراج تلقائي)</b>
+          <input type="file" id="schedImageInput" accept="image/*">
+          <button class="btn btn-blue btn-sm" onclick="extractScheduleFromImage()">🔎 استخراج من الصورة</button>
+          <p id="schedOcrStatus" style="font-size:11.5px;color:#7a93ad;margin-top:6px;"></p>
+          <p style="font-size:11px;color:#9bb3cb;">⚠️ الاستخراج تلقائي وممكن يحتاج تعديل يدوي، راجع كل صف قبل ما تضيفه للجدول.</p>
+          <div id="schedExtractedRows" style="margin-top:8px;"></div>
+        </div>
         <div class="form-line">
           <select id="schedScopeYear"><option value="">الفرقة</option><option>الأولى</option><option>الثانية</option><option>الثالثة</option><option>الرابعة</option></select>
           <select id="schedScopeDivision"><option value="">الشعبة</option></select>
@@ -488,6 +509,33 @@
 
     <!-- ===== الإرشاد الأكاديمي (أدمن) ===== -->
     <div class="section" id="tab-advisingAdmin">
+      <div class="card-box">
+        <b style="display:block;margin-bottom:8px;">📘 منهج المواد لكل ترم (بيظهر تلقائي للطالب لما يختار الترم)</b>
+        <p style="font-size:12px;color:#7a93ad;margin-bottom:8px;">حدد الترم وضيف المواد وعدد ساعاتها هنا مرة واحدة، وهتظهر تلقائيًا لكل الطلاب لما يختاروا نفس الترم في صفحة الإرشاد الأكاديمي (وهو بس هيملى الدرجة والتقدير).</p>
+        <div class="form-line">
+          <select id="currTerm">
+            <option value="1">الترم الأول</option>
+            <option value="2">الترم الثاني</option>
+            <option value="3">الترم الثالث</option>
+            <option value="4">الترم الرابع</option>
+            <option value="5">الترم الخامس</option>
+            <option value="6">الترم السادس</option>
+          </select>
+          <button class="btn btn-blue" onclick="loadCurriculumTerm()">📥 تحميل مواد الترم ده</button>
+        </div>
+        <div style="background:#f8faff;border:1.5px dashed #b8d4f5;border-radius:10px;padding:10px;margin:10px 0;">
+          <b style="font-size:13px;display:block;margin-bottom:6px;">📷 رفع صورة بأسماء المواد وعدد الساعات (استخراج تلقائي)</b>
+          <input type="file" id="currImageInput" accept="image/*">
+          <button class="btn btn-blue btn-sm" onclick="extractCurriculumFromImage()">🔎 استخراج من الصورة</button>
+          <p id="currOcrStatus" style="font-size:11.5px;color:#7a93ad;margin-top:6px;"></p>
+        </div>
+        <div class="form-line">
+          <input type="text" id="currSubjectInput" placeholder="اسم المادة">
+          <select id="currHoursInput"><option value="2">2 ساعة</option><option value="1">1 ساعة</option></select>
+          <button class="btn btn-approve" onclick="addCurriculumSubject()">➕ إضافة مادة</button>
+        </div>
+        <div id="curriculumList"></div>
+      </div>
       <div class="card-box" style="text-align:center;">
         <button class="btn btn-excel" onclick="exportAdvisingExcel()" style="padding:12px 30px;font-size:16px;">📊 تحميل بيانات الإرشاد الأكاديمي لكل الطلاب (Excel)</button>
         <p style="font-size:12px;color:#7a93ad;margin-top:6px;">يحتوي: الاسم، الرقم، الفرقة، الشعبة، القسم، الحالة، عدد الإنذارات، المواد الراسبة، آخر GPA</p>
@@ -544,6 +592,36 @@
       </div>
     </div>
 
+    <!-- ===== إدارة دكتور المادة ===== -->
+    <div class="section" id="tab-subjectDoctor">
+      <div class="card-box" id="sdInfoBox">
+        <p style="font-size:13px;color:#3c5675;line-height:1.9;">
+          هنا كل دكتور مادة (أو الأدمن) يقدر يدير <b>دفتر الغياب</b> و<b>درجات الطلبة</b> (الميد والعملي) الخاصة بمادته. الدرجات هتظهر للطالب في صفحة "حسابي" بس.
+        </p>
+        <a href="attendance.html" class="btn btn-blue" style="text-decoration:none;display:inline-block;margin-top:8px;">📋 فتح دفتر غياب المادة</a>
+      </div>
+      <div class="card-box">
+        <b style="display:block;margin-bottom:8px;">🎯 اختيار المادة والمجموعة</b>
+        <div class="form-line" id="sdSubjectRow">
+          <input type="text" id="sdSubjectInput" placeholder="اسم المادة">
+        </div>
+        <div class="form-line">
+          <select id="sdYear"><option value="">الفرقة</option><option>الأولى</option><option>الثانية</option><option>الثالثة</option><option>الرابعة</option></select>
+          <select id="sdDivision"><option value="">الشعبة (اختياري)</option></select>
+          <select id="sdDepartment"><option value="">القسم</option></select>
+          <button class="btn btn-blue" onclick="loadSubjectDoctorStudents()">📥 تحميل الطلبة</button>
+        </div>
+        <div class="msg" id="sdMsg"></div>
+      </div>
+      <div class="card-box" id="sdGradesBox" style="display:none;">
+        <b style="display:block;margin-bottom:8px;">📝 درجات الطلبة</b>
+        <table style="width:100%;border-collapse:collapse;">
+          <thead><tr style="font-size:12px;color:var(--blue-deep);"><th style="text-align:right;">الاسم</th><th>الميد</th><th>العملي</th><th></th></tr></thead>
+          <tbody id="sdGradesBody"></tbody>
+        </table>
+      </div>
+    </div>
+
     <!-- ===== دفتر الغياب (أدمن) ===== -->
     <div class="section" id="tab-attendanceAdmin">
       <div class="card-box">
@@ -575,6 +653,10 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <script>
   const firebaseConfig = {
@@ -601,9 +683,10 @@
   // ===== نظام التحقق من الهوية الحقيقي (مش مجرد كلمة سر ظاهرة في الكود) =====
   let CURRENT_USER_PHONE = null;
   let CURRENT_USER_ROLE = null;
-  let ADMIN_MODE = 'none'; // 'admin' | 'leader' | 'none'
+  let ADMIN_MODE = 'none'; // 'admin' | 'leader' | 'doctor' | 'none'
   let LEADER_DEPT = null;
   let LEADER_ALLOWED_TABS = [];
+  let DOCTOR_SUBJECT = null;
   const LEADER_FORBIDDEN_TABS = ['permissions','roles','admins','whitelist','aboutEdit','scope']; // تبويبات حساسة ممنوعة على الليدر مهما كان
 
   async function verifyIsAdmin(){
@@ -641,6 +724,12 @@
         enterLeaderPanel();
         return;
       }
+      if(u.subjectDoctorOf){
+        ADMIN_MODE = 'doctor';
+        DOCTOR_SUBJECT = u.subjectDoctorOf;
+        enterDoctorPanel();
+        return;
+      }
       showUnauthorized();
     }catch(e){
       console.warn('تعذر التحقق من الصلاحيات', e);
@@ -675,6 +764,28 @@
     topbarEl.insertAdjacentElement('afterend', banner);
     loadAll();
     if(firstBtn) firstBtn.click();
+  }
+
+  function enterDoctorPanel(){
+    document.getElementById('lockScreen').style.display='none';
+    document.getElementById('adminPanel').style.display='block';
+    document.querySelectorAll('.tabs button').forEach(btn=>{
+      const m = (btn.getAttribute('onclick')||'').match(/showTab\('([^']+)'/);
+      const tabId = m ? m[1] : null;
+      btn.style.display = (tabId === 'subjectDoctor') ? '' : 'none';
+    });
+    const topbarEl = document.querySelector('.topbar');
+    const banner = document.createElement('div');
+    banner.style.cssText='background:#f5a623;color:#5c3d00;padding:7px 20px;font-size:12.5px;font-weight:800;text-align:center;';
+    banner.textContent = `🧑‍🏫 دخلت كدكتور مادة "${DOCTOR_SUBJECT}" — بتدير مادتك بس`;
+    topbarEl.insertAdjacentElement('afterend', banner);
+    document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+    document.getElementById('tab-subjectDoctor').classList.add('active');
+    const subjEl = document.getElementById('sdSubjectInput');
+    subjEl.value = DOCTOR_SUBJECT;
+    subjEl.readOnly = true;
+    subjEl.style.background = '#eef2f7';
+    loadScopeLists();
   }
 
   document.addEventListener('DOMContentLoaded', initAccessControl);
@@ -724,8 +835,7 @@
     if(id === 'aboutEdit') { loadAboutContent(); }
     if(id === 'forumManage') { loadForumAdmin(); }
     if(id === 'whitelist') { loadWhitelist(); }
-    if(id === 'books') { loadBookFolders(); loadBooks(); }
-    if(id === 'bookPayments') { loadBookPayments(); }
+    if(id === 'books') { loadBookFolders(); loadBooks(); loadBookPayments(); }
     if(id === 'scope') { loadScopeLists(); }
     if(id === 'roles') { loadRoleLists(); }
     if(id === 'permissions') { loadPermissionsList(); }
@@ -773,8 +883,62 @@
       document.getElementById('statSummaries').textContent = summariesSnap.size;
       const booksSnap = await db.collection('books').get();
       document.getElementById('statBooks').textContent = booksSnap.size;
+
+      // توزيع الأعضاء حسب الفرقة والقسم للرسوم البيانية
+      const byYear = {}, byDept = {};
+      usersSnap.forEach(doc=>{
+        const u = doc.data();
+        if(u.role==='admin') return;
+        const y = u.year || 'غير محدد';
+        const dep = u.department || 'غير محدد';
+        byYear[y] = (byYear[y]||0) + 1;
+        byDept[dep] = (byDept[dep]||0) + 1;
+      });
+      drawDashboardCharts(byYear, byDept);
       await loadTopStudents();
     }catch(e){ console.warn('خطأ في الاحصائيات:', e); }
+  }
+
+  let dashCharts = {};
+  function drawDashboardCharts(byYear, byDept){
+    if(typeof Chart === 'undefined') return;
+    const palette = ['#1565d8','#2f9bf0','#f5a623','#147a35','#b00020','#7a5cf0','#1d6f42'];
+    const makeChart = (canvasId, labels, values, type) => {
+      const el = document.getElementById(canvasId);
+      if(!el) return;
+      if(dashCharts[canvasId]) dashCharts[canvasId].destroy();
+      dashCharts[canvasId] = new Chart(el.getContext('2d'), {
+        type: type || 'bar',
+        data: { labels, datasets: [{ label:'عدد الأعضاء', data: values, backgroundColor: labels.map((_,i)=>palette[i%palette.length]) }] },
+        options: { responsive:true, plugins:{ legend:{ display:false } }, scales: type==='pie' ? {} : { y:{ beginAtZero:true, ticks:{ precision:0 } } } }
+      });
+    };
+    makeChart('chartByYear', Object.keys(byYear), Object.values(byYear), 'bar');
+    makeChart('chartByDepartment', Object.keys(byDept), Object.values(byDept), 'pie');
+  }
+
+  async function exportDashboardPdf(){
+    if(typeof html2canvas === 'undefined' || typeof window.jspdf === 'undefined'){
+      alert('تعذر تحميل مكتبات تصدير PDF، تأكد من الاتصال بالإنترنت'); return;
+    }
+    const area = document.getElementById('dashboardCaptureArea');
+    const canvas = await html2canvas(area, { scale: 2, backgroundColor: '#eaf4ff' });
+    const imgData = canvas.toDataURL('image/png');
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const imgHeight = (canvas.height * pageWidth) / canvas.width;
+    let heightLeft = imgHeight;
+    let position = 0;
+    pdf.addImage(imgData, 'PNG', 0, position, pageWidth, imgHeight);
+    heightLeft -= pdf.internal.pageSize.getHeight();
+    while(heightLeft > 0){
+      position = heightLeft - imgHeight;
+      pdf.addPage();
+      pdf.addImage(imgData, 'PNG', 0, position, pageWidth, imgHeight);
+      heightLeft -= pdf.internal.pageSize.getHeight();
+    }
+    pdf.save('احصائيات_الموقع.pdf');
   }
 
   async function loadTopStudents(){
@@ -792,6 +956,17 @@
           <span style="font-weight:700;color:#f5a623;">${u.points||0} نقطة</span>
         </div>`;
       }).join('');
+      if(typeof Chart !== 'undefined'){
+        const el = document.getElementById('chartTopStudents');
+        if(el){
+          if(dashCharts['chartTopStudents']) dashCharts['chartTopStudents'].destroy();
+          dashCharts['chartTopStudents'] = new Chart(el.getContext('2d'), {
+            type: 'bar',
+            data: { labels: top.map(u=>u.name), datasets: [{ label:'النقاط', data: top.map(u=>u.points||0), backgroundColor:'#f5a623' }] },
+            options: { indexAxis:'y', responsive:true, plugins:{ legend:{ display:false } }, scales:{ x:{ beginAtZero:true, ticks:{ precision:0 } } } }
+          });
+        }
+      }
     }catch(e){ box.innerHTML = '<p style="font-size:13px;color:#7a93ad;">تعذّر التحميل</p>'; }
   }
 
@@ -1730,23 +1905,50 @@
   async function rejectUser(phone){ if(!confirm('حذف الطلب؟')) return; await db.collection('users').doc(phone).delete(); loadPending(); }
 
   // ====== loadUsers (مع مربعات الاختيار) ======
+  let allLoadedUsers = [];
+  let isAdminForUsersList = false;
   async function loadUsers(){
     const box = document.getElementById('usersList');
     box.innerHTML='جاري التحميل...';
     const snap = await db.collection('users').where('approved','==',true).get();
-    box.innerHTML='';
     const users = [];
     snap.forEach(doc => users.push({ id: doc.id, ...doc.data() }));
     users.sort((a,b) => (a.name || '').localeCompare(b.name || ''));
-    
-    const isAdmin = await verifyIsAdmin();
+
+    isAdminForUsersList = await verifyIsAdmin();
     const scopedUsers = (ADMIN_MODE === 'leader' && LEADER_DEPT) ? users.filter(u => u.department === LEADER_DEPT) : users;
+    allLoadedUsers = scopedUsers;
+    renderUsersList(scopedUsers);
+  }
+
+  function filterUsersList(){
+    const q = (document.getElementById('userSearchInput').value || '').trim().toLowerCase();
+    if(!q){ renderUsersList(allLoadedUsers); return; }
+    const filtered = allLoadedUsers.filter(u=>{
+      return (u.name||'').toLowerCase().includes(q) ||
+        (u.phone||'').toLowerCase().includes(q) ||
+        (u.year||'').toLowerCase().includes(q) ||
+        (u.department||'').toLowerCase().includes(q) ||
+        (u.division||'').toLowerCase().includes(q) ||
+        (u.status||'').toLowerCase().includes(q);
+    });
+    renderUsersList(filtered);
+  }
+
+  function renderUsersList(scopedUsers){
+    const box = document.getElementById('usersList');
+    const isAdmin = isAdminForUsersList;
+    box.innerHTML='';
+    if(!scopedUsers.length){ box.innerHTML = '<p style="font-size:13px;color:#9bb3cb;">لا يوجد أعضاء مطابقين</p>'; return; }
 
     scopedUsers.forEach(u => {
       const el = document.createElement('div');
       el.className='card-box';
       const roleLabel = u.role==='admin'?'👑 أدمن':u.role==='co-admin'?'🔑 مشرف':'طالب';
-      
+      const avatarHtml = u.avatar
+        ? `<img src="${u.avatar}" style="width:38px;height:38px;border-radius:50%;object-fit:cover;flex-shrink:0;">`
+        : `<div style="width:38px;height:38px;border-radius:50%;background:var(--blue-bright,#2f9bf0);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0;">${(u.name||'؟').charAt(0)}</div>`;
+
       let actionsHtml = '';
       if (isAdmin) {
         actionsHtml = `
@@ -1765,13 +1967,23 @@
       el.innerHTML = `
         <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
           <input type="checkbox" class="user-checkbox" data-phone="${u.id}" style="width:18px;height:18px;cursor:pointer;flex-shrink:0;">
+          ${avatarHtml}
           <div class="meta" style="flex:1;min-width:150px;">
             <b>${u.name} — ${roleLabel}</b>
-            <span>${u.phone} — الفرقة ${u.year||''} ${u.division?'— '+u.division:''} ${u.department?'— '+u.department:''} ${u.status?'— '+u.status:''} ${u.activeSession?'— 🟢 متصل':''} ${(u.warnings||0)>0?'— ⚠️ '+u.warnings+' إنذار':''}</span>
+            <span>${u.phone} — الفرقة ${u.year||''} ${u.division?'— '+u.division:''} ${u.department?'— '+u.department:''} ${u.activeSession?'— 🟢 متصل':''} ${(u.warnings||0)>0?'— ⚠️ '+u.warnings+' إنذار':''}</span>
           </div>
           <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
             ${actionsHtml}
           </div>
+        </div>
+        <div style="margin-top:8px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; background:#f8faff; padding:6px 10px; border-radius:8px;">
+          <span style="font-size:12px; font-weight:bold; color:var(--blue-deep);">الحالة:</span>
+          <select id="status_input_${u.id}" style="padding:5px 8px;border-radius:8px;border:1.5px solid #cfe2f7;font-size:12.5px;">
+            <option value="مستجد" ${u.status==='مستجد'?'selected':''}>مستجد</option>
+            <option value="باقي" ${u.status==='باقي'?'selected':''}>باقي</option>
+          </select>
+          <button class="btn btn-blue" style="padding:4px 12px; font-size:12px;" onclick="updateUserStatus('${u.id}')">💾 حفظ الحالة</button>
+          <span id="status_msg_${u.id}" style="font-size:11px; color:#7a93ad;"></span>
         </div>
         <div style="margin-top:8px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; background:#f8faff; padding:6px 10px; border-radius:8px;">
           <span style="font-size:12px; font-weight:bold; color:var(--blue-deep);">⭐ النقاط:</span>
@@ -1782,6 +1994,21 @@
       `;
       box.appendChild(el);
     });
+  }
+
+  async function updateUserStatus(phone){
+    const sel = document.getElementById('status_input_'+phone);
+    const msg = document.getElementById('status_msg_'+phone);
+    if(ADMIN_MODE === 'leader' && LEADER_DEPT){
+      const u = allLoadedUsers.find(x=>x.id===phone);
+      if(!u || u.department !== LEADER_DEPT){ msg.textContent='⛔ مسموح لك بطلاب قسمك بس'; msg.style.color='#b00020'; return; }
+    }
+    try{
+      await db.collection('users').doc(phone).update({ status: sel.value });
+      msg.textContent = '✅ اتحفظت'; msg.style.color = '#147a35';
+      const u = allLoadedUsers.find(x=>x.id===phone);
+      if(u) u.status = sel.value;
+    }catch(e){ msg.textContent = '❌ خطأ: '+e.message; msg.style.color = '#b00020'; }
   }
 
   async function updateUserPoints(phone){
@@ -2062,8 +2289,12 @@
     fillSelect('batchDepartment', scope.departments, '<option value="">تعديل القسم...</option>');
     fillSelect('gpaFilterDivision', scope.divisions, '<option value="">كل الشعب</option>');
     fillSelect('gpaFilterDepartment', scope.departments, '<option value="">كل الأقسام</option>');
-    // في وضع الليدر: قفل فلتر القسم على قسمه هو بس
+    fillSelect('sdDivision', scope.divisions, '<option value="">الشعبة (اختياري)</option>');
+    fillSelect('sdDepartment', scope.departments, '<option value="">القسم</option>');
+    // في وضع الليدر: قفل فلتر القسم على قسمه هو بس (ما ينفعش يشتغل أو حتى يشوف قسم تاني، حتى في صفحة الجداول)
     if(ADMIN_MODE === 'leader' && LEADER_DEPT){
+      const schedDepSel = document.getElementById('schedScopeDepartment');
+      if(schedDepSel){ schedDepSel.innerHTML = `<option value="${LEADER_DEPT}">${LEADER_DEPT}</option>`; schedDepSel.value = LEADER_DEPT; schedDepSel.disabled = true; }
       const depSel = document.getElementById('gpaFilterDepartment');
       if(depSel){ depSel.innerHTML = `<option value="${LEADER_DEPT}">${LEADER_DEPT}</option>`; depSel.value = LEADER_DEPT; depSel.disabled = true; }
     }
@@ -2089,10 +2320,15 @@
 
   // جدول محاضرات خاص بشعبة/قسم
   function currentSchedScopeKey(){
-    const y = document.getElementById('schedScopeYear').value;
-    const d = document.getElementById('schedScopeDivision').value;
-    const p = document.getElementById('schedScopeDepartment').value;
+    const y = document.getElementById('schedScopeYear').value.trim();
+    const d = document.getElementById('schedScopeDivision').value.trim();
+    const p = document.getElementById('schedScopeDepartment').value.trim();
     if(!y || !d || !p) return null;
+    // ليدر القسم مينفعش يعدل/يضيف جدول لقسم تاني حتى لو حاول يغير الـ select من الـ devtools
+    if(ADMIN_MODE === 'leader' && LEADER_DEPT && p !== LEADER_DEPT){
+      alert('⛔ مسموح لك بجدول قسمك بس: ' + LEADER_DEPT);
+      return null;
+    }
     return 'schedule_' + y + '__' + d + '__' + p;
   }
   async function loadScopedSchedule(){
@@ -2129,6 +2365,66 @@
     const items = snap.data().items||[];
     items.splice(i,1);
     await ref.set({items});
+    loadScopedSchedule();
+  }
+
+  // ==================== استخراج الجدول من صورة (OCR) ====================
+  async function extractScheduleFromImage(){
+    const fileInput = document.getElementById('schedImageInput');
+    const status = document.getElementById('schedOcrStatus');
+    const file = fileInput.files[0];
+    if(!file){ status.textContent = 'اختر صورة الجدول الأول'; return; }
+    if(typeof Tesseract === 'undefined'){ status.textContent = '⚠️ تعذر تحميل مكتبة قراءة الصور، تأكد من الاتصال بالإنترنت'; return; }
+    status.textContent = '⏳ جاري قراءة الصورة (ممكن تاخد شوية ثواني)...';
+    try{
+      const { data } = await Tesseract.recognize(file, 'ara+eng', {
+        logger: m => { if(m.status==='recognizing text') status.textContent = `⏳ جاري القراءة... ${Math.round((m.progress||0)*100)}%`; }
+      });
+      const lines = (data.text || '').split('\n').map(l=>l.trim()).filter(l=>l.length>2);
+      if(!lines.length){ status.textContent = '❌ مقدرش أقرا حاجة واضحة من الصورة'; return; }
+      // كل سطر بنحاول نقسمه لأعمدة (يوم/مادة/ميعاد/مكان) بالاعتماد على مسافتين أو أكتر أو Tab
+      const guessedRows = lines.map(line=>{
+        const cols = line.split(/\t|\s{2,}/).map(c=>c.trim()).filter(Boolean);
+        return { day: cols[0]||'', subject: cols[1]||line, time: cols[2]||'', place: cols[3]||'' };
+      });
+      renderExtractedScheduleRows(guessedRows);
+      status.textContent = `✅ استخرجنا ${guessedRows.length} سطر — راجع كل صف وعدّل اللي محتاج تعديل قبل ما تضيفه`;
+    }catch(e){
+      status.textContent = '❌ حدث خطأ أثناء قراءة الصورة: ' + e.message;
+    }
+  }
+
+  function renderExtractedScheduleRows(rows){
+    const box = document.getElementById('schedExtractedRows');
+    box.innerHTML = rows.map((r,i)=>`
+      <div class="form-line" data-row="${i}" style="margin-top:6px;">
+        <input type="text" class="ocrDay" placeholder="اليوم" value="${(r.day||'').replace(/"/g,'&quot;')}">
+        <input type="text" class="ocrSubject" placeholder="المادة" value="${(r.subject||'').replace(/"/g,'&quot;')}">
+        <input type="text" class="ocrTime" placeholder="الميعاد" value="${(r.time||'').replace(/"/g,'&quot;')}">
+        <input type="text" class="ocrPlace" placeholder="المكان" value="${(r.place||'').replace(/"/g,'&quot;')}">
+        <button class="btn btn-reject btn-sm" onclick="this.closest('[data-row]').remove()">حذف السطر</button>
+      </div>`).join('') + `<button class="btn btn-approve" style="margin-top:10px;" onclick="saveExtractedScheduleRows()">💾 إضافة كل الصفوف دي للجدول</button>`;
+  }
+
+  async function saveExtractedScheduleRows(){
+    const key = currentSchedScopeKey();
+    if(!key){ alert('اختر الفرقة والشعبة والقسم أولًا'); return; }
+    const rows = document.querySelectorAll('#schedExtractedRows [data-row]');
+    if(!rows.length){ alert('مفيش صفوف لإضافتها'); return; }
+    const ref = db.collection('settings').doc(key);
+    const snap = await ref.get();
+    const items = snap.exists ? (snap.data().items||[]) : [];
+    rows.forEach(row=>{
+      const day = row.querySelector('.ocrDay').value.trim();
+      const subject = row.querySelector('.ocrSubject').value.trim();
+      const time = row.querySelector('.ocrTime').value.trim();
+      const place = row.querySelector('.ocrPlace').value.trim();
+      if(day && subject && time) items.push({day, subject, time, place});
+    });
+    await ref.set({items});
+    document.getElementById('schedExtractedRows').innerHTML = '';
+    document.getElementById('schedOcrStatus').textContent = '✅ اتضافت الصفوف للجدول بنجاح';
+    document.getElementById('schedImageInput').value = '';
     loadScopedSchedule();
   }
 
@@ -2388,8 +2684,7 @@
     {id:'users', label:'كل الأعضاء'},
     {id:'groups', label:'الجروبات'},
     {id:'schedule', label:'جدول المحاضرات'},
-    {id:'books', label:'الكتب المقفولة'},
-    {id:'bookPayments', label:'💳 مسددين الكتب'},
+    {id:'books', label:'الكتب'},
     {id:'points', label:'النقاط وترتيب الفخر'},
     {id:'announce', label:'التنبيهات'},
     {id:'folders', label:'📁 المجلدات'},
@@ -2467,6 +2762,166 @@
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'الإرشاد الأكاديمي');
     XLSX.writeFile(wb, 'الإرشاد_الأكاديمي.xlsx');
+  }
+
+  // ==================== منهج المواد لكل ترم ====================
+  function curriculumDocRef(){ return db.collection('settings').doc('curriculum'); }
+  async function loadCurriculumTerm(){
+    const term = document.getElementById('currTerm').value;
+    const box = document.getElementById('curriculumList');
+    box.innerHTML = 'جاري التحميل...';
+    const snap = await curriculumDocRef().get();
+    const data = snap.exists ? (snap.data()||{}) : {};
+    const subjects = data['term'+term] || [];
+    box.innerHTML = subjects.length ? subjects.map((s,i)=>`
+      <div class="card-box row"><div class="meta"><b>${s.subject}</b><span>${s.hours} ساعة</span></div>
+      <button class="btn btn-reject" onclick="removeCurriculumSubject(${i})">حذف</button></div>`).join('')
+      : '<p style="color:#9bb3cb;font-size:13px">لا توجد مواد مضافة لهذا الترم بعد</p>';
+  }
+  async function addCurriculumSubject(){
+    const term = document.getElementById('currTerm').value;
+    const subject = document.getElementById('currSubjectInput').value.trim();
+    const hours = document.getElementById('currHoursInput').value;
+    if(!subject){ alert('اكتب اسم المادة'); return; }
+    const ref = curriculumDocRef();
+    const snap = await ref.get();
+    const data = snap.exists ? (snap.data()||{}) : {};
+    const key = 'term'+term;
+    data[key] = data[key] || [];
+    data[key].push({subject, hours});
+    await ref.set(data);
+    document.getElementById('currSubjectInput').value = '';
+    loadCurriculumTerm();
+  }
+  async function removeCurriculumSubject(i){
+    const term = document.getElementById('currTerm').value;
+    const ref = curriculumDocRef();
+    const snap = await ref.get();
+    const data = snap.exists ? (snap.data()||{}) : {};
+    const key = 'term'+term;
+    (data[key]||[]).splice(i,1);
+    await ref.set(data);
+    loadCurriculumTerm();
+  }
+  async function extractCurriculumFromImage(){
+    const fileInput = document.getElementById('currImageInput');
+    const status = document.getElementById('currOcrStatus');
+    const file = fileInput.files[0];
+    if(!file){ status.textContent = 'اختر صورة الأول'; return; }
+    if(typeof Tesseract === 'undefined'){ status.textContent = '⚠️ تعذر تحميل مكتبة قراءة الصور'; return; }
+    status.textContent = '⏳ جاري قراءة الصورة...';
+    try{
+      const { data } = await Tesseract.recognize(file, 'ara+eng', {
+        logger: m => { if(m.status==='recognizing text') status.textContent = `⏳ جاري القراءة... ${Math.round((m.progress||0)*100)}%`; }
+      });
+      const lines = (data.text || '').split('\n').map(l=>l.trim()).filter(l=>l.length>1);
+      if(!lines.length){ status.textContent = '❌ مقدرش أقرا حاجة واضحة'; return; }
+      const term = document.getElementById('currTerm').value;
+      const ref = curriculumDocRef();
+      const snap = await ref.get();
+      const cdata = snap.exists ? (snap.data()||{}) : {};
+      const key = 'term'+term;
+      cdata[key] = cdata[key] || [];
+      let added = 0;
+      lines.forEach(line=>{
+        // بندور على رقم ساعات في السطر (1 أو 2)، والباقي اسم المادة
+        const hoursMatch = line.match(/\b([12])\b/);
+        const hours = hoursMatch ? hoursMatch[1] : '2';
+        const subject = line.replace(/\b([12])\b/, '').replace(/[\-–:،,]+$/,'').trim();
+        if(subject.length > 1){ cdata[key].push({subject, hours}); added++; }
+      });
+      await ref.set(cdata);
+      status.textContent = `✅ اتضافت ${added} مادة تلقائيًا — راجعهم تحت وامسح أي حاجة غلط`;
+      loadCurriculumTerm();
+    }catch(e){
+      status.textContent = '❌ حدث خطأ أثناء قراءة الصورة: ' + e.message;
+    }
+  }
+
+  // ==================== إدارة دكتور المادة: درجات الطلبة ====================
+  function subjectGradeDocId(subject, phone){
+    return subject.trim() + '__' + phone;
+  }
+  async function loadSubjectDoctorStudents(){
+    const msg = document.getElementById('sdMsg');
+    const subject = document.getElementById('sdSubjectInput').value.trim();
+    const year = document.getElementById('sdYear').value;
+    const department = document.getElementById('sdDepartment').value;
+    const division = document.getElementById('sdDivision').value;
+    if(!subject || !year || !department){
+      msg.className='msg error'; msg.textContent='من فضلك أدخل المادة واختر الفرقة والقسم';
+      return;
+    }
+    // دكتور المادة مش هيقدر يدير غير مادته حتى لو حاول يعدل الحقل
+    if(ADMIN_MODE === 'doctor' && subject !== DOCTOR_SUBJECT){
+      msg.className='msg error'; msg.textContent='⛔ مسموح لك بمادتك بس: '+DOCTOR_SUBJECT;
+      return;
+    }
+    msg.className='msg info'; msg.textContent='جاري تحميل الطلبة...';
+    try{
+      let query = db.collection('users').where('year','==',year).where('department','==',department);
+      let snap;
+      if(division){
+        snap = await db.collection('users').where('year','==',year).where('department','==',department).where('division','==',division).get();
+      } else {
+        snap = await query.get();
+      }
+      const students = [];
+      snap.forEach(doc=>{
+        const d = doc.data();
+        if(d.role==='student' || !d.role) students.push({phone: doc.id, name: d.name||doc.id});
+      });
+      students.sort((a,b)=>a.name.localeCompare(b.name));
+      if(!students.length){
+        msg.className='msg error'; msg.textContent='لا يوجد طلبة مطابقين';
+        document.getElementById('sdGradesBox').style.display='none';
+        return;
+      }
+      // نجيب الدرجات المسجلة سلفًا لهم في المادة دي
+      const gradesSnap = await db.collection('subjectGrades').where('subject','==',subject).get();
+      const gradesMap = {};
+      gradesSnap.forEach(doc=>{ gradesMap[doc.data().phone] = doc.data(); });
+      const body = document.getElementById('sdGradesBody');
+      body.innerHTML = students.map(s=>{
+        const g = gradesMap[s.phone] || {};
+        return `<tr data-phone="${s.phone}">
+          <td>${s.name}<div style="font-size:10.5px;color:#9bb3cb;">${s.phone}</div></td>
+          <td><input type="number" min="0" style="width:70px;" class="sdMidInput" value="${g.midterm!=null?g.midterm:''}"></td>
+          <td><input type="number" min="0" style="width:70px;" class="sdPracInput" value="${g.practical!=null?g.practical:''}"></td>
+          <td style="white-space:nowrap;">
+            <button class="btn btn-approve btn-sm" onclick="saveSubjectGrade('${s.phone}','${s.name.replace(/'/g,"\\'")}')">💾</button>
+            <button class="btn btn-reject btn-sm" onclick="deleteSubjectGrade('${s.phone}')">🗑️</button>
+          </td>
+        </tr>`;
+      }).join('');
+      document.getElementById('sdGradesBox').style.display='block';
+      msg.className='msg success'; msg.textContent=`تم تحميل ${students.length} طالب`;
+    }catch(e){
+      msg.className='msg error'; msg.textContent='حدث خطأ: '+e.message;
+    }
+  }
+  async function saveSubjectGrade(phone, name){
+    const subject = document.getElementById('sdSubjectInput').value.trim();
+    if(ADMIN_MODE === 'doctor' && subject !== DOCTOR_SUBJECT){ alert('⛔ مسموح لك بمادتك بس'); return; }
+    const row = document.querySelector(`#sdGradesBody tr[data-phone="${phone}"]`);
+    const midterm = row.querySelector('.sdMidInput').value;
+    const practical = row.querySelector('.sdPracInput').value;
+    const docId = subjectGradeDocId(subject, phone);
+    await db.collection('subjectGrades').doc(docId).set({
+      subject, phone, name,
+      midterm: midterm===''? null : Number(midterm),
+      practical: practical===''? null : Number(practical),
+      updatedAt: Date.now(), updatedBy: CURRENT_USER_PHONE
+    });
+    alert('✅ اتحفظت درجة '+name);
+  }
+  async function deleteSubjectGrade(phone){
+    const subject = document.getElementById('sdSubjectInput').value.trim();
+    if(ADMIN_MODE === 'doctor' && subject !== DOCTOR_SUBJECT){ alert('⛔ مسموح لك بمادتك بس'); return; }
+    if(!confirm('مسح درجة الطالب ده؟')) return;
+    const docId = subjectGradeDocId(subject, phone);
+    await db.collection('subjectGrades').doc(docId).delete();
+    loadSubjectDoctorStudents();
   }
 </script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>

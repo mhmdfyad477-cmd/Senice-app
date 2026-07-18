@@ -63,6 +63,14 @@
     </div>
   </div>
 
+  <div class="card-box" id="myGradesBox" style="display:none;">
+    <b style="display:block;margin-bottom:10px;">📝 درجاتي في المواد</b>
+    <table style="width:100%;border-collapse:collapse;font-size:13.5px;">
+      <thead><tr style="font-size:12px;color:var(--blue-deep);"><th style="text-align:right;">المادة</th><th>الميد</th><th>العملي</th></tr></thead>
+      <tbody id="myGradesBody"></tbody>
+    </table>
+  </div>
+
   <div class="card-box">
     <div class="form-group" style="margin-top:0;">
       <label>كلمة مرور جديدة</label>
@@ -136,6 +144,25 @@
     } catch (e) { console.error(e); }
   }
   loadUserData();
+
+  async function loadMyGrades(){
+    if(!db) return;
+    try{
+      const snap = await db.collection('subjectGrades').where('phone','==', user.phone).get();
+      if(snap.empty) return;
+      const rows = [];
+      snap.forEach(doc=> rows.push(doc.data()));
+      rows.sort((a,b)=> (a.subject||'').localeCompare(b.subject||''));
+      document.getElementById('myGradesBody').innerHTML = rows.map(g=>`
+        <tr>
+          <td style="padding:6px 0;border-bottom:1px solid #f0f4fa;">${g.subject}</td>
+          <td style="text-align:center;border-bottom:1px solid #f0f4fa;">${g.midterm!=null ? g.midterm : '—'}</td>
+          <td style="text-align:center;border-bottom:1px solid #f0f4fa;">${g.practical!=null ? g.practical : '—'}</td>
+        </tr>`).join('');
+      document.getElementById('myGradesBox').style.display='block';
+    }catch(e){ console.warn('تعذر تحميل الدرجات', e); }
+  }
+  loadMyGrades();
 
   async function downloadMyAdvisingExcel(){
     if (typeof XLSX === 'undefined') { alert('تعذر تحميل مكتبة Excel، تأكد من الاتصال بالإنترنت'); return; }
