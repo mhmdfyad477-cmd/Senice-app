@@ -334,7 +334,7 @@
   }
 
   async function refreshAdminLinkVisibility(){
-    if(user.role==='admin'){
+    if(user.role==='admin' || user.role==='co-admin'){
       document.getElementById('adminLinkBtn').style.display='flex';
       document.getElementById('adminDividerSidebar').style.display='block';
       return;
@@ -344,7 +344,7 @@
       const snap = await db.collection('users').doc(user.phone).get();
       if(snap.exists){
         const u = snap.data();
-        if(u.departmentLeaderOf && u.adminAccess && u.adminAccess.enabled){
+        if((u.departmentLeaderOf && u.adminAccess && u.adminAccess.enabled) || u.subjectDoctorOf){
           document.getElementById('adminLinkBtn').style.display='flex';
           document.getElementById('adminDividerSidebar').style.display='block';
         }
