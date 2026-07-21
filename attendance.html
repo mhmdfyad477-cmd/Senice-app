@@ -131,6 +131,15 @@
       <div class="msg" id="saveAttMsg"></div>
     </div>
 
+    <div class="card-box" id="combineExportCard" style="display:none;">
+      <h2 class="section-title">📦 ملف غياب مجمّع لكل محاضرات مادة</h2>
+      <p style="font-size:12px;color:#7a93ad;margin-bottom:8px;">هيتحمل ملف Excel فيه اسم الطالب وتاريخ كل محاضرة، وعلامة ✔ لو حضر — وتتساب فاضية لو مكانش حاضر.</p>
+      <div class="form-line" style="display:flex;gap:8px;flex-wrap:wrap;">
+        <input type="text" id="combineSubjectInput" placeholder="اسم المادة" style="flex:1;min-width:160px;padding:10px;border-radius:10px;border:1.5px solid #cfe2f7;">
+        <button class="btn btn-excel" onclick="exportSubjectCombinedExcel()">📊 تحميل الملف المجمّع</button>
+      </div>
+    </div>
+
     <div class="card-box">
       <h2 class="section-title">📜 آخر المحاضرات المسجلة</h2>
       <div id="recentSessionsList"><p style="font-size:13px;color:#7a93ad;">لا توجد محاضرات مسجلة بعد</p></div>
@@ -207,6 +216,10 @@
         subjEl.title = 'مقفول: مسموح لك بمادتك بس';
       }
       loadRecentSessions();
+    }
+    if(isFullAccess || isLeaderOnly){
+      document.getElementById('combineExportCard').style.display = 'block';
+      if(isLeaderOnly){ document.getElementById('combineSubjectInput').placeholder = 'اسم مادة قسم '+fullUserData.departmentLeaderOf; }
     }
     // تعبئة قوائم الشعب/الأقسام
     const scopeSnap = await db.collection('settings').doc('academicScope').get();
@@ -459,20 +472,73 @@
   async function exportSessionExcel(dJson){
     const d = JSON.parse(dJson);
     if(typeof XLSX === 'undefined'){ alert('تعذر تحميل مكتبة Excel'); return; }
-    // نجيب أسماء الطلاب
+    // نجيب أسماء الطلاب: كل طلاب الحضور والغياب في صف واحد لكل طالب، وعلامة صح جمب الحاضر فقط
     const rows = [];
     for(const phone of (d.presentPhones||[])){
       const s = await db.collection('users').doc(phone).get();
-      rows.push({ 'الاسم': s.exists ? s.data().name : phone, 'الموبايل': phone, 'الحالة': 'حاضر' });
+      rows.push({ 'اسم الطالب': s.exists ? s.data().name : phone, 'حضر': '✔' });
     }
     for(const phone of (d.absentPhones||[])){
       const s = await db.collection('users').doc(phone).get();
-      rows.push({ 'الاسم': s.exists ? s.data().name : phone, 'الموبايل': phone, 'الحالة': 'غائب' });
+      rows.push({ 'اسم الطالب': s.exists ? s.data().name : phone, 'حضر': '' });
     }
+    rows.sort((a,b)=> a['اسم الطالب'].localeCompare(b['اسم الطالب'],'ar'));
     const ws = XLSX.utils.json_to_sheet(rows);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'الحضور');
     XLSX.writeFile(wb, `حضور_${d.subject}_محاضرة${d.lecture}.xlsx`);
+  }
+
+  // ==================== ملف غياب مجمّع لكل محاضرات المادة (للأدمن وليدرز الأقسام) ====================
+  async function exportSubjectCombinedExcel(){
+    const msg = document.getElementById('recMsg');
+    if(typeof XLSX === 'undefined'){ alert('تعذر تحميل مكتبة Excel'); return; }
+    let subject = document.getElementById('combineSubjectInput').value.trim();
+    if(!subject){ alert('اكتب اسم المادة الأول'); return; }
+    try{
+      let snap;
+      if(isDoctorOnly){
+        if(subject !== fullUserData.subjectDoctorOf){ alert('⛔ مسموح لك بمادتك بس: '+fullUserData.subjectDoctorOf); return; }
+        snap = await db.collection('attendance').where('subject','==', subject).get();
+      } else if(isLeaderOnly){
+        snap = await db.collection('attendance').where('subject','==', subject).where('department','==', fullUserData.departmentLeaderOf).get();
+      } else {
+        snap = await db.collection('attendance').where('subject','==', subject).get();
+      }
+      if(snap.empty){ alert('لا توجد محاضرات مسجلة لهذه المادة'); return; }
+      // نجمع كل المحاضرات (تاريخ + رقم المحاضرة) ونرتبها
+      const sessions = [];
+      snap.forEach(doc=> sessions.push(doc.data()));
+      sessions.sort((a,b)=> (a.date||'').localeCompare(b.date||''));
+      const sessionLabels = sessions.map(s => `${s.date||''}${s.lecture?(' (محاضرة '+s.lecture+')'):''}`);
+
+      // نجمع كل الطلاب اللي ظهروا (حاضرين أو غائبين) في أي محاضرة من دول
+      const studentMap = {}; // phone -> name
+      sessions.forEach(s=>{
+        (s.presentPhones||[]).forEach(p=> studentMap[p] = studentMap[p] || null);
+        (s.absentPhones||[]).forEach(p=> studentMap[p] = studentMap[p] || null);
+      });
+      const phones = Object.keys(studentMap);
+      for(const phone of phones){
+        const u = await db.collection('users').doc(phone).get();
+        studentMap[phone] = u.exists ? (u.data().name || phone) : phone;
+      }
+
+      const rows = phones.map(phone=>{
+        const row = { 'اسم الطالب': studentMap[phone] };
+        sessions.forEach((s, i)=>{
+          row[sessionLabels[i]] = (s.presentPhones||[]).includes(phone) ? '✔' : '';
+        });
+        return row;
+      });
+      rows.sort((a,b)=> a['اسم الطالب'].localeCompare(b['اسم الطالب'],'ar'));
+
+      const ws = XLSX.utils.json_to_sheet(rows);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'غياب مجمّع');
+      XLSX.writeFile(wb, `غياب_مجمّع_${subject}.xlsx`);
+      if(msg){ msg.className='msg success'; msg.textContent='✅ تم تحميل ملف الغياب المجمّع'; }
+    }catch(e){ alert('حدث خطأ: '+e.message); }
   }
 
   // ==================== غيابي ====================
