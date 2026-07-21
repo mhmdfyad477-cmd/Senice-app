@@ -1,52 +1,68 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>الشات | قسم علوم ابتدائي</title>
-  <style>
-    :root{--blue-deep:#0a2e5c;--blue-main:#1565d8;--blue-bright:#2f9bf0;--ice:#eaf4ff;--gold:#f5a623;}
-    *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Tahoma,Arial,sans-serif;}
-    body{background:var(--ice);color:#0a2e5c;min-height:100vh;}
-    .topbar{background:linear-gradient(135deg,var(--blue-main),var(--blue-deep));color:#fff;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:30;box-shadow:0 4px 14px rgba(10,46,92,0.25);}
-    .topbar a{color:#fff;text-decoration:none;font-size:13px;background:rgba(255,255,255,0.15);padding:8px 14px;border-radius:10px;transition:0.2s;}
-    .topbar a:hover{background:rgba(255,255,255,0.25);}
-    .wrap{max-width:1100px;margin:24px auto;padding:0 16px;}
-    .chat-wrap{display:flex;gap:14px;height:75vh;min-height:400px;}
-    .group-list{width:220px;background:#fff;border-radius:16px;overflow-y:auto;padding:8px;flex-shrink:0;}
-    .group-item{padding:10px;border-radius:10px;cursor:pointer;font-size:13.5px;font-weight:700;color:#4a6585;margin-bottom:2px;}
-    .group-item.active,.group-item:hover{background:var(--ice);color:var(--blue-main);}
-    .chat-area{flex:1;background:#fff;border-radius:16px;display:flex;flex-direction:column;overflow:hidden;min-width:0;}
-    .messages{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;}
-    .msg-bubble{max-width:75%;padding:9px 13px;border-radius:14px;font-size:13.5px;background:var(--ice);align-self:flex-start;display:flex;gap:8px;align-items:flex-start;}
-    .msg-bubble.me{background:var(--blue-main);color:#fff;align-self:flex-end;flex-direction:row-reverse;}
-    .msg-bubble .avatar{width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid #fff;}
-    .msg-bubble .avatar-ph{width:32px;height:32px;border-radius:50%;background:var(--blue-bright);display:flex;align-items:center;justify-content:center;font-size:13px;color:#fff;font-weight:800;flex-shrink:0;}
-    .msg-bubble .bubble-body{max-width:100%;}
-    .msg-bubble small{display:block;font-size:10.5px;opacity:0.7;margin-bottom:3px;}
-    .msg-bubble .msg-time{font-size:9px;opacity:0.5;margin-top:2px;display:block;}
-    .msg-bubble img.chat-img{max-width:160px;border-radius:10px;margin-top:5px;display:block;}
-    .chat-file{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.5);border-radius:10px;padding:6px 10px;margin-top:5px;font-size:12.5px;}
-    .msg-bubble.me .chat-file{background:rgba(255,255,255,0.2);}
-    .chat-file span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:150px;}
-    .chat-file button{background:var(--blue-main);color:#fff;border:none;border-radius:8px;padding:4px 10px;font-size:11.5px;font-weight:700;cursor:pointer;}
-    .msg-bubble.me .chat-file button{background:#fff;color:var(--blue-main);}
-    .msg-del-btn{background:transparent;border:none;opacity:0.55;font-size:11px;cursor:pointer;margin-top:4px;display:block;padding:0;color:inherit;}
-    .msg-del-btn:hover{opacity:1;}
-    .chat-input{display:flex;gap:8px;padding:10px;border-top:1px solid #eef3fa;flex-wrap:wrap;}
-    .chat-input input[type=text]{flex:1;padding:10px 12px;border-radius:12px;border:1.5px solid #cfe2f7;font-size:13.5px;min-width:120px;}
-    .chat-input button,.chat-input label{background:var(--blue-main);color:#fff;border:none;border-radius:12px;padding:0 14px;cursor:pointer;display:flex;align-items:center;font-size:13px;font-weight:700;}
-    .chat-input label{cursor:pointer;}
-    .chat-input input[type="file"]{display:none;}
-    .empty-chat{text-align:center;color:#9bb3cb;font-size:13px;margin-top:30px;}
-    .footer{text-align:center;font-size:11.5px;color:#9bb3cb;padding:18px 0;}
-    @media(max-width:760px){.chat-wrap{flex-direction:column;height:auto;}.group-list{width:100%;max-height:140px;}}
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>الشات | قسم علوم ابتدائي</title>
+<style>
+  :root{--blue-deep:#0a2e5c;--blue-main:#1565d8;--blue-bright:#2f9bf0;--ice:#eaf4ff;--gold:#f5a623;}
+  *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Tahoma,Arial,sans-serif;}
+  body{background:var(--ice);color:#0a2e5c;min-height:100vh;}
+  .topbar{position:sticky;top:0;z-index:30;background:linear-gradient(135deg,var(--blue-main),var(--blue-deep));color:#fff;display:flex;align-items:center;justify-content:space-between;padding:12px 18px;box-shadow:0 4px 14px rgba(10,46,92,0.25);}
+  .topbar .brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:16px;}
+  .topbar a{color:#fff;text-decoration:none;font-size:13px;background:rgba(255,255,255,0.15);padding:8px 14px;border-radius:10px;transition:0.2s;}
+  .topbar a:hover{background:rgba(255,255,255,0.25);}
+  .wrap{max-width:1100px;margin:20px auto;padding:0 16px;}
+  .chat-wrap{display:flex;gap:14px;height:78vh;min-height:420px;}
+  .group-list{width:230px;background:#fff;border-radius:16px;overflow-y:auto;padding:8px;flex-shrink:0;box-shadow:0 6px 18px rgba(10,46,92,0.06);}
+  .group-item{padding:10px;border-radius:10px;cursor:pointer;font-size:13.5px;font-weight:700;color:#4a6585;margin-bottom:2px;}
+  .group-item.active,.group-item:hover{background:var(--ice);color:var(--blue-main);}
+  .chat-area{flex:1;background:#fff;border-radius:16px;display:flex;flex-direction:column;overflow:hidden;min-width:0;box-shadow:0 6px 18px rgba(10,46,92,0.06);}
+  .messages{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;}
+  .msg-bubble{max-width:75%;padding:9px 13px;border-radius:14px;font-size:13.5px;background:var(--ice);align-self:flex-start;display:flex;gap:8px;align-items:flex-start;}
+  .msg-bubble.me{background:var(--blue-main);color:#fff;align-self:flex-end;flex-direction:row-reverse;}
+  .msg-bubble .avatar{width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid #fff;}
+  .msg-bubble .avatar-ph{width:32px;height:32px;border-radius:50%;background:var(--blue-bright);display:flex;align-items:center;justify-content:center;font-size:13px;color:#fff;font-weight:800;flex-shrink:0;}
+  .msg-bubble .bubble-body{max-width:100%;}
+  .msg-bubble small{display:block;font-size:10.5px;opacity:0.7;margin-bottom:3px;}
+  .name-link{cursor:pointer;}
+  .msg-bubble .msg-time{font-size:9px;opacity:0.5;margin-top:2px;display:block;}
+  .msg-bubble img.chat-img{max-width:160px;border-radius:10px;margin-top:5px;display:block;}
+  .chat-file{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.5);border-radius:10px;padding:6px 10px;margin-top:5px;font-size:12.5px;}
+  .msg-bubble.me .chat-file{background:rgba(255,255,255,0.2);}
+  .chat-file span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:150px;}
+  .chat-file button{background:var(--blue-main);color:#fff;border:none;border-radius:8px;padding:4px 10px;font-size:11.5px;font-weight:700;cursor:pointer;}
+  .msg-bubble.me .chat-file button{background:#fff;color:var(--blue-main);}
+  .msg-del-btn{background:transparent;border:none;opacity:0.55;font-size:11px;cursor:pointer;margin-top:4px;display:block;padding:0;color:inherit;}
+  .msg-del-btn:hover{opacity:1;}
+  .chat-input{display:flex;gap:8px;padding:10px;border-top:1px solid #eef3fa;flex-wrap:wrap;}
+  .chat-input input[type=text]{flex:1;padding:10px 12px;border-radius:12px;border:1.5px solid #cfe2f7;font-size:13.5px;min-width:120px;}
+  .chat-input button,.chat-input label{background:var(--blue-main);color:#fff;border:none;border-radius:12px;padding:0 14px;cursor:pointer;display:flex;align-items:center;font-size:13px;font-weight:700;}
+  .chat-input label{cursor:pointer;}
+  .chat-input input[type="file"]{display:none;}
+  .empty-chat{text-align:center;color:#9bb3cb;font-size:13px;margin-top:30px;padding:0 12px;}
+  #groupSettings{background:#f5f8fc;padding:10px 14px;border-radius:10px;margin:0 10px 8px;direction:rtl;}
+  #groupSettings select{padding:6px 10px;border-radius:8px;border:1.5px solid #cfe2f7;flex:1;min-width:120px;}
+  .admin-tag{background:var(--blue-main);color:#fff;font-size:11px;padding:2px 10px;border-radius:12px;display:inline-flex;align-items:center;gap:4px;}
+  .admin-tag button{background:transparent;border:none;color:#fff;cursor:pointer;font-weight:bold;}
+  .group-settings-label{display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;}
+  .admin-only-msg{font-size:11px;color:#b00020;margin-top:4px;display:block;}
+  .overlay{display:none;position:fixed;inset:0;background:rgba(10,46,92,0.45);z-index:50;align-items:center;justify-content:center;padding:20px;}
+  .overlay.active{display:flex;}
+  .modal{background:#fff;border-radius:18px;max-width:420px;width:100%;padding:24px;position:relative;max-height:90vh;overflow-y:auto;}
+  .modal .close-x{position:absolute;left:14px;top:14px;background:none;border:none;font-size:18px;cursor:pointer;color:#7a93ad;}
+  .profile-header{text-align:center;margin-bottom:16px;}
+  .profile-header .p-avatar{width:76px;height:76px;border-radius:50%;object-fit:cover;border:3px solid var(--blue-main);margin:0 auto 10px;}
+  .profile-header .p-avatar-ph{width:76px;height:76px;border-radius:50%;background:var(--blue-bright);display:flex;align-items:center;justify-content:center;font-size:26px;color:#fff;font-weight:800;border:3px solid var(--blue-main);margin:0 auto 10px;}
+  .account-field{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #eef3fa;font-size:13.5px;}
+  .footer{text-align:center;font-size:11.5px;color:#9bb3cb;padding:18px 0;}
+  @media(max-width:760px){.chat-wrap{flex-direction:column;height:auto;}.group-list{width:100%;max-height:140px;}}
+</style>
 </head>
 <body>
 
 <div class="topbar">
-  <div class="brand" style="font-weight:800;font-size:16px;">💬 الشات</div>
+  <div class="brand">💬 الشات</div>
   <a href="home.html">🏠 الرجوع للرئيسية</a>
 </div>
 
@@ -55,17 +71,51 @@
     <div class="group-list" id="groupList"></div>
     <div class="chat-area">
       <div class="messages" id="messagesBox"><div class="empty-chat">اختر جروب للمحادثة</div></div>
+
+      <div id="groupSettings" style="display:none;">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+          <span style="font-weight:700; color:var(--blue-deep);">⚙️ إعدادات الجروب</span>
+          <label class="group-settings-label">
+            <input type="checkbox" id="onlyAdminsCanSend" onchange="toggleChatRestriction()">
+            <span>المشرفين فقط يرسلون</span>
+          </label>
+        </div>
+        <div id="adminsList" style="margin-top:8px; display:flex; flex-wrap:wrap; gap:6px;"></div>
+        <div id="adminControls" style="margin-top:8px; display:flex; gap:6px; flex-wrap:wrap;">
+          <select id="memberSelect">
+            <option value="">اختر عضو لترقيته...</option>
+          </select>
+          <button style="background:var(--blue-deep); color:#fff; padding:6px 14px; border:none; border-radius:8px; cursor:pointer;" onclick="addAdmin()">➕ ترقية</button>
+        </div>
+        <span id="adminOnlyMsg" class="admin-only-msg" style="display:none;">⛔ فقط الأدمن يمكنه تعديل المشرفين</span>
+        <p id="groupSettingsMsg" style="font-size:11px; color:#7a93ad; margin-top:4px;"></p>
+      </div>
+
       <p id="chatFileProgress" style="font-size:11.5px;color:#7a93ad;padding:0 10px;"></p>
       <div class="chat-input">
         <label>📎<input type="file" id="chatFileInput" onchange="sendChatFile()"></label>
-        <input type="text" id="msgText" placeholder="اكتب رسالة...">
+        <input type="text" id="msgText" placeholder="اكتب رسالة..." onkeydown="if(event.key==='Enter')sendMessage()">
         <button onclick="sendMessage()">إرسال</button>
       </div>
     </div>
   </div>
 </div>
 
-<div class="footer">تم إنشاء هذا الموقع بواسطة MF.mo.fayyad</div>
+<!-- مودال بروفايل -->
+<div class="overlay" id="profileOverlay">
+  <div class="modal">
+    <button class="close-x" onclick="closeProfile()">✕</button>
+    <div class="profile-header">
+      <div id="profAvatarWrap"><div class="p-avatar-ph" id="profAvatarPh">؟</div></div>
+      <b id="profName"></b>
+    </div>
+    <div class="account-field"><b>رقم الموبايل</b><span id="profPhone"></span></div>
+    <div class="account-field"><b>الفرقة</b><span id="profYear"></span></div>
+    <div class="account-field"><b>نقاط الفخر</b><span id="profPoints"></span></div>
+  </div>
+</div>
+
+<div class="footer">تم إنشاء هذا الموقع بواسطة Mohamed Fayyad</div>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -89,6 +139,7 @@
 
   const CLOUD_NAME = 'dgbuovcf';
   const UPLOAD_PRESET = 'Science_app';
+  const ADMIN_PHONE = "01229914072";
 
   function getCurrentUser() {
     const raw = localStorage.getItem('currentUser');
@@ -100,8 +151,10 @@
   let currentGroupId = null;
   let unsubMessages = null;
   let currentGroupAdmins = [];
+  let currentGroupOnlyAdminsCanSend = false;
+  let currentGroupCreatedBy = '';
+  let chatFilesCache = {};
 
-  // ====== تحميل الجروبات ======
   async function loadGroups() {
     const list = document.getElementById('groupList');
     if (!db) { list.innerHTML = '<p style="padding:10px;color:#9bb3cb;font-size:12.5px;">الشات يحتاج اتصال بالإنترنت</p>'; return; }
@@ -122,7 +175,99 @@
     } catch (e) { list.innerHTML = '<p style="padding:10px;color:#b00020;font-size:12.5px;">خطأ في التحميل</p>'; }
   }
 
-  // ====== فتح جروب ======
+  function downloadChatFile(id) {
+    const item = chatFilesCache[id];
+    if (!item || !item.fileUrl) return;
+    window.open(item.fileUrl, '_blank');
+  }
+
+  async function loadGroupSettings(groupId){
+    if(!db) return;
+    try{
+      const snap=await db.collection('groups').doc(groupId).get();
+      if(!snap.exists) return;
+      const data=snap.data();
+      currentGroupAdmins=data.admins||[data.createdBy||user.phone];
+      currentGroupOnlyAdminsCanSend=data.onlyAdminsCanSend||false;
+      currentGroupCreatedBy=data.createdBy||user.phone;
+
+      const settingsDiv=document.getElementById('groupSettings');
+      const isRealAdmin = user.phone === ADMIN_PHONE;
+      const isGroupAdmin = currentGroupAdmins.includes(user.phone);
+      settingsDiv.style.display = isGroupAdmin ? 'block' : 'none';
+
+      const controlsDiv = document.getElementById('adminControls');
+      const msgSpan = document.getElementById('adminOnlyMsg');
+      if (isRealAdmin) { controlsDiv.style.display = 'flex'; msgSpan.style.display = 'none'; }
+      else { controlsDiv.style.display = 'none'; msgSpan.style.display = 'block'; }
+
+      document.getElementById('onlyAdminsCanSend').checked=currentGroupOnlyAdminsCanSend;
+      await renderAdminsList(groupId);
+      await populateMemberSelect(groupId);
+      document.getElementById('groupSettingsMsg').textContent='';
+    }catch(e){ console.warn('خطأ في تحميل إعدادات الجروب:', e); }
+  }
+
+  async function renderAdminsList(groupId){
+    const container=document.getElementById('adminsList');
+    if(!currentGroupAdmins.length){ container.innerHTML='<span style="font-size:12px; color:#7a93ad;">لا يوجد مشرفين</span>'; return; }
+    let html='';
+    const isRealAdmin = user.phone === ADMIN_PHONE;
+    for(const phone of currentGroupAdmins){
+      let name=phone;
+      try{ const snap=await db.collection('users').doc(phone).get(); if(snap.exists) name=snap.data().name||phone; }catch(e){}
+      const isSelf=phone===user.phone;
+      const isCreator=phone===currentGroupCreatedBy;
+      const canRemove = isRealAdmin && !isSelf && !isCreator;
+      html+=`<span class="admin-tag">${name} ${isCreator?'👑':''} ${canRemove?`<button onclick="removeAdmin('${phone}')">✕</button>`:''}</span>`;
+    }
+    container.innerHTML=html;
+  }
+
+  async function populateMemberSelect(groupId){
+    const select=document.getElementById('memberSelect');
+    select.innerHTML='<option value="">اختر عضو لترقيته...</option>';
+    try{
+      const snap=await db.collection('groups').doc(groupId).get();
+      const members=snap.data().members||[];
+      for(const phone of members){
+        if(currentGroupAdmins.includes(phone)) continue;
+        let name=phone;
+        try{ const usnap=await db.collection('users').doc(phone).get(); if(usnap.exists) name=usnap.data().name||phone; }catch(e){}
+        select.innerHTML+=`<option value="${phone}">${name}</option>`;
+      }
+    }catch(e){}
+  }
+
+  async function addAdmin(){
+    const phone = document.getElementById('memberSelect').value;
+    if(!phone) return alert('اختر عضواً أولاً');
+    if (user.phone !== ADMIN_PHONE) { alert('⛔ فقط الأدمن يمكنه ترقية المشرفين'); return; }
+    try{
+      await db.collection('groups').doc(currentGroupId).update({ admins: firebase.firestore.FieldValue.arrayUnion(phone) });
+      document.getElementById('groupSettingsMsg').textContent='✅ تمت الترقية';
+      loadGroupSettings(currentGroupId);
+    }catch(e){ alert('خطأ: '+e.message); }
+  }
+
+  async function removeAdmin(phone){
+    if (user.phone !== ADMIN_PHONE) { alert('⛔ فقط الأدمن يمكنه إزالة المشرفين'); return; }
+    if(!confirm('هل تريد إزالة هذا المشرف؟')) return;
+    try{
+      await db.collection('groups').doc(currentGroupId).update({ admins: firebase.firestore.FieldValue.arrayRemove(phone) });
+      loadGroupSettings(currentGroupId);
+    }catch(e){ alert('خطأ: '+e.message); }
+  }
+
+  async function toggleChatRestriction(){
+    const checked=document.getElementById('onlyAdminsCanSend').checked;
+    try{
+      await db.collection('groups').doc(currentGroupId).update({ onlyAdminsCanSend: checked });
+      currentGroupOnlyAdminsCanSend=checked;
+      document.getElementById('groupSettingsMsg').textContent=checked?'🔒 الكتابة للمشرفين فقط':'🔓 الكتابة للجميع';
+    }catch(e){ alert('خطأ: '+e.message); }
+  }
+
   function openGroup(id, name, el) {
     currentGroupId = id;
     document.querySelectorAll('.group-item').forEach(g => g.classList.remove('active'));
@@ -131,20 +276,11 @@
     box.innerHTML = 'جاري التحميل...';
     if (unsubMessages) unsubMessages();
     db.collection('groups').doc(id).get().then(gSnap => {
-      const data = gSnap.data();
-      currentGroupAdmins = data.admins || [data.createdBy || user.phone];
-      const joinTime = data.memberJoinTimes && data.memberJoinTimes[user.phone] ? data.memberJoinTimes[user.phone] : 0;
+      const jt = (gSnap.exists && gSnap.data().memberJoinTimes) ? gSnap.data().memberJoinTimes[user.phone] : null;
+      const joinTime = (typeof jt === 'number') ? jt : 0;
       attachMessagesListener(id, box, joinTime);
+      loadGroupSettings(id);
     }).catch(() => { attachMessagesListener(id, box, 0); });
-  }
-
-  // ====== استماع الرسائل ======
-  let chatFilesCache = {};
-
-  function downloadChatFile(id) {
-    const item = chatFilesCache[id];
-    if (!item || !item.fileUrl) return;
-    window.open(item.fileUrl, '_blank');
   }
 
   function attachMessagesListener(id, box, joinTime) {
@@ -174,7 +310,7 @@
           delHtml = `<button class="msg-del-btn" onclick="deleteChatMessage('${d.id}')">🗑</button>`;
         }
         bubble.innerHTML = `${avatarHtml}<div class="bubble-body">
-          <small>${m.name}</small>
+          <small class="name-link" onclick="openProfile('${m.phone}')">${m.name}</small>
           ${m.text || ''}
           ${imageHtml}
           ${fileHtml}
@@ -187,38 +323,37 @@
     });
   }
 
-  // ====== حذف رسالة ======
   async function deleteChatMessage(msgId) {
     if (!currentGroupId) return;
     if (!confirm('حذف الرسالة؟')) return;
-    try {
-      await db.collection('groups').doc(currentGroupId).collection('messages').doc(msgId).delete();
-    } catch (e) { alert('خطأ: ' + e.message); }
+    try { await db.collection('groups').doc(currentGroupId).collection('messages').doc(msgId).delete(); }
+    catch (e) { alert('تعذّر حذف الرسالة'); }
   }
 
-  // ====== إرسال رسالة ======
   async function sendMessage() {
     const input = document.getElementById('msgText');
     if (!db) { alert('الشات يحتاج اتصال بالإنترنت'); return; }
     if (!currentGroupId || !input.value.trim()) return;
+    if (currentGroupOnlyAdminsCanSend && !currentGroupAdmins.includes(user.phone)) {
+      alert('⛔ الكتابة مقصورة على المشرفين فقط'); return;
+    }
     try {
       await db.collection('groups').doc(currentGroupId).collection('messages').add({
-        name: user.name,
-        phone: user.phone,
-        text: input.value.trim(),
-        time: Date.now()
+        name: user.name, phone: user.phone, text: input.value.trim(), time: Date.now()
       });
       input.value = '';
     } catch (e) { alert('خطأ: ' + e.message); }
   }
 
-  // ====== رفع ملف في الشات ======
   async function sendChatFile() {
     const fileInput = document.getElementById('chatFileInput');
     const file = fileInput.files[0];
     const progress = document.getElementById('chatFileProgress');
     if (!db) { alert('الشات يحتاج اتصال بالإنترنت'); return; }
     if (!file || !currentGroupId) return;
+    if (currentGroupOnlyAdminsCanSend && !currentGroupAdmins.includes(user.phone)) {
+      alert('⛔ الكتابة مقصورة على المشرفين فقط'); return;
+    }
     progress.textContent = 'جاري رفع الملف...';
     try {
       const formData = new FormData();
@@ -237,6 +372,28 @@
       progress.textContent = '';
     } catch (err) { progress.textContent = '❌ ' + err.message; }
   }
+
+  async function openProfile(phone){
+    if(!db) return;
+    document.getElementById('profileOverlay').classList.add('active');
+    document.getElementById('profName').textContent='...';
+    document.getElementById('profPhone').textContent=phone;
+    document.getElementById('profYear').textContent='...';
+    document.getElementById('profPoints').textContent='...';
+    document.getElementById('profAvatarWrap').innerHTML='<div class="p-avatar-ph" id="profAvatarPh">؟</div>';
+    try{
+      const snap=await db.collection('users').doc(phone).get();
+      if(!snap.exists)return;
+      const u=snap.data();
+      document.getElementById('profName').textContent=u.name||'';
+      document.getElementById('profPhone').textContent=u.phone||phone;
+      document.getElementById('profYear').textContent=u.year||'—';
+      document.getElementById('profPoints').textContent=(u.points||0)+' نقطة';
+      if(u.avatar){ document.getElementById('profAvatarWrap').innerHTML=`<img class="p-avatar" src="${u.avatar}">`; }
+      else{ document.getElementById('profAvatarWrap').innerHTML=`<div class="p-avatar-ph">${(u.name||'؟')[0]}</div>`; }
+    }catch(e){}
+  }
+  function closeProfile(){ document.getElementById('profileOverlay').classList.remove('active'); }
 
   loadGroups();
 </script>

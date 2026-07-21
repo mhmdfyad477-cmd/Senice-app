@@ -88,6 +88,7 @@
       <button onclick="showTab('books', this)">الكتب</button>
       <button onclick="showTab('points', this)">النقاط وترتيب الفخر</button>
       <button onclick="showTab('announce', this)">التنبيهات</button>
+      <button onclick="showTab('events', this)">🎉 إدارة الفعاليات</button>
       <button onclick="showTab('folders', this)">📁 المجلدات</button>
       <button onclick="showTab('reports', this)">📊 التقارير</button>
       <button onclick="showTab('quizzes', this)">📝 الكويزات</button>
@@ -189,7 +190,9 @@
 
     <!-- جدول المحاضرات -->
     <div class="section" id="tab-schedule">
-      <div class="card-box">
+      <div class="card-box" id="generalScheduleCard">
+        <b style="display:block;margin-bottom:8px;">📅 الجدول العام</b>
+        <p style="font-size:12px;color:#7a93ad;margin-bottom:8px;">الجدول ده بيظهر لكل الطلاب اللي مفيش جدول مخصص لشعبتهم/قسمهم في الكارت اللي تحت.</p>
         <div class="form-line">
           <input type="text" id="schDay" placeholder="اليوم (مثلاً: السبت)">
           <input type="text" id="schSubject" placeholder="المادة">
@@ -199,6 +202,33 @@
         </div>
       </div>
       <div id="scheduleAdminList"></div>
+
+      <div class="card-box">
+        <b style="display:block;margin-bottom:8px;">📅 جدول محاضرات خاص بشعبة/قسم معين</b>
+        <p style="font-size:12px;color:#7a93ad;margin-bottom:8px;">اختار الفرقة/الشعبة/القسم وحدد الجدول الخاص بيهم — كل ليدر قسم بيقدر يضيف جدول لقسمه هو بس. لو سبتها فاضية الطلاب هيشوفوا الجدول العام اللي فوق.</p>
+        <div style="background:#f8faff;border:1.5px dashed #b8d4f5;border-radius:10px;padding:10px;margin-bottom:10px;">
+          <b style="font-size:13px;display:block;margin-bottom:6px;">📷 رفع صورة الجدول (استخراج تلقائي)</b>
+          <input type="file" id="schedImageInput" accept="image/*">
+          <button class="btn btn-blue btn-sm" onclick="extractScheduleFromImage()">🔎 استخراج من الصورة</button>
+          <p id="schedOcrStatus" style="font-size:11.5px;color:#7a93ad;margin-top:6px;"></p>
+          <p style="font-size:11px;color:#9bb3cb;">⚠️ الاستخراج تلقائي وممكن يحتاج تعديل يدوي، راجع كل صف قبل ما تضيفه للجدول، أو ضيفه يدوي من غير صورة خالص.</p>
+          <div id="schedExtractedRows" style="margin-top:8px;"></div>
+        </div>
+        <div class="form-line">
+          <select id="schedScopeYear"><option value="">الفرقة</option><option>الأولى</option><option>الثانية</option><option>الثالثة</option><option>الرابعة</option></select>
+          <select id="schedScopeDivision"><option value="">الشعبة</option></select>
+          <select id="schedScopeDepartment"><option value="">القسم</option></select>
+          <button class="btn btn-blue" onclick="loadScopedSchedule()">تحميل جدول هذه المجموعة</button>
+        </div>
+        <div class="form-line">
+          <input type="text" id="scopedSchedDay" placeholder="اليوم">
+          <input type="text" id="scopedSchedSubject" placeholder="المادة">
+          <input type="text" id="scopedSchedTime" placeholder="الميعاد">
+          <input type="text" id="scopedSchedPlace" placeholder="المكان">
+          <button class="btn btn-approve" onclick="addScopedScheduleItem()">➕ إضافة محاضرة</button>
+        </div>
+        <div id="scopedScheduleList"></div>
+      </div>
     </div>
 
     <!-- ===== الكتب ===== -->
@@ -207,13 +237,16 @@
         <div class="form-line">
           <input type="text" id="bookTitle" placeholder="عنوان الكتاب">
           <input type="file" id="bookFile" accept="application/pdf,image/*" style="flex:1;min-width:160px;">
-          <select id="bookLocked"><option value="no">متاح للجميع</option><option value="yes">مقفول (تحديد أسماء)</option></select>
           <select id="bookFolder"><option value="">بدون مجلد</option></select>
+        </div>
+        <div class="form-line">
+          <select id="bookDivision"><option value="">الشعبة (اختياري)</option></select>
+          <select id="bookDepartment"><option value="">القسم (اختياري)</option></select>
           <button class="btn btn-blue" id="addBookBtn" onclick="addBook()">إضافة كتاب</button>
         </div>
-        <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">
-          <button class="btn btn-sm btn-blue" onclick="applyPreviousBookSettings()">📋 استخدم إعدادات الكتاب السابق</button>
-          <button class="btn btn-sm btn-approve" onclick="saveCurrentBookAsDefault()">💾 حفظ كافتراضي</button>
+        <p style="font-size:11px;color:#9bb3cb;margin-top:2px;">لو سبت الشعبة والقسم فاضيين، الكتاب هيظهر لكل الأقسام (بشرط تسديد رسوم الكتب).</p>
+        <div style="margin-top:8px;">
+          <button class="btn btn-sm btn-approve" onclick="saveCurrentBookAsDefault()">💾 حفظ كافتراضي (المجلد/الشعبة/القسم)</button>
         </div>
         <p id="uploadProgress" style="font-size:12px;color:#7a93ad;"></p>
         <p style="font-size:11.5px;color:#9bb3cb;margin-top:2px;">📎 الملفات بتترفع على سحابة Cloudinary.</p>
@@ -223,7 +256,7 @@
       <!-- مسددين الكتب (مدموجة هنا) -->
       <div class="card-box" style="border-right:4px solid #1d6f42;">
         <b style="display:block;margin-bottom:8px;">💳 مسددين رسوم الكتب</b>
-        <p style="font-size:12px;color:#7a93ad;margin-bottom:8px;">الأعضاء هنا متقسمين حسب القسم. حط ✔️ قدام كل عضو دفع رسوم الكتب. الكتب المقفولة هتظهر بس للأعضاء اللي عندهم ✔️.</p>
+        <p style="font-size:12px;color:#7a93ad;margin-bottom:8px;">الأعضاء هنا متقسمين حسب القسم. حط ✔️ قدام كل عضو دفع رسوم الكتب عشان يقدر يشوف ويحمل الكتب.</p>
         <div id="bookPaymentsList"><p style="font-size:13px;color:#7a93ad;">جاري التحميل...</p></div>
       </div>
     </div>
@@ -438,30 +471,13 @@
         <div id="departmentsList"></div>
       </div>
       <div class="card-box">
-        <b style="display:block;margin-bottom:8px;">📅 جدول محاضرات خاص بشعبة/قسم معين (اختياري)</b>
-        <p style="font-size:12px;color:#7a93ad;margin-bottom:8px;">لو محتاج جدول مختلف لكل شعبة، اختار الفرقة/الشعبة/القسم وحدد الجدول الخاص بيهم. لو سبتها فاضية هيشوفوا الجدول العام العادي.</p>
-        <div style="background:#f8faff;border:1.5px dashed #b8d4f5;border-radius:10px;padding:10px;margin-bottom:10px;">
-          <b style="font-size:13px;display:block;margin-bottom:6px;">📷 رفع صورة الجدول (استخراج تلقائي)</b>
-          <input type="file" id="schedImageInput" accept="image/*">
-          <button class="btn btn-blue btn-sm" onclick="extractScheduleFromImage()">🔎 استخراج من الصورة</button>
-          <p id="schedOcrStatus" style="font-size:11.5px;color:#7a93ad;margin-top:6px;"></p>
-          <p style="font-size:11px;color:#9bb3cb;">⚠️ الاستخراج تلقائي وممكن يحتاج تعديل يدوي، راجع كل صف قبل ما تضيفه للجدول.</p>
-          <div id="schedExtractedRows" style="margin-top:8px;"></div>
-        </div>
+        <b style="display:block;margin-bottom:8px;">🔗 ربط الأقسام بالشعب</b>
+        <p style="font-size:12px;color:#7a93ad;margin-bottom:8px;">اختار الشعبة، وحدد الأقسام اللي تتبعها بس (مثلاً شعبة "ابتدائي" أقسامها "علوم"، "رياضيات"...). أي قسم ميتحددش لشعبة معينة، هيفضل يظهر لكل الشعب.</p>
         <div class="form-line">
-          <select id="schedScopeYear"><option value="">الفرقة</option><option>الأولى</option><option>الثانية</option><option>الثالثة</option><option>الرابعة</option></select>
-          <select id="schedScopeDivision"><option value="">الشعبة</option></select>
-          <select id="schedScopeDepartment"><option value="">القسم</option></select>
-          <button class="btn btn-blue" onclick="loadScopedSchedule()">تحميل جدول هذه المجموعة</button>
+          <select id="deptLinkDivision"><option value="">اختر الشعبة</option></select>
+          <button class="btn btn-blue" onclick="saveDeptLink()">💾 حفظ أقسام الشعبة دي</button>
         </div>
-        <div class="form-line">
-          <input type="text" id="scopedSchedDay" placeholder="اليوم">
-          <input type="text" id="scopedSchedSubject" placeholder="المادة">
-          <input type="text" id="scopedSchedTime" placeholder="الميعاد">
-          <input type="text" id="scopedSchedPlace" placeholder="المكان">
-          <button class="btn btn-approve" onclick="addScopedScheduleItem()">➕ إضافة محاضرة</button>
-        </div>
-        <div id="scopedScheduleList"></div>
+        <div id="deptLinkBox"></div>
       </div>
     </div>
 
@@ -469,10 +485,14 @@
     <div class="section" id="tab-roles">
       <div class="card-box">
         <b style="display:block;margin-bottom:8px;">🧑‍🏫 تعيين دكتور مادة</b>
-        <p style="font-size:12px;color:#7a93ad;margin-bottom:8px;">الدكتور اللي هتعينه هيقدر يفتح "دفتر الغياب" ويسجل حضور المادة دي بس.</p>
+        <p style="font-size:12px;color:#7a93ad;margin-bottom:8px;">الدكتور اللي هتعينه هيقدر يفتح "دفتر الغياب" ويسجل حضور المادة دي بس، ولو حددت الشعبة والقسم هيتقفلوله تلقائي في صفحته.</p>
         <div class="form-line">
           <input type="tel" id="doctorPhoneInput" placeholder="رقم موبايل الدكتور (لازم يكون له حساب بالموقع)">
           <input type="text" id="doctorSubjectInput" placeholder="اسم المادة">
+        </div>
+        <div class="form-line">
+          <select id="doctorDivisionInput"><option value="">الشعبة (اختياري)</option></select>
+          <select id="doctorDepartmentInput"><option value="">القسم (اختياري)</option></select>
           <button class="btn btn-approve" onclick="assignDoctor()">➕ تعيين</button>
         </div>
         <div id="doctorsList"></div>
@@ -482,6 +502,7 @@
         <p style="font-size:12px;color:#7a93ad;margin-bottom:8px;">ليدر القسم هيقدر يفتح دفتر الغياب لكل مواد القسم بتاعه.</p>
         <div class="form-line">
           <input type="tel" id="leaderPhoneInput" placeholder="رقم موبايل الليدر">
+          <select id="leaderDivisionInput"><option value="">اختر الشعبة</option></select>
           <select id="leaderDepartmentInput"><option value="">اختر القسم</option></select>
           <button class="btn btn-approve" onclick="assignLeader()">➕ تعيين</button>
         </div>
@@ -570,6 +591,16 @@
         </div>
       </div>
       <div class="card-box">
+        <b style="display:block;margin-bottom:8px;">📤 رفع ملف نتيجة الـ GPA لكل الطلاب دفعة واحدة</b>
+        <p style="font-size:12px;color:#7a93ad;margin-bottom:8px;">ارفع ملف Excel أو CSV فيه عمودين: "رقم الموبايل" و"GPA" (أو "الاسم" و"GPA" لو معندكش الأرقام). الموقع هيدور على كل طالب ويملأله الـ GPA تلقائي.</p>
+        <div class="form-line">
+          <input type="file" id="gpaFileInput" accept=".xlsx,.xls,.csv">
+          <button class="btn btn-blue" onclick="parseGpaFile()">📄 قراءة الملف</button>
+        </div>
+        <p id="gpaFileStatus" style="font-size:11.5px;color:#7a93ad;"></p>
+        <div id="gpaFilePreview"></div>
+      </div>
+      <div class="card-box">
         <b style="display:block;margin-bottom:8px;">🎯 تحديد GPA مباشر لطالب (من غير رصد مواد)</b>
         <p style="font-size:12px;color:#7a93ad;margin-bottom:8px;">فلتر بالفرقة والشعبة والقسم عشان تلاقي الطلاب بسرعة، وحط الـ GPA مباشرة لكل واحد.</p>
         <div class="form-line">
@@ -647,6 +678,31 @@
         <div id="announcePreview" style="margin-top:12px;"></div>
       </div>
     </div>
+
+    <!-- إدارة الفعاليات -->
+    <div class="section" id="tab-events">
+      <div class="card-box">
+        <b style="display:block;margin-bottom:8px;">🎉 إضافة فعالية / ندوة / نشاط طلابي</b>
+        <p style="font-size:12.5px;color:#7a93ad;margin-bottom:10px;">هتظهر كإشعار جنب التنبيه فوق الموقع لكل الأعضاء، ولو حطيت رابط تسجيل هيظهر بجانبها زرار "سجل الآن".</p>
+        <div class="form-line">
+          <select id="eventType">
+            <option value="فعالية">🎉 فعالية</option>
+            <option value="ندوة">🎤 ندوة</option>
+            <option value="نشاط طلابي">🏅 نشاط طلابي (مسابقة وغيرها)</option>
+          </select>
+          <input type="text" id="eventTitle" placeholder="اسم الفعالية/الندوة/النشاط">
+        </div>
+        <div class="form-line">
+          <input type="text" id="eventDate" placeholder="الميعاد (مثلاً: السبت 12 يوليو - 6 م)">
+          <input type="text" id="eventLocation" placeholder="المكان (اختياري)">
+        </div>
+        <div class="form-line">
+          <input type="url" id="eventLink" placeholder="رابط التسجيل (اختياري) - https://...">
+          <button class="btn btn-blue" onclick="addEvent()">➕ نشر</button>
+        </div>
+      </div>
+      <div id="eventsAdminList"></div>
+    </div>
   </div>
 </div>
 
@@ -657,6 +713,7 @@
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
 <script>
   const firebaseConfig = {
@@ -683,10 +740,15 @@
   // ===== نظام التحقق من الهوية الحقيقي (مش مجرد كلمة سر ظاهرة في الكود) =====
   let CURRENT_USER_PHONE = null;
   let CURRENT_USER_ROLE = null;
+  let CURRENT_USER_IS_SUPER = false;
+  let CURRENT_USER_IS_SUPERVISOR = false;
   let ADMIN_MODE = 'none'; // 'admin' | 'leader' | 'doctor' | 'none'
   let LEADER_DEPT = null;
+  let LEADER_DIVISION = null;
   let LEADER_ALLOWED_TABS = [];
   let DOCTOR_SUBJECT = null;
+  let DOCTOR_DIVISION = null;
+  let DOCTOR_DEPARTMENT = null;
   const LEADER_FORBIDDEN_TABS = ['permissions','roles','admins','whitelist','aboutEdit','scope']; // تبويبات حساسة ممنوعة على الليدر مهما كان
 
   async function verifyIsAdmin(){
@@ -712,6 +774,8 @@
       const u = snap.data();
       CURRENT_USER_PHONE = stored.phone;
       CURRENT_USER_ROLE = u.role || 'student';
+      CURRENT_USER_IS_SUPER = (stored.phone === ADMIN_PHONE);
+      CURRENT_USER_IS_SUPERVISOR = !!u.collegeSupervisor;
       if(u.role === 'admin' || u.role === 'co-admin'){
         ADMIN_MODE = 'admin';
         // بنسيب شاشة كلمة المرور زي ما هي كطبقة حماية إضافية فوق التحقق من الهوية
@@ -720,6 +784,7 @@
       if(u.departmentLeaderOf && u.adminAccess && u.adminAccess.enabled){
         ADMIN_MODE = 'leader';
         LEADER_DEPT = u.departmentLeaderOf;
+        LEADER_DIVISION = u.departmentLeaderOfDivision || null;
         LEADER_ALLOWED_TABS = (Array.isArray(u.adminAccess.tabs) ? u.adminAccess.tabs : []).filter(t=>!LEADER_FORBIDDEN_TABS.includes(t));
         enterLeaderPanel();
         return;
@@ -727,7 +792,14 @@
       if(u.subjectDoctorOf){
         ADMIN_MODE = 'doctor';
         DOCTOR_SUBJECT = u.subjectDoctorOf;
+        DOCTOR_DIVISION = u.subjectDoctorOfDivision || null;
+        DOCTOR_DEPARTMENT = u.subjectDoctorOfDepartment || null;
         enterDoctorPanel();
+        return;
+      }
+      if(u.collegeSupervisor){
+        ADMIN_MODE = 'supervisor';
+        enterSupervisorPanel();
         return;
       }
       showUnauthorized();
@@ -762,6 +834,8 @@
     banner.style.cssText='background:#f5a623;color:#5c3d00;padding:7px 20px;font-size:12.5px;font-weight:800;text-align:center;';
     banner.textContent = `🧑‍💼 دخلت كليدر قسم "${LEADER_DEPT}" — صلاحيات محدودة وبيانات قسمك بس`;
     topbarEl.insertAdjacentElement('afterend', banner);
+    const genSchedCard = document.getElementById('generalScheduleCard');
+    if(genSchedCard) genSchedCard.style.display = 'none';
     loadAll();
     if(firstBtn) firstBtn.click();
   }
@@ -785,7 +859,37 @@
     subjEl.value = DOCTOR_SUBJECT;
     subjEl.readOnly = true;
     subjEl.style.background = '#eef2f7';
-    loadScopeLists();
+    loadScopeLists().then(()=>{
+      if(DOCTOR_DEPARTMENT){
+        const depSel = document.getElementById('sdDepartment');
+        if(depSel){ depSel.innerHTML = `<option value="${DOCTOR_DEPARTMENT}">${DOCTOR_DEPARTMENT}</option>`; depSel.value = DOCTOR_DEPARTMENT; depSel.disabled = true; }
+      }
+      if(DOCTOR_DIVISION){
+        const divSel = document.getElementById('sdDivision');
+        if(divSel){ divSel.innerHTML = `<option value="${DOCTOR_DIVISION}">${DOCTOR_DIVISION}</option>`; divSel.value = DOCTOR_DIVISION; divSel.disabled = true; }
+      }
+    });
+  }
+
+  function enterSupervisorPanel(){
+    document.getElementById('lockScreen').style.display='none';
+    document.getElementById('adminPanel').style.display='block';
+    CURRENT_USER_IS_SUPERVISOR = true;
+    let firstBtn = null;
+    document.querySelectorAll('.tabs button').forEach(btn=>{
+      const m = (btn.getAttribute('onclick')||'').match(/showTab\('([^']+)'/);
+      const tabId = m ? m[1] : null;
+      const isAllowed = tabId === 'dashboard' || tabId === 'users';
+      if(!isAllowed){ btn.style.display='none'; }
+      else if(!firstBtn){ firstBtn = btn; }
+    });
+    const topbarEl = document.querySelector('.topbar');
+    const banner = document.createElement('div');
+    banner.style.cssText='background:#f5a623;color:#5c3d00;padding:7px 20px;font-size:12.5px;font-weight:800;text-align:center;';
+    banner.textContent = `🛡️ دخلت كمشرف كلية — تقدر تشوف وتعدّل بيانات كل الأعضاء`;
+    topbarEl.insertAdjacentElement('afterend', banner);
+    loadAll();
+    if(firstBtn) firstBtn.click();
   }
 
   document.addEventListener('DOMContentLoaded', initAccessControl);
@@ -835,9 +939,11 @@
     if(id === 'aboutEdit') { loadAboutContent(); }
     if(id === 'forumManage') { loadForumAdmin(); }
     if(id === 'whitelist') { loadWhitelist(); }
-    if(id === 'books') { loadBookFolders(); loadBooks(); loadBookPayments(); }
+    if(id === 'books') { loadBookFolders(); loadBooks(); loadBookPayments(); loadScopeLists(); }
     if(id === 'scope') { loadScopeLists(); }
+    if(id === 'schedule') { loadSchedule(); loadScopeLists(); }
     if(id === 'roles') { loadRoleLists(); }
+    if(id === 'events') { loadEventsAdmin(); }
     if(id === 'permissions') { loadPermissionsList(); }
     if(id === 'advisingAdmin') { loadWarnedStudents(); }
   }
@@ -1697,11 +1803,6 @@
     const box = document.getElementById('booksAdminList');
     box.innerHTML = 'جاري التحميل...';
     try {
-      const usersSnap = await db.collection('users').where('approved', '==', true).get();
-      const allUsers = [];
-      usersSnap.forEach(d => allUsers.push(d.data()));
-      allUsers.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
-
       const snap = await db.collection('books').orderBy('time', 'desc').get();
       if (snap.empty) {
         box.innerHTML = '<p style="font-size:13px;color:#7a93ad;">لا توجد كتب</p>';
@@ -1710,85 +1811,63 @@
       box.innerHTML = '';
       snap.forEach(doc => {
         const b = doc.data();
+        // الليدر بيشوف بس كتب قسمه (اللي رفعها هو أو مرفوعة بدون تحديد قسم)
+        if(ADMIN_MODE === 'leader' && LEADER_DEPT && b.department && b.department !== LEADER_DEPT) return;
         const el = document.createElement('div');
         el.className = 'card-box';
         el.dataset.bookId = doc.id;
+        const scopeTxt = [b.division, b.department].filter(Boolean).join(' — ');
         el.innerHTML = `
           <div class="row">
             <div class="meta">
               <b>${b.title}</b>
-              <span>${b.locked ? '🔒 مقفول' : 'متاح للجميع'}</span>
+              <span>${scopeTxt ? '🏷️ '+scopeTxt : '🌐 لكل الأقسام'}</span>
               ${b.folderId ? `<span style="font-size:11px;color:#7a93ad;">📁 مجلد</span>` : ''}
             </div>
             <button class="btn btn-reject" onclick="deleteBook('${doc.id}')">🗑 حذف</button>
           </div>
-          ${b.locked ? `<div style="margin-top:8px;">${allUsers.map(u => `
-            <label style="display:inline-flex;align-items:center;gap:4px;margin:3px 8px 3px 0;font-size:12.5px;">
-              <input type="checkbox" data-phone="${u.phone}" ${(b.allowedPhones || []).includes(u.phone) ? 'checked' : ''} onchange="toggleBookAccess('${doc.id}', '${u.phone}', this.checked)">
-              ${u.name}
-            </label>
-          `).join('')}</div>` : ''}
         `;
         box.appendChild(el);
       });
+      if(!box.children.length) box.innerHTML = '<p style="font-size:13px;color:#7a93ad;">لا توجد كتب</p>';
     } catch (e) {
       box.innerHTML = '<p style="font-size:13px;color:#b00020;">خطأ في تحميل الكتب</p>';
     }
   }
 
-  // دوال توريث الإعدادات
-  function applyPreviousBookSettings() {
-    const bookItems = document.querySelectorAll('#booksAdminList .card-box');
-    if (bookItems.length === 0) {
-      alert('لا يوجد كتاب سابق لتطبيق إعداداته');
-      return;
-    }
-    const lastBook = bookItems[0];
-    const bookId = lastBook.dataset.bookId;
-    if (!bookId) return;
-    applyBookSettingsFromFirestore(bookId);
-  }
-
-  async function applyBookSettingsFromFirestore(bookId) {
-    if (!bookId) return;
-    const snap = await db.collection('books').doc(bookId).get();
-    if (!snap.exists) return;
-    const data = snap.data();
-    document.getElementById('bookLocked').value = data.locked ? 'yes' : 'no';
-    if (data.folderId) {
-      document.getElementById('bookFolder').value = data.folderId;
-    }
-    if (data.locked && data.allowedPhones) {
-      setTimeout(() => {
-        const allowed = data.allowedPhones || [];
-        document.querySelectorAll('#booksAdminList input[type="checkbox"]').forEach(cb => {
-          cb.checked = allowed.includes(cb.dataset.phone);
-        });
-      }, 300);
-    }
-    localStorage.setItem('lastBookSettings', JSON.stringify({ bookId, locked: data.locked, allowedPhones: data.allowedPhones, folderId: data.folderId }));
-    alert('✅ تم تطبيق إعدادات الكتاب السابق');
-  }
-
+  // حفظ آخر إعدادات رفع (المجلد/الشعبة/القسم) كافتراضي للمرة الجاية
   function saveCurrentBookAsDefault() {
-    const bookItems = document.querySelectorAll('#booksAdminList .card-box');
-    if (bookItems.length === 0) {
-      alert('لا يوجد كتاب لحفظ إعداداته');
-      return;
-    }
-    const firstBook = bookItems[0];
-    const bookId = firstBook.dataset.bookId;
-    if (!bookId) return;
-    applyBookSettingsFromFirestore(bookId);
-    alert('✅ تم حفظ إعدادات الكتاب الحالي كافتراضي للكتاب القادم');
+    const settings = {
+      folderId: document.getElementById('bookFolder').value || '',
+      division: document.getElementById('bookDivision').value || '',
+      department: document.getElementById('bookDepartment').value || ''
+    };
+    localStorage.setItem('lastBookUploadSettings', JSON.stringify(settings));
+    alert('✅ تم حفظ إعدادات الرفع كافتراضي للكتاب القادم');
+  }
+  function applyDefaultBookSettings(){
+    try{
+      const raw = localStorage.getItem('lastBookUploadSettings');
+      if(!raw) return;
+      const s = JSON.parse(raw);
+      if(s.folderId) document.getElementById('bookFolder').value = s.folderId;
+      if(s.division && !(ADMIN_MODE==='leader')) document.getElementById('bookDivision').value = s.division;
+      if(s.department && !(ADMIN_MODE==='leader')) document.getElementById('bookDepartment').value = s.department;
+    }catch(e){}
   }
 
-  // تعديل دالة addBook لتخزين folderId
+  // تعديل دالة addBook لتخزين folderId + الشعبة/القسم
   async function addBook(){
     const title = document.getElementById('bookTitle').value.trim();
     const file = document.getElementById('bookFile').files[0];
-    const locked = document.getElementById('bookLocked').value === 'yes';
     const folderId = document.getElementById('bookFolder').value || null;
+    let division = document.getElementById('bookDivision').value || null;
+    let department = document.getElementById('bookDepartment').value || null;
+    // الليدر يرفع لقسمه وشعبته بس، حتى لو حاول يغيّر السيلكت
+    if(ADMIN_MODE === 'leader' && LEADER_DEPT){
+      department = LEADER_DEPT;
+      division = LEADER_DIVISION || division;
+    }
     const btn = document.getElementById('addBookBtn');
     const progress = document.getElementById('uploadProgress');
     if(!title || !file) return alert('أدخل العنوان واختر ملف');
@@ -1806,9 +1885,12 @@
         fileUrl,
         fileType: file.type || 'application/pdf',
         fileName: file.name,
-        locked,
+        locked: false,
         allowedPhones: [],
         folderId: folderId,
+        division: division || null,
+        department: department || null,
+        uploadedBy: CURRENT_USER_PHONE || null,
         time: Date.now()
       });
       document.getElementById('bookTitle').value='';
@@ -1820,13 +1902,16 @@
     btn.disabled=false;
   }
 
-  async function toggleBookAccess(bookId, phone, checked){
-    const ref = db.collection('books').doc(bookId);
-    if(checked){ await ref.update({allowedPhones: firebase.firestore.FieldValue.arrayUnion(phone)}); }
-    else{ await ref.update({allowedPhones: firebase.firestore.FieldValue.arrayRemove(phone)}); }
+  async function deleteBook(id){
+    if(!confirm('حذف الكتاب؟')) return;
+    if(ADMIN_MODE === 'leader' && LEADER_DEPT){
+      const snap = await db.collection('books').doc(id).get();
+      if(snap.exists && snap.data().department && snap.data().department !== LEADER_DEPT){
+        alert('⛔ مسموح لك بحذف كتب قسمك بس'); return;
+      }
+    }
+    await db.collection('books').doc(id).delete(); loadBooks(); loadDashboard();
   }
-
-  async function deleteBook(id){ if(!confirm('حذف الكتاب؟')) return; await db.collection('books').doc(id).delete(); loadBooks(); loadDashboard(); }
 
   // ====== التعديل الجماعي للطلاب ======
   function selectAllUsers() {
@@ -1938,6 +2023,7 @@
   function renderUsersList(scopedUsers){
     const box = document.getElementById('usersList');
     const isAdmin = isAdminForUsersList;
+    const canFullEditUsers = CURRENT_USER_IS_SUPER || CURRENT_USER_IS_SUPERVISOR;
     box.innerHTML='';
     if(!scopedUsers.length){ box.innerHTML = '<p style="font-size:13px;color:#9bb3cb;">لا يوجد أعضاء مطابقين</p>'; return; }
 
@@ -1991,9 +2077,68 @@
           <button class="btn btn-points" style="padding:4px 12px; font-size:12px;" onclick="updateUserPoints('${u.id}')">💾 حفظ</button>
           <span id="points_msg_${u.id}" style="font-size:11px; color:#7a93ad;"></span>
         </div>
+        ${canFullEditUsers ? `
+        <div style="margin-top:8px; background:#fff7ea; border:1.5px dashed #f5a623; padding:8px 10px; border-radius:8px;">
+          <button class="btn btn-sm btn-blue" onclick="toggleFullEdit('${u.id}')">✏️ تعديل بيانات العضو</button>
+          <div id="fulledit_${u.id}" style="display:none; margin-top:8px;">
+            <div class="form-line">
+              <input type="text" id="fe_name_${u.id}" placeholder="الاسم" value="${(u.name||'').replace(/"/g,'&quot;')}">
+              <select id="fe_year_${u.id}">
+                <option value="">الفرقة</option>
+                <option value="الأولى" ${u.year==='الأولى'?'selected':''}>الأولى</option>
+                <option value="الثانية" ${u.year==='الثانية'?'selected':''}>الثانية</option>
+                <option value="الثالثة" ${u.year==='الثالثة'?'selected':''}>الثالثة</option>
+                <option value="الرابعة" ${u.year==='الرابعة'?'selected':''}>الرابعة</option>
+              </select>
+            </div>
+            <div class="form-line">
+              <select id="fe_division_${u.id}"><option value="">الشعبة</option></select>
+              <select id="fe_department_${u.id}"><option value="">القسم</option></select>
+              <button class="btn btn-approve btn-sm" onclick="saveUserFullEdit('${u.id}')">💾 حفظ التعديلات</button>
+            </div>
+            <p style="font-size:11px;color:#9bb3cb;">رقم الموبايل مش قابل للتعديل من هنا لأنه معرّف حساب العضو في كل الموقع.</p>
+            <span id="fe_msg_${u.id}" style="font-size:11.5px;"></span>
+          </div>
+        </div>` : ''}
       `;
       box.appendChild(el);
     });
+  }
+
+  async function toggleFullEdit(phone){
+    const box = document.getElementById('fulledit_'+phone);
+    if(!box) return;
+    const opening = box.style.display === 'none';
+    box.style.display = opening ? 'block' : 'none';
+    if(opening){
+      const scope = await getAcademicScope();
+      const u = allLoadedUsers.find(x=>x.id===phone) || {};
+      const divSel = document.getElementById('fe_division_'+phone);
+      divSel.innerHTML = '<option value="">الشعبة</option>' + scope.divisions.map(d=>`<option value="${d}" ${u.division===d?'selected':''}>${d}</option>`).join('');
+      const fillDep = ()=>{
+        const list = departmentsForDivision(scope, divSel.value);
+        const depSel = document.getElementById('fe_department_'+phone);
+        const keep = depSel.value || u.department || '';
+        depSel.innerHTML = '<option value="">القسم</option>' + list.map(d=>`<option value="${d}">${d}</option>`).join('');
+        if(list.includes(keep)) depSel.value = keep;
+      };
+      fillDep();
+      divSel.onchange = fillDep;
+    }
+  }
+
+  async function saveUserFullEdit(phone){
+    const msg = document.getElementById('fe_msg_'+phone);
+    const name = document.getElementById('fe_name_'+phone).value.trim();
+    const year = document.getElementById('fe_year_'+phone).value;
+    const division = document.getElementById('fe_division_'+phone).value;
+    const department = document.getElementById('fe_department_'+phone).value;
+    if(!name){ msg.style.color='#b00020'; msg.textContent='الاسم لازم يكون موجود'; return; }
+    try{
+      await db.collection('users').doc(phone).update({ name, year, division, department });
+      msg.style.color='#147a35'; msg.textContent='✅ اتحفظت بيانات العضو';
+      loadUsers();
+    }catch(e){ msg.style.color='#b00020'; msg.textContent='❌ '+e.message; }
   }
 
   async function updateUserStatus(phone){
@@ -2106,13 +2251,18 @@
   async function loadGroups(){
     const box = document.getElementById('groupsList');
     box.innerHTML='جاري التحميل...';
-    const usersSnap = await db.collection('users').where('approved','==',true).get();
+    let usersQuery = db.collection('users').where('approved','==',true);
+    if(ADMIN_MODE === 'leader' && LEADER_DEPT) usersQuery = usersQuery.where('department','==', LEADER_DEPT);
+    if(ADMIN_MODE === 'leader' && LEADER_DIVISION) usersQuery = usersQuery.where('division','==', LEADER_DIVISION);
+    const usersSnap = await usersQuery.get();
     const allUsers = []; usersSnap.forEach(d=>allUsers.push(d.data()));
     allUsers.sort((a,b) => (a.name || '').localeCompare(b.name || ''));
     const snap = await db.collection('groups').get();
     box.innerHTML='';
     snap.forEach(doc=>{
       const g = doc.data();
+      // الليدر بيشوف بس الجروبات اللي عملها هو
+      if(ADMIN_MODE === 'leader' && g.createdBy !== CURRENT_USER_PHONE) return;
       const el = document.createElement('div');
       el.className='card-box';
       el.innerHTML = `<div class="row">
@@ -2129,11 +2279,18 @@
         </label>`).join('')}</div>`;
       box.appendChild(el);
     });
+    if(!box.children.length) box.innerHTML = '<p style="font-size:13px;color:#9bb3cb;">لا توجد جروبات بعد. اعمل جروب من الفورم اللي فوق.</p>';
   }
   async function deleteGroup(groupId){
     if(!confirm('حذف الجروب نهائياً؟')) return;
     try{
       const ref = db.collection('groups').doc(groupId);
+      if(ADMIN_MODE === 'leader'){
+        const gSnap = await ref.get();
+        if(gSnap.exists && gSnap.data().createdBy !== CURRENT_USER_PHONE){
+          alert('⛔ تقدر تحذف الجروبات اللي عملتها إنت بس'); return;
+        }
+      }
       const msgsSnap = await ref.collection('messages').get();
       const docs = msgsSnap.docs;
       const batchSize = 400;
@@ -2147,6 +2304,13 @@
     }catch(e){ alert('خطأ: '+e.message); }
   }
   async function toggleMember(groupId, phone, checked){
+    if(ADMIN_MODE === 'leader' && LEADER_DEPT){
+      const uSnap = await db.collection('users').doc(phone).get();
+      const u = uSnap.exists ? uSnap.data() : {};
+      if(u.department !== LEADER_DEPT || (LEADER_DIVISION && u.division !== LEADER_DIVISION)){
+        alert('⛔ مسموح لك تضيف أعضاء قسمك بس'); loadGroups(); return;
+      }
+    }
     const ref = db.collection('groups').doc(groupId);
     if(checked){
       await ref.update({
@@ -2158,6 +2322,7 @@
   }
 
   async function addScheduleItem(){
+    if(ADMIN_MODE === 'leader'){ alert('⛔ الجدول العام متاح للأدمن بس، أنت تقدر تضيف جدول قسمك من الكارت اللي تحت'); return; }
     const day = document.getElementById('schDay').value.trim();
     const subject = document.getElementById('schSubject').value.trim();
     const time = document.getElementById('schTime').value.trim();
@@ -2259,16 +2424,87 @@
     loadAnnouncementSettings();
   }
 
+  // ==================== إدارة الفعاليات ====================
+  const EVENT_TYPE_ICON = {'فعالية':'🎉','ندوة':'🎤','نشاط طلابي':'🏅'};
+  async function addEvent(){
+    const type = document.getElementById('eventType').value;
+    const title = document.getElementById('eventTitle').value.trim();
+    const date = document.getElementById('eventDate').value.trim();
+    const location = document.getElementById('eventLocation').value.trim();
+    const link = document.getElementById('eventLink').value.trim();
+    if(!title){ alert('اكتب اسم الفعالية/الندوة/النشاط'); return; }
+    await db.collection('events').add({ type, title, date: date||null, location: location||null, link: link||null, active:true, time: Date.now() });
+    document.getElementById('eventTitle').value='';
+    document.getElementById('eventDate').value='';
+    document.getElementById('eventLocation').value='';
+    document.getElementById('eventLink').value='';
+    loadEventsAdmin();
+  }
+  async function loadEventsAdmin(){
+    const box = document.getElementById('eventsAdminList');
+    box.innerHTML = 'جاري التحميل...';
+    try{
+      const snap = await db.collection('events').orderBy('time','desc').get();
+      if(snap.empty){ box.innerHTML = '<p style="font-size:13px;color:#9bb3cb;">لا توجد فعاليات منشورة</p>'; return; }
+      box.innerHTML = '';
+      snap.forEach(doc=>{
+        const e = doc.data();
+        const el = document.createElement('div');
+        el.className = 'card-box row';
+        el.innerHTML = `
+          <div class="meta">
+            <b>${EVENT_TYPE_ICON[e.type]||'🎉'} ${e.title}</b>
+            <span>${[e.date, e.location].filter(Boolean).join(' — ') || 'بدون تفاصيل ميعاد/مكان'}${e.link? ' — 🔗 فيها رابط تسجيل':''}</span>
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            <button class="btn btn-sm ${e.active?'btn-approve':'btn-blue'}" onclick="toggleEventActive('${doc.id}', ${!e.active})">${e.active?'✅ منشورة (اخفِ)':'🚫 مخفية (انشر)'}</button>
+            <button class="btn btn-reject" onclick="deleteEvent('${doc.id}')">🗑 حذف</button>
+          </div>`;
+        box.appendChild(el);
+      });
+    }catch(e){ box.innerHTML = '<p style="font-size:13px;color:#b00020;">خطأ في التحميل</p>'; }
+  }
+  async function toggleEventActive(id, active){
+    await db.collection('events').doc(id).update({active});
+    loadEventsAdmin();
+  }
+  async function deleteEvent(id){
+    if(!confirm('حذف الفعالية نهائيًا؟')) return;
+    await db.collection('events').doc(id).delete();
+    loadEventsAdmin();
+  }
+
   // ==================== الشعب والأقسام ====================
   async function getAcademicScope(){
     const ref = db.collection('settings').doc('academicScope');
     const snap = await ref.get();
     if(!snap.exists){
-      const def = {divisions:["شعبة أ","شعبة ب"], departments:["عام"]};
+      const def = {divisions:["شعبة أ","شعبة ب"], departments:["عام"], departmentsByDivision:{}};
       await ref.set(def);
       return def;
     }
-    return {divisions: snap.data().divisions||[], departments: snap.data().departments||[]};
+    return {divisions: snap.data().divisions||[], departments: snap.data().departments||[], departmentsByDivision: snap.data().departmentsByDivision||{}};
+  }
+  // بيرجع الأقسام الخاصة بشعبة معينة لو محددة ومربوطة، وإلا كل الأقسام (تراجع افتراضي)
+  function departmentsForDivision(scope, division){
+    if(division && scope.departmentsByDivision && Array.isArray(scope.departmentsByDivision[division]) && scope.departmentsByDivision[division].length){
+      return scope.departmentsByDivision[division];
+    }
+    return scope.departments;
+  }
+  // يربط سيلكت الشعبة بسيلكت القسم المقابل له، بحيث لما تتغير الشعبة يتفلتر القسم
+  function wireDivisionDeptPair(divSelId, depSelId, scope, placeholder){
+    const divSel = document.getElementById(divSelId);
+    const depSel = document.getElementById(depSelId);
+    if(!divSel || !depSel) return;
+    const fill = ()=>{
+      const list = departmentsForDivision(scope, divSel.value);
+      const keepVal = depSel.value;
+      depSel.innerHTML = placeholder + list.map(d=>`<option value="${d}">${d}</option>`).join('');
+      if(list.includes(keepVal)) depSel.value = keepVal;
+    };
+    fill();
+    divSel.onchange = fill;
   }
   async function loadScopeLists(){
     const scope = await getAcademicScope();
@@ -2283,21 +2519,71 @@
       el.innerHTML = keepFirst + arr.map(d=>`<option value="${d}">${d}</option>`).join('');
     };
     fillSelect('schedScopeDivision', scope.divisions, '<option value="">الشعبة</option>');
-    fillSelect('schedScopeDepartment', scope.departments, '<option value="">القسم</option>');
-    fillSelect('leaderDepartmentInput', scope.departments, '<option value="">اختر القسم</option>');
+    fillSelect('leaderDivisionInput', scope.divisions, '<option value="">اختر الشعبة</option>');
+    fillSelect('doctorDivisionInput', scope.divisions, '<option value="">الشعبة (اختياري)</option>');
     fillSelect('batchDivision', scope.divisions, '<option value="">تعديل الشعبة...</option>');
-    fillSelect('batchDepartment', scope.departments, '<option value="">تعديل القسم...</option>');
     fillSelect('gpaFilterDivision', scope.divisions, '<option value="">كل الشعب</option>');
-    fillSelect('gpaFilterDepartment', scope.departments, '<option value="">كل الأقسام</option>');
     fillSelect('sdDivision', scope.divisions, '<option value="">الشعبة (اختياري)</option>');
-    fillSelect('sdDepartment', scope.departments, '<option value="">القسم</option>');
-    // في وضع الليدر: قفل فلتر القسم على قسمه هو بس (ما ينفعش يشتغل أو حتى يشوف قسم تاني، حتى في صفحة الجداول)
+    fillSelect('bookDivision', scope.divisions, '<option value="">الشعبة (اختياري)</option>');
+    wireDivisionDeptPair('schedScopeDivision','schedScopeDepartment', scope, '<option value="">القسم</option>');
+    wireDivisionDeptPair('leaderDivisionInput','leaderDepartmentInput', scope, '<option value="">اختر القسم</option>');
+    wireDivisionDeptPair('doctorDivisionInput','doctorDepartmentInput', scope, '<option value="">القسم (اختياري)</option>');
+    wireDivisionDeptPair('batchDivision','batchDepartment', scope, '<option value="">تعديل القسم...</option>');
+    wireDivisionDeptPair('gpaFilterDivision','gpaFilterDepartment', scope, '<option value="">كل الأقسام</option>');
+    wireDivisionDeptPair('sdDivision','sdDepartment', scope, '<option value="">القسم</option>');
+    wireDivisionDeptPair('bookDivision','bookDepartment', scope, '<option value="">القسم (اختياري)</option>');
+    // في وضع الليدر: قفل فلتر القسم (والشعبة لو محددة) على قسمه هو بس (ما ينفعش يشتغل أو حتى يشوف قسم تاني، حتى في صفحة الجداول)
     if(ADMIN_MODE === 'leader' && LEADER_DEPT){
       const schedDepSel = document.getElementById('schedScopeDepartment');
       if(schedDepSel){ schedDepSel.innerHTML = `<option value="${LEADER_DEPT}">${LEADER_DEPT}</option>`; schedDepSel.value = LEADER_DEPT; schedDepSel.disabled = true; }
       const depSel = document.getElementById('gpaFilterDepartment');
       if(depSel){ depSel.innerHTML = `<option value="${LEADER_DEPT}">${LEADER_DEPT}</option>`; depSel.value = LEADER_DEPT; depSel.disabled = true; }
+      if(LEADER_DIVISION){
+        const schedDivSel = document.getElementById('schedScopeDivision');
+        if(schedDivSel){ schedDivSel.innerHTML = `<option value="${LEADER_DIVISION}">${LEADER_DIVISION}</option>`; schedDivSel.value = LEADER_DIVISION; schedDivSel.disabled = true; }
+        const gpaDivSel = document.getElementById('gpaFilterDivision');
+        if(gpaDivSel){ gpaDivSel.innerHTML = `<option value="${LEADER_DIVISION}">${LEADER_DIVISION}</option>`; gpaDivSel.value = LEADER_DIVISION; gpaDivSel.disabled = true; }
+      }
+      const bookDepSel = document.getElementById('bookDepartment');
+      if(bookDepSel){ bookDepSel.innerHTML = `<option value="${LEADER_DEPT}">${LEADER_DEPT}</option>`; bookDepSel.value = LEADER_DEPT; bookDepSel.disabled = true; }
+      if(LEADER_DIVISION){
+        const bookDivSel = document.getElementById('bookDivision');
+        if(bookDivSel){ bookDivSel.innerHTML = `<option value="${LEADER_DIVISION}">${LEADER_DIVISION}</option>`; bookDivSel.value = LEADER_DIVISION; bookDivSel.disabled = true; }
+      }
+    } else {
+      applyDefaultBookSettings();
     }
+    // ربط الأقسام بالشعب (كارت الإدارة في تبويب الشعب والأقسام)
+    fillSelect('deptLinkDivision', scope.divisions, '<option value="">اختر الشعبة</option>');
+    const deptLinkDivSel = document.getElementById('deptLinkDivision');
+    if(deptLinkDivSel) deptLinkDivSel.onchange = ()=>renderDeptLinkCheckboxes(scope);
+    renderDeptLinkCheckboxes(scope);
+  }
+
+  // يعرض تشيك بوكسات كل الأقسام، ويحدد اللي مربوطين بالشعبة المختارة حاليًا في deptLinkDivision
+  function renderDeptLinkCheckboxes(scope){
+    const box = document.getElementById('deptLinkBox');
+    if(!box) return;
+    const divSel = document.getElementById('deptLinkDivision');
+    const division = divSel ? divSel.value : '';
+    if(!division){ box.innerHTML = '<p style="font-size:12px;color:#9bb3cb">اختر الشعبة الأول عشان تحدد أقسامها</p>'; return; }
+    const linked = (scope.departmentsByDivision && scope.departmentsByDivision[division]) || [];
+    box.innerHTML = scope.departments.map(d=>`
+      <label style="display:inline-flex;align-items:center;gap:5px;background:#f5f8fc;border-radius:8px;padding:5px 10px;margin:3px;font-size:12.5px;cursor:pointer;">
+        <input type="checkbox" value="${d}" ${linked.includes(d)?'checked':''}> ${d}
+      </label>`).join('') || '<p style="font-size:12px;color:#9bb3cb">لا توجد أقسام مضافة بعد</p>';
+  }
+  async function saveDeptLink(){
+    const division = document.getElementById('deptLinkDivision').value;
+    if(!division){ alert('اختر الشعبة أولًا'); return; }
+    const checked = Array.from(document.querySelectorAll('#deptLinkBox input[type=checkbox]:checked')).map(c=>c.value);
+    const ref = db.collection('settings').doc('academicScope');
+    const scope = await getAcademicScope();
+    scope.departmentsByDivision = scope.departmentsByDivision || {};
+    scope.departmentsByDivision[division] = checked;
+    await ref.set(scope, {merge:true});
+    alert('✅ اتحفظت أقسام شعبة '+division);
+    loadScopeLists();
   }
   async function addScopeItem(kind){
     const inputId = kind==='divisions' ? 'newDivisionInput' : 'newDepartmentInput';
@@ -2438,10 +2724,12 @@
     allUsersSnap.forEach(doc=>{
       const u = doc.data();
       if(u.subjectDoctorOf){
-        doctorsHtml += `<div class="card-box row"><div class="meta"><b>${u.name||u.phone}</b><span>مادة: ${u.subjectDoctorOf} — ${u.phone}</span></div><button class="btn btn-reject" onclick="removeRole('${doc.id}','subjectDoctorOf')">إلغاء</button></div>`;
+        const scopeTxt = [u.subjectDoctorOfDivision, u.subjectDoctorOfDepartment].filter(Boolean).join(' — ');
+        doctorsHtml += `<div class="card-box row"><div class="meta"><b>${u.name||u.phone}</b><span>مادة: ${u.subjectDoctorOf}${scopeTxt?' ('+scopeTxt+')':''} — ${u.phone}</span></div><button class="btn btn-reject" onclick="removeRole('${doc.id}','subjectDoctorOf')">إلغاء</button></div>`;
       }
       if(u.departmentLeaderOf){
-        leadersHtml += `<div class="card-box row"><div class="meta"><b>${u.name||u.phone}</b><span>قسم: ${u.departmentLeaderOf} — ${u.phone}</span></div><button class="btn btn-reject" onclick="removeRole('${doc.id}','departmentLeaderOf')">إلغاء</button></div>`;
+        const divTxt = u.departmentLeaderOfDivision ? (u.departmentLeaderOfDivision+' — ') : '';
+        leadersHtml += `<div class="card-box row"><div class="meta"><b>${u.name||u.phone}</b><span>قسم: ${divTxt}${u.departmentLeaderOf} — ${u.phone}</span></div><button class="btn btn-reject" onclick="removeRole('${doc.id}','departmentLeaderOf')">إلغاء</button></div>`;
       }
       if(u.collegeSupervisor){
         supervisorsHtml += `<div class="card-box row"><div class="meta"><b>${u.name||u.phone}</b><span>${u.phone}</span></div><button class="btn btn-reject" onclick="removeRole('${doc.id}','collegeSupervisor')">إلغاء</button></div>`;
@@ -2454,23 +2742,33 @@
   async function assignDoctor(){
     const phone = document.getElementById('doctorPhoneInput').value.trim();
     const subject = document.getElementById('doctorSubjectInput').value.trim();
+    const division = document.getElementById('doctorDivisionInput').value;
+    const department = document.getElementById('doctorDepartmentInput').value;
     if(!/^01[0-9]{9}$/.test(phone) || !subject){ alert('أدخل رقم صحيح واسم مادة'); return; }
     const ref = db.collection('users').doc(phone);
     const snap = await ref.get();
     if(!snap.exists){ alert('لا يوجد مستخدم بهذا الرقم'); return; }
-    await ref.update({subjectDoctorOf: subject});
+    const payload = {subjectDoctorOf: subject};
+    payload.subjectDoctorOfDivision = division || firebase.firestore.FieldValue.delete();
+    payload.subjectDoctorOfDepartment = department || firebase.firestore.FieldValue.delete();
+    await ref.update(payload);
     document.getElementById('doctorPhoneInput').value=''; document.getElementById('doctorSubjectInput').value='';
+    document.getElementById('doctorDivisionInput').value=''; document.getElementById('doctorDepartmentInput').value='';
     loadRoleLists();
   }
   async function assignLeader(){
     const phone = document.getElementById('leaderPhoneInput').value.trim();
+    const division = document.getElementById('leaderDivisionInput').value;
     const department = document.getElementById('leaderDepartmentInput').value;
     if(!/^01[0-9]{9}$/.test(phone) || !department){ alert('أدخل رقم صحيح واختر قسم'); return; }
     const ref = db.collection('users').doc(phone);
     const snap = await ref.get();
     if(!snap.exists){ alert('لا يوجد مستخدم بهذا الرقم'); return; }
-    await ref.update({departmentLeaderOf: department});
+    const payload = {departmentLeaderOf: department};
+    payload.departmentLeaderOfDivision = division || firebase.firestore.FieldValue.delete();
+    await ref.update(payload);
     document.getElementById('leaderPhoneInput').value='';
+    document.getElementById('leaderDivisionInput').value='';
     loadRoleLists();
   }
   async function assignSupervisor(){
@@ -2592,6 +2890,123 @@
     box.innerHTML = html || '<p style="font-size:13px;color:#7a93ad">لا يوجد طلاب عليهم إنذار حاليًا 🎉</p>';
   }
 
+  // ==================== رفع ملف GPA لكل الطلاب ====================
+  let parsedGpaRows = [];
+  function normalizePhone(v){
+    if(v===null||v===undefined) return '';
+    let s = String(v).trim().replace(/[^\d]/g,'');
+    if(s.length===9) s='0'+s; // بعض ملفات الإكسل بتشيل الصفر الأول
+    return s;
+  }
+  async function parseGpaFile(){
+    const fileInput = document.getElementById('gpaFileInput');
+    const status = document.getElementById('gpaFileStatus');
+    const preview = document.getElementById('gpaFilePreview');
+    const file = fileInput.files[0];
+    if(!file){ alert('اختار ملف الأول'); return; }
+    if(typeof XLSX === 'undefined'){ status.textContent = '❌ تعذر تحميل مكتبة قراءة الملفات، تأكد من الاتصال بالإنترنت'; return; }
+    status.textContent = 'جاري القراءة...';
+    preview.innerHTML = '';
+    try{
+      const data = await file.arrayBuffer();
+      const wb = XLSX.read(data, {type:'array'});
+      const sheet = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(sheet, {header:1, defval:''});
+      if(!rows.length){ status.textContent = '⚠️ الملف فاضي'; return; }
+
+      // نحدد أي عمود فيه الموبايل/الاسم وأي عمود فيه الـ GPA من صف العناوين لو موجود
+      let startRow = 0;
+      let phoneCol = 0, nameCol = -1, gpaCol = 1;
+      const header = rows[0].map(c=>String(c).trim());
+      const phoneIdx = header.findIndex(h=>h.includes('موبايل')||h.includes('هاتف')||h.includes('رقم'));
+      const nameIdx = header.findIndex(h=>h.includes('اسم'));
+      const gpaIdx = header.findIndex(h=>h.toLowerCase().includes('gpa')||h.includes('معدل'));
+      if(phoneIdx>-1 || nameIdx>-1 || gpaIdx>-1){
+        startRow = 1;
+        if(phoneIdx>-1) phoneCol = phoneIdx;
+        if(nameIdx>-1) nameCol = nameIdx;
+        if(gpaIdx>-1) gpaCol = gpaIdx; else gpaCol = (phoneIdx>-1? phoneIdx+1 : (nameIdx>-1? nameIdx+1 : 1));
+      } else if(nameCol===-1 && isNaN(parseFloat(rows[0][0]))){
+        // مفيش عناوين واضحة، لكن العمود الأول مش رقم يبقى غالبًا اسم
+        nameCol = 0; phoneCol = -1; gpaCol = 1;
+      }
+
+      parsedGpaRows = [];
+      for(let i=startRow; i<rows.length; i++){
+        const r = rows[i];
+        if(!r || !r.length) continue;
+        const rawPhone = phoneCol>-1 ? r[phoneCol] : '';
+        const rawName = nameCol>-1 ? r[nameCol] : '';
+        const rawGpa = r[gpaCol];
+        const phone = normalizePhone(rawPhone);
+        const name = String(rawName||'').trim();
+        const gpa = parseFloat(rawGpa);
+        if(!phone && !name) continue;
+        if(isNaN(gpa)) continue;
+        parsedGpaRows.push({ phone, name, gpa: +gpa.toFixed(2) });
+      }
+      if(!parsedGpaRows.length){ status.textContent = '⚠️ مقدرتش ألاقي صفوف صحيحة فيها GPA، تأكد من شكل الملف'; return; }
+      status.textContent = `تمت قراءة ${parsedGpaRows.length} صف. جاري المطابقة مع الأعضاء...`;
+      await matchGpaRowsWithUsers();
+    }catch(e){ status.textContent = '❌ خطأ في قراءة الملف: '+e.message; }
+  }
+
+  async function matchGpaRowsWithUsers(){
+    const status = document.getElementById('gpaFileStatus');
+    const preview = document.getElementById('gpaFilePreview');
+    const usersSnap = await db.collection('users').get();
+    const byPhone = {}; const byName = {};
+    usersSnap.forEach(doc=>{
+      const u = doc.data();
+      byPhone[doc.id] = {phone:doc.id, name:u.name||'', department:u.department||null};
+      if(u.name) byName[u.name.trim()] = {phone:doc.id, name:u.name, department:u.department||null};
+    });
+    let matched=0, unmatched=0;
+    parsedGpaRows.forEach(row=>{
+      let m = row.phone && byPhone[row.phone] ? byPhone[row.phone] : (row.name && byName[row.name] ? byName[row.name] : null);
+      if(m && ADMIN_MODE === 'leader' && LEADER_DEPT && m.department !== LEADER_DEPT) m = null; // الليدر يحدّث طلاب قسمه بس
+      row.matchedPhone = m ? m.phone : null;
+      row.matchedName = m ? m.name : null;
+      if(m) matched++; else unmatched++;
+    });
+    status.textContent = `✅ اتطابق ${matched} طالب${unmatched? ' — ⚠️ '+unmatched+' صف مش متطابق' : ''}. راجع الجدول وبعدين اضغط "حفظ الكل".`;
+    preview.innerHTML = `
+      <div style="max-height:340px;overflow-y:auto;margin-top:8px;">
+        <table style="width:100%;border-collapse:collapse;font-size:12.5px;">
+          <thead><tr style="color:var(--blue-deep);"><th style="text-align:right;">الصف بالملف</th><th>الطالب المطابق</th><th>GPA</th></tr></thead>
+          <tbody>
+            ${parsedGpaRows.map((r,i)=>`
+              <tr style="border-top:1px solid #eef3fa;">
+                <td>${r.name || r.phone}</td>
+                <td>${r.matchedPhone ? '✅ '+r.matchedName+' ('+r.matchedPhone+')' : '<span style="color:#b00020;">⚠️ غير موجود</span>'}</td>
+                <td>${r.gpa}</td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+      <button class="btn btn-approve" style="margin-top:10px;" onclick="confirmSaveGpaFile()">💾 حفظ الكل (${matched} طالب)</button>
+    `;
+  }
+
+  async function confirmSaveGpaFile(){
+    const status = document.getElementById('gpaFileStatus');
+    const rows = parsedGpaRows.filter(r=>r.matchedPhone);
+    if(!rows.length){ alert('لا يوجد صفوف متطابقة لحفظها'); return; }
+    if(!confirm(`هيتم تحديث الـ GPA لـ ${rows.length} طالب. متأكد؟`)) return;
+    status.textContent = 'جاري الحفظ...';
+    const batchSize = 400;
+    for(let i=0;i<rows.length;i+=batchSize){
+      const batch = db.batch();
+      rows.slice(i,i+batchSize).forEach(r=>{
+        batch.update(db.collection('users').doc(r.matchedPhone), {lastGpa: r.gpa});
+      });
+      await batch.commit();
+    }
+    status.textContent = `✅ اتحفظ الـ GPA لـ ${rows.length} طالب بنجاح`;
+    document.getElementById('gpaFilePreview').innerHTML = '';
+    parsedGpaRows = [];
+  }
+
   // ==================== GPA مباشر ====================
   async function loadGpaManualList(){
     const year = document.getElementById('gpaFilterYear').value;
@@ -2644,6 +3059,7 @@
     try{
       let query = db.collection('users').where('approved','==',true);
       if(ADMIN_MODE === 'leader' && LEADER_DEPT) query = query.where('department','==', LEADER_DEPT);
+      if(ADMIN_MODE === 'leader' && LEADER_DIVISION) query = query.where('division','==', LEADER_DIVISION);
       const snap = await query.get();
       const byDept = {};
       snap.forEach(doc=>{

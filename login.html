@@ -121,7 +121,7 @@
   </div>
 </div>
 
-<div class="footer-credit">تم إنشاء هذا الموقع بواسطة MF.mo.fayyad</div>
+<div class="footer-credit">تم إنشاء هذا الموقع بواسطة Mohamed Fayyad</div>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -160,19 +160,28 @@
     const depSel = document.getElementById('suDepartment');
     let divisions = ["شعبة أ","شعبة ب"];
     let departments = ["عام"];
+    let departmentsByDivision = {};
     if(db){
       try{
         const snap = await db.collection('settings').doc('academicScope').get();
         if(snap.exists){
           if(Array.isArray(snap.data().divisions) && snap.data().divisions.length) divisions = snap.data().divisions;
           if(Array.isArray(snap.data().departments) && snap.data().departments.length) departments = snap.data().departments;
+          if(snap.data().departmentsByDivision) departmentsByDivision = snap.data().departmentsByDivision;
         } else {
           await db.collection('settings').doc('academicScope').set({divisions, departments});
         }
       }catch(e){ console.warn('تعذر تحميل الشعب والأقسام', e); }
     }
     divSel.innerHTML = '<option value="">اختر الشعبة</option>' + divisions.map(d=>`<option value="${d}">${d}</option>`).join('');
-    depSel.innerHTML = '<option value="">اختر القسم</option>' + departments.map(d=>`<option value="${d}">${d}</option>`).join('');
+    const fillDepartments = ()=>{
+      const division = divSel.value;
+      const list = (division && Array.isArray(departmentsByDivision[division]) && departmentsByDivision[division].length)
+        ? departmentsByDivision[division] : departments;
+      depSel.innerHTML = '<option value="">اختر القسم</option>' + list.map(d=>`<option value="${d}">${d}</option>`).join('');
+    };
+    fillDepartments();
+    divSel.onchange = fillDepartments;
   }
   loadDivisionsAndDepartments();
 

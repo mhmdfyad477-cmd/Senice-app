@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>الملخصات | قسم علوم ابتدائي</title>
+<style>
+  :root{--blue-deep:#0a2e5c;--blue-main:#1565d8;--blue-bright:#2f9bf0;--ice:#eaf4ff;--gold:#f5a623;}
+  *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Tahoma,Arial,sans-serif;}
+  body{background:var(--ice);color:#0a2e5c;min-height:100vh;}
+  .topbar{background:linear-gradient(135deg,var(--blue-main),var(--blue-deep));color:#fff;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:30;box-shadow:0 4px 14px rgba(10,46,92,0.25);flex-wrap:wrap;gap:8px;}
+  .topbar .brand{font-weight:800;font-size:16px;}
+  .topbar a{color:#fff;text-decoration:none;font-size:13px;background:rgba(255,255,255,0.15);padding:8px 14px;border-radius:10px;transition:0.2s;}
+  .topbar a:hover{background:rgba(255,255,255,0.25);}
+  .wrap{max-width:900px;margin:24px auto;padding:0 16px;}
+  .search-bar{margin-bottom:16px;}
+  .search-bar input{width:100%;padding:12px 14px;border-radius:12px;border:1.5px solid #cfe2f7;font-size:14px;}
+  .folder-header{font-size:16px;font-weight:700;color:var(--blue-deep);padding:8px 12px;background:#eaf4ff;border-radius:8px;margin-bottom:6px;display:flex;justify-content:space-between;}
+  .card-box{background:#fff;border-radius:14px;padding:14px;box-shadow:0 4px 14px rgba(10,46,92,0.06);margin-bottom:8px;}
+  .file-card{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;}
+  .file-card .meta b{display:block;font-size:14.5px;}
+  .file-card .meta span{font-size:12px;color:#7a93ad;}
+  .name-link{cursor:pointer;color:var(--blue-main);}
+  .dl{background:var(--blue-main);color:#fff;border:none;border-radius:10px;padding:8px 14px;font-size:12.5px;font-weight:700;cursor:pointer;}
+  .fav-btn{border:none;border-radius:10px;padding:8px 12px;font-size:13px;cursor:pointer;color:#fff;}
+  .del-btn{background:#b00020;color:#fff;border:none;border-radius:10px;padding:8px 10px;font-size:12.5px;cursor:pointer;}
+  .empty-state{text-align:center;padding:40px 20px;color:#7a93ad;}
+  .empty-state .icon{font-size:48px;}
+  .footer{text-align:center;font-size:11.5px;color:#9bb3cb;padding:18px 0;}
+  .overlay{display:none;position:fixed;inset:0;background:rgba(10,46,92,0.45);z-index:50;align-items:center;justify-content:center;padding:20px;}
+  .overlay.active{display:flex;}
+  .modal{background:#fff;border-radius:18px;max-width:420px;width:100%;padding:24px;position:relative;max-height:90vh;overflow-y:auto;}
+  .modal .close-x{position:absolute;left:14px;top:14px;background:none;border:none;font-size:18px;cursor:pointer;color:#7a93ad;}
+  .profile-header{text-align:center;margin-bottom:16px;}
+  .profile-header .p-avatar{width:76px;height:76px;border-radius:50%;object-fit:cover;border:3px solid var(--blue-main);margin:0 auto 10px;}
+  .profile-header .p-avatar-ph{width:76px;height:76px;border-radius:50%;background:var(--blue-bright);display:flex;align-items:center;justify-content:center;font-size:26px;color:#fff;font-weight:800;border:3px solid var(--blue-main);margin:0 auto 10px;}
+  .account-field{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #eef3fa;font-size:13.5px;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">📚 الملخصات</div>
+  <a href="home.html">🏠 الرجوع للرئيسية</a>
+</div>
+
+<div class="wrap">
+  <p style="font-size:12.5px;color:#7a93ad;margin-bottom:10px;">كل الملخصات اللي رفعها أعضاء قسمك. عايز ترفع ملخص جديد؟ من صفحة <a href="home.html" style="color:var(--blue-main);font-weight:700;text-decoration:none;">📝 ملخصاتي</a> في الرئيسية.</p>
+  <div class="search-bar"><input type="text" id="summarySearch" placeholder="ابحث عن ملخص..." oninput="renderSummaries()"></div>
+  <div id="summariesList"><p style="font-size:13px;color:#7a93ad;">جاري التحميل...</p></div>
+</div>
+
+<div class="overlay" id="profileOverlay">
+  <div class="modal">
+    <button class="close-x" onclick="closeProfile()">✕</button>
+    <div class="profile-header">
+      <div id="profAvatarWrap"><div class="p-avatar-ph">؟</div></div>
+      <b id="profName"></b>
+    </div>
+    <div class="account-field"><b>رقم الموبايل</b><span id="profPhone"></span></div>
+    <div class="account-field"><b>الفرقة</b><span id="profYear"></span></div>
+    <div class="account-field"><b>نقاط الفخر</b><span id="profPoints"></span></div>
+  </div>
+</div>
+
+<div class="footer">تم إنشاء هذا الموقع بواسطة Mohamed Fayyad</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyBgI8VcLOdQAMgmcpxCzaMS1UCX1vyzSjw",
+    authDomain: "science-e2b52.firebaseapp.com",
+    projectId: "science-e2b52",
+    storageBucket: "science-e2b52.firebasestorage.app",
+    messagingSenderId: "1031434005860",
+    appId: "1:1031434005860:web:e68fccdd746017a5639e71",
+    measurementId: "G-JZ1SFVMM7P"
+  };
+  let db = null;
+  try {
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.firestore();
+  } catch (e) { console.warn('لا يوجد اتصال بالإنترنت', e); }
+
+  function getCurrentUser() {
+    const raw = localStorage.getItem('currentUser');
+    return raw ? JSON.parse(raw) : null;
+  }
+  const user = getCurrentUser();
+  if (!user) window.location.href = 'login.html';
+
+  async function renderSummaries() {
+    const q = (document.getElementById('summarySearch').value || '').trim();
+    const box = document.getElementById('summariesList');
+    if (!db) { box.innerHTML = '<p style="font-size:13px;color:#9bb3cb;">الملخصات تحتاج اتصال بالإنترنت.</p>'; return; }
+    box.innerHTML = 'جاري التحميل...';
+    try {
+      let userFavorites = [];
+      try {
+        const favSnap = await db.collection('favorites').doc(user.phone).get();
+        if (favSnap.exists) userFavorites = favSnap.data().summaryIds || [];
+      } catch(e) {}
+
+      const foldersSnap = await db.collection('folders').orderBy('name', 'asc').get();
+      const folders = {};
+      foldersSnap.forEach(d => { folders[d.id] = d.data().name; });
+
+      const snap = await db.collection('summaries').get();
+      let items = [];
+      snap.forEach(d => items.push({ id: d.id, ...d.data() }));
+      items.sort((a,b)=>(b.time||0)-(a.time||0));
+
+      // كل واحد بيشوف بس ملخصات قسمه (والملخصات القديمة اللي مفيهاش قسم محدد بتفضل تظهر للكل)
+      items = items.filter(i => !i.department || i.department === user.department);
+
+      if (q) items = items.filter(i => i.title.includes(q) || i.name.includes(q));
+
+      const grouped = {};
+      items.forEach(item => {
+        const folderId = item.folderId || 'uncategorized';
+        if (!grouped[folderId]) grouped[folderId] = [];
+        grouped[folderId].push(item);
+      });
+
+      let html = '';
+      const folderNames = { uncategorized: '📂 بدون مجلد' };
+      Object.keys(folders).forEach(k => { folderNames[k] = '📁 ' + folders[k]; });
+
+      for (const [folderId, summaryList] of Object.entries(grouped)) {
+        const folderName = folderNames[folderId] || '📂 بدون مجلد';
+        html += `<div style="margin-bottom:16px;">
+          <div class="folder-header">
+            <span>${folderName}</span>
+            <span style="font-size:12px;color:#7a93ad;font-weight:400;">${summaryList.length} ملخص</span>
+          </div>`;
+        summaryList.forEach(i => {
+          const isFav = userFavorites.includes(i.id);
+          const canDelete = (user.phone === i.phone) || (user.role === 'admin' || user.role === 'co-admin');
+          const likes = i.likes || 0;
+          html += `<div class="card-box file-card">
+            <div class="meta">
+              <b>${i.title}</b>
+              <span>بواسطة <span class="name-link" onclick="openProfile('${i.phone}')">${i.name}</span></span>
+              <span style="font-size:11px;color:#7a93ad;display:block;">❤️ ${likes} تفضيل</span>
+            </div>
+            <div style="display:flex;gap:6px;align-items:center;">
+              <button class="dl" onclick="downloadSummaryFile('${i.id}')">تحميل</button>
+              <button class="fav-btn" onclick="toggleFavorite('${i.id}')" style="background:${isFav ? '#b00020' : 'var(--blue-main)'};">
+                ${isFav ? '❤️' : '🤍'}
+              </button>
+              ${canDelete ? `<button class="del-btn" onclick="deleteSummary('${i.id}')">🗑</button>` : ''}
+            </div>
+          </div>`;
+        });
+        html += `</div>`;
+      }
+      box.innerHTML = html || '<p style="font-size:13px;color:#9bb3cb;">لا توجد ملخصات بعد</p>';
+    } catch (e) { box.innerHTML = '<p style="font-size:13px;color:#b00020;">خطأ في التحميل</p>'; }
+  }
+
+  function downloadSummaryFile(id){
+    db.collection('summaries').doc(id).get().then(snap=>{
+      if(snap.exists && snap.data().fileUrl) window.open(snap.data().fileUrl, '_blank');
+    }).catch(()=>alert('تعذر التحميل'));
+  }
+
+  async function deleteSummary(id){
+    if(!confirm('حذف الملخص؟')) return;
+    try{ await db.collection('summaries').doc(id).delete(); renderSummaries(); }catch(e){ alert('خطأ: '+e.message); }
+  }
+
+  async function toggleFavorite(summaryId) {
+    if (!db) return alert('لا يوجد اتصال بالإنترنت');
+    try {
+      const favRef = db.collection('favorites').doc(user.phone);
+      const favSnap = await favRef.get();
+      let ids = favSnap.exists ? favSnap.data().summaryIds || [] : [];
+      const isFav = ids.includes(summaryId);
+      if (isFav) {
+        ids = ids.filter(id => id !== summaryId);
+        await db.collection('summaries').doc(summaryId).update({ likes: firebase.firestore.FieldValue.increment(-1) });
+      } else {
+        ids.push(summaryId);
+        await db.collection('summaries').doc(summaryId).update({ likes: firebase.firestore.FieldValue.increment(1) });
+      }
+      await favRef.set({ summaryIds: ids, updatedAt: Date.now() });
+      renderSummaries();
+    } catch (e) { alert('خطأ: '+e.message); }
+  }
+
+  async function openProfile(phone){
+    if(!db) return;
+    document.getElementById('profileOverlay').classList.add('active');
+    document.getElementById('profName').textContent='...';
+    document.getElementById('profPhone').textContent=phone;
+    document.getElementById('profYear').textContent='...';
+    document.getElementById('profPoints').textContent='...';
+    document.getElementById('profAvatarWrap').innerHTML='<div class="p-avatar-ph">؟</div>';
+    try{
+      const snap=await db.collection('users').doc(phone).get();
+      if(!snap.exists)return;
+      const u=snap.data();
+      document.getElementById('profName').textContent=u.name||'';
+      document.getElementById('profPhone').textContent=u.phone||phone;
+      document.getElementById('profYear').textContent=u.year||'—';
+      document.getElementById('profPoints').textContent=(u.points||0)+' نقطة';
+      if(u.avatar){ document.getElementById('profAvatarWrap').innerHTML=`<img class="p-avatar" src="${u.avatar}">`; }
+      else{ document.getElementById('profAvatarWrap').innerHTML=`<div class="p-avatar-ph">${(u.name||'؟')[0]}</div>`; }
+    }catch(e){}
+  }
+  function closeProfile(){ document.getElementById('profileOverlay').classList.remove('active'); }
+
+  renderSummaries();
+</script>
+</body>
+</html>
