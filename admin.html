@@ -2139,45 +2139,9 @@
             <span id="fe_msg_${u.id}" style="font-size:11.5px;"></span>
           </div>
         </div>` : ''}
-        ${CURRENT_USER_IS_SUPER ? `
-        <div style="margin-top:8px; background:#eef7ff; border:1.5px dashed #1565d8; padding:8px 10px; border-radius:8px;">
-          <button class="btn btn-sm btn-blue" onclick="toggleDevices('${u.id}')">📱 الأجهزة المسجلة (${(u.loginHistory||[]).length})</button>
-          <div id="devices_${u.id}" style="display:none; margin-top:8px;"></div>
-        </div>` : ''}
       `;
       box.appendChild(el);
     });
-  }
-
-  function toggleDevices(phone){
-    const box = document.getElementById('devices_'+phone);
-    if(!box) return;
-    const opening = box.style.display === 'none';
-    box.style.display = opening ? 'block' : 'none';
-    if(!opening) return;
-    const u = allLoadedUsers.find(x=>x.id===phone) || {};
-    const history = u.loginHistory || [];
-    if(!history.length){ box.innerHTML = '<p style="font-size:12px;color:#7a93ad;">لا يوجد سجل دخول مسجّل لهذا العضو بعد.</p>'; return; }
-    // نجمع كل جهاز فريد (حسب deviceId) مع آخر وقت دخول منه
-    const uniqueDevices = {};
-    history.forEach(h=>{
-      if(!uniqueDevices[h.deviceId] || h.time > uniqueDevices[h.deviceId].time) uniqueDevices[h.deviceId] = h;
-    });
-    const devicesArr = Object.values(uniqueDevices).sort((a,b)=>b.time-a.time);
-    const isCurrent = (h) => u.activeSession && u.lastDevice && u.lastDevice.deviceId === h.deviceId;
-    box.innerHTML = `
-      <p style="font-size:11.5px;color:#7a93ad;margin-bottom:6px;">عدد الأجهزة المختلفة اللي دخلت من الحساب ده: <b>${devicesArr.length}</b></p>
-      ${devicesArr.map(h => `
-        <div class="card-box row" style="margin-bottom:6px;">
-          <div class="meta">
-            <b>${h.label || 'جهاز غير معروف'} ${isCurrent(h) ? '<span style="color:#147a35">— 🟢 الجلسة الحالية</span>' : ''}</b>
-            <span>آخر دخول: ${new Date(h.time).toLocaleString('ar-EG')}</span>
-          </div>
-          ${isCurrent(h) ? `<button class="btn btn-reject btn-sm" onclick="forceLogout('${phone}')">🚪 تسجيل خروج من هذا الجهاز</button>` : `<span style="font-size:11px;color:#9bb3cb;">غير متصل الآن</span>`}
-        </div>
-      `).join('')}
-      <p style="font-size:10.5px;color:#bcd0e6;margin-top:6px;">⚠️ الموقع بيسمح بجلسة واحدة نشطة بس في نفس الوقت — القائمة دي بتوريك تاريخ كل الأجهزة اللي دخلت، لكن اللي شغال فعليًا دلوقتي واحد بس (لو موجود) وعليه زرار تسجيل الخروج.</p>
-    `;
   }
 
   async function toggleFullEdit(phone){
