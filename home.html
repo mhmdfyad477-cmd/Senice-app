@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>الرئيسية | قسم علوم ابتدائي</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0a2e5c">
 <style>
   :root{--blue-deep:#0a2e5c;--blue-main:#1565d8;--blue-bright:#2f9bf0;--ice:#eaf4ff;--gold:#f5a623;}
   *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Tahoma,Arial,sans-serif;}
@@ -13,6 +15,9 @@
   .topbar .brand svg{width:26px;height:26px;fill:#fff;}
   .topbar .brand #brandDeptText{color:var(--gold);font-weight:900;}
   .menu-btn{background:rgba(255,255,255,0.15);border:none;color:#fff;width:38px;height:38px;border-radius:10px;font-size:18px;cursor:pointer;}
+  .install-btn{background:rgba(255,255,255,0.15);border:none;color:#fff;width:38px;height:38px;border-radius:10px;font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;visibility:hidden;}
+  .install-btn.show{visibility:visible;animation:pulseInstall 2.2s ease-in-out infinite;}
+  @keyframes pulseInstall{0%,100%{box-shadow:0 0 0 0 rgba(255,255,255,0.35);}50%{box-shadow:0 0 0 6px rgba(255,255,255,0);}}
   .layout{display:flex;min-height:calc(100vh - 58px);}
   .sidebar{width:230px;background:#fff;border-left:1px solid #e1ecf8;padding:16px 12px;display:flex;flex-direction:column;gap:6px;position:sticky;top:58px;height:calc(100vh - 58px);overflow-y:auto;transition:0.3s;}
   .sidebar button{display:flex;align-items:center;gap:10px;background:transparent;border:none;text-align:right;padding:11px 12px;border-radius:12px;cursor:pointer;font-size:14.5px;font-weight:700;color:#4a6585;}
@@ -170,7 +175,7 @@
     <svg viewBox="0 0 24 24"><path d="M9 2v6.3L4.3 17a2 2 0 0 0 1.8 3h11.8a2 2 0 0 0 1.8-3L15 8.3V2H9z"/></svg>
     <span id="brandDeptText">قسم علوم — ابتدائي</span>
   </div>
-  <div style="width:38px"></div>
+  <button class="install-btn" id="installBtn" onclick="installApp()" title="تثبيت التطبيق">📲</button>
 </div>
 
 <div class="announce-bar" id="announceBar">
@@ -730,6 +735,38 @@
   }
 
   loadAboutContentHome();
+
+  // ===== تثبيت التطبيق (PWA Install) =====
+  let deferredInstallPrompt = null;
+  const installBtn = document.getElementById('installBtn');
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredInstallPrompt = e;
+    if (!localStorage.getItem('pwaInstalled')) {
+      installBtn.classList.add('show');
+    }
+  });
+
+  async function installApp(){
+    if (!deferredInstallPrompt) return;
+    installBtn.classList.remove('show');
+    deferredInstallPrompt.prompt();
+    const choice = await deferredInstallPrompt.userChoice;
+    if (choice.outcome === 'accepted') {
+      localStorage.setItem('pwaInstalled', 'true');
+    }
+    deferredInstallPrompt = null;
+  }
+
+  window.addEventListener('appinstalled', () => {
+    localStorage.setItem('pwaInstalled', 'true');
+    installBtn.classList.remove('show');
+  });
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/OneSignalSDKWorker.js').catch(()=>{});
+  }
 </script>
 </body>
   </html>
