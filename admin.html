@@ -407,10 +407,11 @@
       <div class="card-box">
         <b style="display:block;margin-bottom:8px;">📞 إضافة وسيلة تواصل</b>
         <div class="form-line">
-          <select id="contactType"><option value="email">إيميل</option><option value="facebook">فيسبوك</option><option value="instagram">إنستاجرام</option><option value="twitter">تويتر</option><option value="whatsapp">واتساب</option><option value="phone">هاتف</option><option value="youtube">يوتيوب</option><option value="telegram">تيليجرام</option></select>
+          <select id="contactType" onchange="updateContactUrlPlaceholder()"><option value="email">إيميل</option><option value="facebook">فيسبوك</option><option value="instagram">إنستاجرام</option><option value="twitter">تويتر</option><option value="whatsapp">واتساب</option><option value="phone">هاتف</option><option value="youtube">يوتيوب</option><option value="telegram">تيليجرام</option></select>
           <input type="text" id="contactLabel" placeholder="التسمية (مثل: البريد الرسمي)">
-          <input type="text" id="contactUrl" placeholder="الرابط (مثل: https://...)" style="flex:2;">
+          <input type="text" id="contactUrl" placeholder="اكتب الإيميل بس (مثل: name@gmail.com)" style="flex:2;">
         </div>
+        <p style="font-size:11px;color:#9bb3cb;margin-top:4px;">💡 للإيميل والهاتف: اكتب الإيميل أو الرقم بس من غير أي إضافات، هنظبط الرابط تلقائيًا. لباقي المنصات: الصق الرابط كامل (https://...).</p>
         <div style="display:flex;gap:6px;flex-wrap:wrap;">
           <button class="btn btn-blue" onclick="addContact()">➕ إضافة</button>
         </div>
@@ -1478,17 +1479,44 @@
   }
 
   // ====== إدارة تواصل معنا ======
+  function updateContactUrlPlaceholder(){
+    const type = document.getElementById('contactType').value;
+    const input = document.getElementById('contactUrl');
+    if(type === 'email') input.placeholder = 'اكتب الإيميل بس (مثل: name@gmail.com)';
+    else if(type === 'phone') input.placeholder = 'اكتب الرقم بس (مثل: 01012345678)';
+    else if(type === 'whatsapp') input.placeholder = 'اكتب الرقم بصيغة دولية (مثل: 201012345678)';
+    else input.placeholder = 'الرابط كامل (مثل: https://...)';
+  }
+  function buildContactHref(type, raw){
+    let v = raw.trim();
+    if(type === 'email'){
+      v = v.replace(/^mailto:/i, '');
+      return 'mailto:' + v;
+    }
+    if(type === 'phone'){
+      v = v.replace(/^tel:/i, '');
+      return 'tel:' + v;
+    }
+    if(type === 'whatsapp' && !/^https?:\/\//i.test(v)){
+      return 'https://wa.me/' + v.replace(/[^0-9]/g, '');
+    }
+    // باقي الأنواع: نتأكد إن فيه بروتوكول، وإلا نضيف https:// تلقائيًا
+    if(!/^https?:\/\//i.test(v)) v = 'https://' + v;
+    return v;
+  }
   async function addContact() {
     const type = document.getElementById('contactType').value;
     const label = document.getElementById('contactLabel').value.trim();
-    const url = document.getElementById('contactUrl').value.trim();
+    const rawUrl = document.getElementById('contactUrl').value.trim();
     const msg = document.getElementById('contactMsg');
-    if (!label || !url) { msg.textContent = '⚠️ أدخل التسمية والرابط'; msg.style.color = '#b00020'; return; }
+    if (!label || !rawUrl) { msg.textContent = '⚠️ أدخل التسمية والرابط'; msg.style.color = '#b00020'; return; }
     try {
+      const url = buildContactHref(type, rawUrl);
+      const display = (type === 'email' || type === 'phone') ? rawUrl.replace(/^mailto:|^tel:/i, '') : label;
       const ref = db.collection('settings').doc('contacts');
       const snap = await ref.get();
       let items = snap.exists ? snap.data().items || [] : [];
-      items.push({ type, label, url, display: label });
+      items.push({ type, label, url, display });
       await ref.set({ items });
       document.getElementById('contactLabel').value = '';
       document.getElementById('contactUrl').value = '';

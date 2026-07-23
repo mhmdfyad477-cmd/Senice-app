@@ -67,7 +67,7 @@
 
 <div class="wrap">
   <div class="card-box">
-    <h2 style="color:var(--blue-deep);margin-bottom:16px;">📱 تواصل مع إدارة القسم</h2>
+    <h2 style="color:var(--blue-deep);margin-bottom:16px;">📱 تواصل مع إدارة الموقع</h2>
     <p style="font-size:14px;color:#7a93ad;margin-bottom:20px;">يمكنك التواصل معنا من خلال القنوات التالية:</p>
     <div id="contactList">
       <p style="font-size:13px;color:#7a93ad;">جاري التحميل...</p>
@@ -124,14 +124,20 @@
         return;
       }
       const items = snap.data().items;
-      box.innerHTML = items.map(item => `
+      box.innerHTML = items.map(item => {
+        let href = item.url || '';
+        // تصحيح تلقائي لأي رابط إيميل/هاتف قديم اتسجل من غير mailto:/tel:
+        if(item.type === 'email' && !/^mailto:/i.test(href)) href = 'mailto:' + href;
+        if(item.type === 'phone' && !/^tel:/i.test(href)) href = 'tel:' + href;
+        return `
         <div class="contact-item">
           <div class="icon">${contactIcons[item.type] || '🔗'}</div>
           <div class="info">
-            ${item.label}: <a href="${item.url}" target="_blank">${item.display || item.url}</a>
+            ${item.label}: <a href="${href}" target="_blank">${item.display || item.url}</a>
           </div>
         </div>
-      `).join('');
+      `;
+      }).join('');
     } catch (e) { box.innerHTML = '<p style="font-size:13px;color:#b00020;">خطأ في التحميل</p>'; }
   }
 
