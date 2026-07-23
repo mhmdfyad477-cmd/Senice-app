@@ -15,6 +15,42 @@
   .card-box{background:#fff;border-radius:16px;padding:30px;box-shadow:0 6px 18px rgba(10,46,92,0.06);margin-bottom:14px;text-align:center;}
   .footer{text-align:center;font-size:11.5px;color:#9bb3cb;padding:18px 0;}
 </style>
+  <!-- OneSignal Web Push -->
+  <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+  <script>
+    window.OneSignalDeferred = window.OneSignalDeferred || [];
+    OneSignalDeferred.push(async function(OneSignal) {
+      await OneSignal.init({
+        appId: "1e9dacbc-07bf-4c3e-9ff3-1d0502c6d6c7",
+        safari_web_id: "web.onesignal.auto.129ff751-f997-4966-a642-dcf62166c788",
+        notifyButton: { enable: true },
+      });
+      window.OneSignalReady = OneSignal;
+      // لو المستخدم مسجّل دخول بالفعل (متخزن في localStorage) نربطه بحسابه في OneSignal
+      // ونحط عليه Tags بالقسم/الشعبة/الفرقة عشان نقدر نستهدفه بإشعارات مخصصة لاحقًا
+      try{
+        const savedUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+        if(savedUser && savedUser.phone){
+          await OneSignal.login(String(savedUser.phone));
+          const tags = {};
+          if(savedUser.department) tags.department = savedUser.department;
+          if(savedUser.division) tags.division = savedUser.division;
+          if(savedUser.year) tags.year = String(savedUser.year);
+          if(savedUser.role) tags.role = savedUser.role;
+          if(Object.keys(tags).length) OneSignal.User.addTags(tags);
+        }
+      }catch(e){ console.warn('OneSignal identify skipped:', e); }
+    });
+    // دالة عامة تستخدمها كل صفحات الموقع لإرسال Custom Event لـ OneSignal
+    // (تُستخدم لتفعيل الـ Journeys التلقائية في الداشبورد)
+    function fireOneSignalEvent(name, properties){
+      window.OneSignalDeferred = window.OneSignalDeferred || [];
+      OneSignalDeferred.push(function(OneSignal){
+        try{ OneSignal.User.trackEvent(name, properties || {}); }
+        catch(e){ console.warn('OneSignal trackEvent failed:', e); }
+      });
+    }
+  </script>
 </head>
 <body>
 
