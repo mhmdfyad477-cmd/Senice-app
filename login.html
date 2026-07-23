@@ -236,6 +236,33 @@
     }catch(e){ console.warn('لا يوجد اتصال بالإنترنت', e); }
   }
   ensureAdmin();
+
+  // ==================== تتبّع الأجهزة ====================
+  // معرّف ثابت لكل متصفح/جهاز (يتخزن مرة واحدة ويفضل زي ما هو)
+  function getDeviceId(){
+    let id = localStorage.getItem('deviceId');
+    if(!id){
+      id = 'dev_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,10);
+      localStorage.setItem('deviceId', id);
+    }
+    return id;
+  }
+  // اسم مبسّط للجهاز/المتصفح من الـ User Agent
+  function getDeviceLabel(){
+    const ua = navigator.userAgent;
+    let os = 'جهاز غير معروف';
+    if(/iPhone|iPad|iPod/i.test(ua)) os = 'iPhone/iPad';
+    else if(/Android/i.test(ua)) os = 'أندرويد';
+    else if(/Windows/i.test(ua)) os = 'ويندوز';
+    else if(/Macintosh/i.test(ua)) os = 'ماك';
+    else if(/Linux/i.test(ua)) os = 'لينكس';
+    let browser = 'متصفح';
+    if(/Edg\//i.test(ua)) browser = 'Edge';
+    else if(/Chrome\//i.test(ua) && !/Edg\//i.test(ua)) browser = 'Chrome';
+    else if(/Safari\//i.test(ua) && !/Chrome\//i.test(ua)) browser = 'Safari';
+    else if(/Firefox\//i.test(ua)) browser = 'Firefox';
+    return `${os} — ${browser}`;
+  }
 </script>
 
 <script>
@@ -278,7 +305,11 @@
           // ✅ منع تسجيل الدخول نهائياً من جهاز آخر
           showMsg(msg,'⚠️ الحساب مسجل دخول بالفعل من جهاز آخر. يرجى تسجيل الخروج من الجهاز الآخر أولاً','error');
         } else {
-          await ref.update({activeSession:true, lastLogin:Date.now()});
+          const deviceId = getDeviceId();
+          const deviceEntry = { deviceId, label: getDeviceLabel(), ua: navigator.userAgent, time: Date.now() };
+          const prevHistory = Array.isArray(data.loginHistory) ? data.loginHistory : [];
+          const newHistory = [deviceEntry, ...prevHistory].slice(0, 15);
+          await ref.update({activeSession:true, lastLogin:Date.now(), lastDevice: deviceEntry, loginHistory: newHistory});
           const userObj = {phone, name:data.name, role:data.role||'student', year:data.year,
             division:data.division||'', department:data.department||'', status:data.status||'',
             scope:data.scope||''};
