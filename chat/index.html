@@ -99,7 +99,7 @@
 
 <div class="topbar">
   <div class="brand">💬 الشات</div>
-  <a href="home.html">🏠 الرجوع للرئيسية</a>
+  <a href="/home/">🏠 الرجوع للرئيسية</a>
 </div>
 
 <div class="wrap">
@@ -182,7 +182,7 @@
     return raw ? JSON.parse(raw) : null;
   }
   const user = getCurrentUser();
-  if (!user) window.location.href = 'login.html';
+  if (!user) window.location.href = '/login/';
 
   let currentGroupId = null;
   let unsubMessages = null;

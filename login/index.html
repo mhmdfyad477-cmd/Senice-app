@@ -284,7 +284,7 @@
             scope:data.scope||''};
           localStorage.setItem('currentUser', JSON.stringify(userObj));
           const params = new URLSearchParams(userObj).toString();
-          const targetUrl = 'home.html?' + params;
+          const targetUrl = '/home/?' + params;
           msg.innerHTML = 'تم تسجيل الدخول بنجاح. <a href="'+targetUrl+'" style="color:#0a2e5c;font-weight:800;text-decoration:underline;">اضغط هنا للمتابعة</a> لو ملحولكش تلقائيًا';
           msg.className = 'msg success';
           msg.style.display = 'block';

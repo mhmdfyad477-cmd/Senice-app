@@ -111,7 +111,7 @@
 <div id="adminPanel" style="display:none">
   <div class="topbar">
     <b>⚙️ لوحة تحكم الأدمن</b>
-    <a href="home.html">رجوع للرئيسية</a>
+    <a href="/home/">رجوع للرئيسية</a>
   </div>
   <div class="wrap">
     <div class="tabs">
@@ -666,7 +666,7 @@
         <p style="font-size:13px;color:#3c5675;line-height:1.9;">
           هنا كل دكتور مادة (أو الأدمن) يقدر يدير <b>دفتر الغياب</b> و<b>درجات الطلبة</b> (الميد والعملي) الخاصة بمادته. الدرجات هتظهر للطالب في صفحة "حسابي" بس.
         </p>
-        <a href="attendance.html" class="btn btn-blue" style="text-decoration:none;display:inline-block;margin-top:8px;">📋 فتح دفتر غياب المادة</a>
+        <a href="/attendance/" class="btn btn-blue" style="text-decoration:none;display:inline-block;margin-top:8px;">📋 فتح دفتر غياب المادة</a>
       </div>
       <div class="card-box">
         <b style="display:block;margin-bottom:8px;">🎯 اختيار المادة والمجموعة</b>
@@ -700,7 +700,7 @@
         <p style="font-size:13px;color:#3c5675;line-height:1.9;">
           الأدمن له صلاحية كاملة على دفتر الغياب لكل المواد والشعب من صفحة <b>attendance.html</b> مباشرة (رابط "دفتر الغياب / غيابي" في الصفحة الرئيسية). دور الأدمن هنا هو تحديد مين يقدر كمان يسجل حضور، وده بيتم من تبويب "🧑‍🏫 الأدوار" بتعيين دكتور مادة أو ليدر قسم.
         </p>
-        <a href="attendance.html" class="btn btn-blue" style="text-decoration:none;display:inline-block;margin-top:10px;">فتح دفتر الغياب</a>
+        <a href="/attendance/" class="btn btn-blue" style="text-decoration:none;display:inline-block;margin-top:10px;">فتح دفتر الغياب</a>
       </div>
     </div>
 
@@ -855,7 +855,7 @@
       <div class="lock-box">
         <h2 style="margin-bottom:6px">🚫 غير مصرح لك</h2>
         <p style="font-size:12.5px;color:#7a93ad">لازم تسجل دخول بحساب عنده صلاحية دخول لوحة الأدمن</p>
-        <a href="home.html" style="display:block;margin-top:14px;color:#1565d8;font-weight:800;text-decoration:none;">⬅️ رجوع للرئيسية</a>
+        <a href="/home/" style="display:block;margin-top:14px;color:#1565d8;font-weight:800;text-decoration:none;">⬅️ رجوع للرئيسية</a>
       </div>`;
   }
 
@@ -885,7 +885,7 @@
     document.getElementById('lockScreen').style.display='none';
     document.getElementById('adminPanel').style.display='block';
     document.querySelectorAll('.tabs button').forEach(btn=>{
-      const m = (btn.getAttribute('onclick')||'').match(/showTab\('([^']+)'/);
+      const m = (btn.getAttribute('onclick')||'\(').match(/showTab\('([^']+)'/);
       const tabId = m ? m[1] : null;
       btn.style.display = (tabId === 'subjectDoctor') ? '' : 'none';
     });
@@ -1434,7 +1434,7 @@
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `تقرير_شامل_${new Date().toLocaleDateString('ar').replace(/\//g, '-')}.xls`;
+      a.download = `تقرير_شامل_${new Date().toLocaleDateString('ar\/').replace(/\//g, '-')}.xls`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -1497,8 +1497,8 @@
       v = v.replace(/^tel:/i, '');
       return 'tel:' + v;
     }
-    if(type === 'whatsapp' && !/^https?:\/\//i.test(v)){
-      return 'https://wa.me/' + v.replace(/[^0-9]/g, '');
+    if(type === 'whatsapp\/\/' && !/^https?:\/\//i.test(v)){
+      return 'https://wa.me/' + v.replace(/[^0-9]/g, '\/\/');
     }
     // باقي الأنواع: نتأكد إن فيه بروتوكول، وإلا نضيف https:// تلقائيًا
     if(!/^https?:\/\//i.test(v)) v = 'https://' + v;
@@ -2777,7 +2777,7 @@
         logger: m => { if(m.status==='recognizing text') status.textContent = `⏳ جاري القراءة... ${Math.round((m.progress||0)*100)}%`; }
       });
       const lines = (data.text || '').split('\n').map(l=>l.trim()).filter(l=>l.length>2);
-      if(!lines.length){ status.textContent = '❌ مقدرش أقرا حاجة واضحة من الصورة'; return; }
+      if(!lines.length){ status.textContent = '❌ مقدرش أقرا حاجة واضحة من الصورة\t\s'; return; }
       // كل سطر بنحاول نقسمه لأعمدة (يوم/مادة/ميعاد/مكان) بالاعتماد على مسافتين أو أكتر أو Tab
       const guessedRows = lines.map(line=>{
         const cols = line.split(/\t|\s{2,}/).map(c=>c.trim()).filter(Boolean);
@@ -3024,7 +3024,7 @@
   // ==================== رفع ملف GPA لكل الطلاب ====================
   let parsedGpaRows = [];
   function normalizePhone(v){
-    if(v===null||v===undefined) return '';
+    if(v===null||v===undefined) return '\d';
     let s = String(v).trim().replace(/[^\d]/g,'');
     if(s.length===9) s='0'+s; // بعض ملفات الإكسل بتشيل الصفر الأول
     return s;
@@ -3367,14 +3367,14 @@
       const ref = curriculumDocRef();
       const snap = await ref.get();
       const cdata = snap.exists ? (snap.data()||{}) : {};
-      const key = 'term'+term;
+      const key = 'term\b\b'+term;
       cdata[key] = cdata[key] || [];
       let added = 0;
       lines.forEach(line=>{
         // بندور على رقم ساعات في السطر (1 أو 2)، والباقي اسم المادة
         const hoursMatch = line.match(/\b([12])\b/);
-        const hours = hoursMatch ? hoursMatch[1] : '2';
-        const subject = line.replace(/\b([12])\b/, '').replace(/[\-–:،,]+$/,'').trim();
+        const hours = hoursMatch ? hoursMatch[1] : '2\b\b';
+        const subject = line.replace(/\b([12])\b/, '\-').replace(/[\-–:،,]+$/,'').trim();
         if(subject.length > 1){ cdata[key].push({subject, hours}); added++; }
       });
       await ref.set(cdata);
@@ -3436,7 +3436,7 @@
           <td><input type="number" min="0" style="width:70px;" class="sdMidInput" value="${g.midterm!=null?g.midterm:''}"></td>
           <td><input type="number" min="0" style="width:70px;" class="sdPracInput" value="${g.practical!=null?g.practical:''}"></td>
           <td style="white-space:nowrap;">
-            <button class="btn btn-approve btn-sm" onclick="saveSubjectGrade('${s.phone}','${s.name.replace(/'/g,"\\'")}')">💾</button>
+            <button class="btn btn-approve btn-sm" onclick="saveSubjectGrade('${s.phone}','${s.name.replace(/\\'/g,"\\'")}')">💾</button>
             <button class="btn btn-reject btn-sm" onclick="deleteSubjectGrade('${s.phone}')">🗑️</button>
           </td>
         </tr>`;

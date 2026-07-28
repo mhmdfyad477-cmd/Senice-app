@@ -438,7 +438,7 @@
             <svg viewBox="0 0 24 24"><path d="M9 2v6.3L4.3 17a2 2 0 0 0 1.8 3h11.8a2 2 0 0 0 1.8-3L15 8.3V2H9z"/></svg>
             دفتر الغياب
         </div>
-        <a href="home.html">🏠 الرجوع للرئيسية</a>
+        <a href="/home/">🏠 الرجوع للرئيسية</a>
     </div>
 
     <!-- ===== الحاوية ===== -->
@@ -516,7 +516,7 @@
             return raw ? JSON.parse(raw) : null;
         }
         const user = getCurrentUser();
-        if (!user) window.location.href = 'login.html';
+        if (!user) window.location.href = '/login/';
 
         const isAdmin = user.role === 'admin' || user.role === 'co-admin' || user.role === 'college-admin';
         const isSectionLeader = user.role === 'section-leader';

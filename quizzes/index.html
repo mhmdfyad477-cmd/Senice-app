@@ -86,7 +86,7 @@
 
 <div class="topbar">
   <div class="brand" style="font-weight:800;font-size:16px;">📝 الكويزات</div>
-  <a href="home.html">🏠 الرجوع للرئيسية</a>
+  <a href="/home/">🏠 الرجوع للرئيسية</a>
 </div>
 
 <div class="wrap">
@@ -151,7 +151,7 @@
     return raw ? JSON.parse(raw) : null;
   }
   const user = getCurrentUser();
-  if (!user) window.location.href = 'login.html';
+  if (!user) window.location.href = '/login/';
 
   let currentQuizId = null;
   let userAnswers = {};

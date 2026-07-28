@@ -69,7 +69,7 @@
 
 <div class="topbar">
   <div class="brand" style="font-weight:800;font-size:16px;">👤 حسابي</div>
-  <a href="home.html">🏠 الرجوع للرئيسية</a>
+  <a href="/home/">🏠 الرجوع للرئيسية</a>
 </div>
 
 <div class="wrap">
@@ -94,7 +94,7 @@
     <b style="display:block;margin-bottom:10px;">🎓 الإرشاد الأكاديمي</b>
     <p style="font-size:12.5px;color:#7a93ad;margin-bottom:10px;">تقدر ترفع نتيجة الترم، تتابع الـ GPA، الإنذارات، والمواد الراسبة من صفحة الإرشاد الأكاديمي.</p>
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
-      <a href="advising.html" style="text-decoration:none;background:var(--blue-main);color:#fff;padding:10px 16px;border-radius:10px;font-weight:700;font-size:13.5px;">فتح صفحة الإرشاد الأكاديمي</a>
+      <a href="/advising/" style="text-decoration:none;background:var(--blue-main);color:#fff;padding:10px 16px;border-radius:10px;font-weight:700;font-size:13.5px;">فتح صفحة الإرشاد الأكاديمي</a>
       <button onclick="downloadMyAdvisingExcel()" style="background:#1d6f42;color:#fff;border:none;padding:10px 16px;border-radius:10px;font-weight:700;font-size:13.5px;cursor:pointer;">📊 تحميل سجلي (Excel)</button>
     </div>
   </div>
@@ -152,7 +152,7 @@
   }
   function requireLogin() {
     const u = getCurrentUser();
-    if (!u) { window.location.href = 'login.html'; return null; }
+    if (!u) { window.location.href = '/login/'; return null; }
     return u;
   }
   const user = requireLogin();

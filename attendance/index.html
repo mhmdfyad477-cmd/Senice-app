@@ -83,7 +83,7 @@
 
 <div class="topbar">
   <div style="font-weight:800;font-size:16px;">🗓️ دفتر الغياب</div>
-  <a href="home.html">🏠 الرجوع للرئيسية</a>
+  <a href="/home/">🏠 الرجوع للرئيسية</a>
 </div>
 
 <div class="wrap">
@@ -212,7 +212,7 @@
   }
   function requireLogin(){
     const u = getCurrentUser();
-    if(!u){ window.location.href='login.html'; return null; }
+    if(!u){ window.location.href='/login/'; return null; }
     return u;
   }
   const user = requireLogin();
@@ -365,7 +365,7 @@
       const { data } = await Tesseract.recognize(file, 'ara', {
         logger: m => { if(m.status==='recognizing text') status.textContent = `⏳ جاري القراءة... ${Math.round((m.progress||0)*100)}%`; }
       });
-      const lines = (data.text || '').split('\n').map(l=>l.trim()).filter(l=>l.length>1);
+      const lines = (data.text || '').split(\n'\n').map(l=>l.trim()).filter(l=>l.length>1);
       if(!lines.length){ status.textContent = '❌ مقدرش أقرا أي أسماء واضحة من الصورة'; return; }
 
       const checks = document.querySelectorAll('.present-check');

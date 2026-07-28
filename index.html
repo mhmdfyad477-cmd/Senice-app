@@ -175,16 +175,16 @@
     <button onclick="showSection('summaries',this)">📝 ملخصاتي</button>
     <button onclick="showSection('books',this)">📚 كتبي</button>
     <button onclick="showSection('leaderboard',this)">🏆 ترتيب الفخر</button>
-    <button onclick="window.location.href='quizzes.html'">📝 الكويزات</button>
+    <button onclick="window.location.href='/quizzes/'">📝 الكويزات</button>
     <div class="divider"></div>
-    <button onclick="window.location.href='account.html'">👤 حسابي</button>
+    <button onclick="window.location.href='/account/'">👤 حسابي</button>
     <button class="small-link" onclick="showSection('summaries',this)">↳ ملخصاتي</button>
     <button class="small-link" onclick="showSection('books',this)">↳ كتبي</button>
     <div class="divider"></div>
     <button onclick="showSection('about',this)">ℹ️ من نحن</button>
     <button onclick="showSection('privacy',this)">🔒 سياسة الخصوصية</button>
     <div class="divider" id="adminDividerSidebar" style="display:none"></div>
-    <a id="adminLinkBtn" href="admin.html" style="display:none;text-decoration:none;padding:11px 12px;border-radius:12px;font-size:14.5px;font-weight:700;color:#4a6585;">⚙️ لوحة الأدمن</a>
+    <a id="adminLinkBtn" href="/admin/" style="display:none;text-decoration:none;padding:11px 12px;border-radius:12px;font-size:14.5px;font-weight:700;color:#4a6585;">⚙️ لوحة الأدمن</a>
     <div class="divider"></div>
     <button onclick="logoutUser()" style="color:#c0392b">🚪 تسجيل الخروج</button>
   </div>
@@ -333,14 +333,14 @@
   }
   function requireLogin(){
     const u = getCurrentUser();
-    if(!u){ window.location.href='login.html'; return null; }
+    if(!u){ window.location.href='/login/'; return null; }
     return u;
   }
   async function logoutUser(){
     const u = getCurrentUser();
     if(u && db){ try{ await db.collection('users').doc(u.phone).update({activeSession:false}); }catch(e){} }
     localStorage.removeItem('currentUser');
-    window.location.href='login.html';
+    window.location.href='/login/';
   }
 
   const user = requireLogin();

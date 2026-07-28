@@ -188,26 +188,26 @@
 <div class="layout">
   <div class="sidebar" id="sidebar">
     <button class="active" onclick="showSection('schedule',this)">📅 جدول المحاضرات</button>
-    <button onclick="window.location.href='chat.html'">💬 الشات</button>
+    <button onclick="window.location.href='/chat/'">💬 الشات</button>
     <button onclick="showSection('summaries',this)">📝 ملخصاتي</button>
-    <button onclick="window.location.href='summaries.html'">📚 الملخصات</button>
-    <button onclick="window.location.href='books.html'">📚 كتبي</button>
+    <button onclick="window.location.href='/summaries/'">📚 الملخصات</button>
+    <button onclick="window.location.href='/books/'">📚 كتبي</button>
     <button onclick="showSection('leaderboard',this)">🏆 ترتيب الفخر</button>
-    <button onclick="window.location.href='quizzes.html'">📝 الكويزات</button>
-    <button onclick="window.location.href='forum.html'">🗣️ المنتدى</button>
-    <button onclick="window.location.href='evaluation.html'">📊 تقييمي</button>
-    <button onclick="window.location.href='contact.html'">📞 تواصل معنا</button>
-    <button onclick="window.location.href='favorites.html'">❤️ مفضلاتي</button>
-    <button onclick="window.location.href='advising.html'">🎓 الإرشاد الأكاديمي</button>
-    <button onclick="window.location.href='attendance.html'">🗓️ دفتر الغياب / غيابي</button>
+    <button onclick="window.location.href='/quizzes/'">📝 الكويزات</button>
+    <button onclick="window.location.href='/forum/'">🗣️ المنتدى</button>
+    <button onclick="window.location.href='/evaluation/'">📊 تقييمي</button>
+    <button onclick="window.location.href='/contact/'">📞 تواصل معنا</button>
+    <button onclick="window.location.href='/favorites/'">❤️ مفضلاتي</button>
+    <button onclick="window.location.href='/advising/'">🎓 الإرشاد الأكاديمي</button>
+    <button onclick="window.location.href='/attendance/'">🗓️ دفتر الغياب / غيابي</button>
     <div class="divider"></div>
-    <button onclick="window.location.href='account.html'">👤 حسابي</button>
+    <button onclick="window.location.href='/account/'">👤 حسابي</button>
     <button class="small-link" onclick="showSection('summaries',this)">↳ ملخصاتي</button>
     <div class="divider"></div>
     <button onclick="showSection('about',this)">ℹ️ من نحن</button>
     <button onclick="showSection('privacy',this)">🔒 سياسة الخصوصية</button>
     <div class="divider" id="adminDividerSidebar" style="display:none"></div>
-    <a id="adminLinkBtn" href="admin.html" style="display:none;text-decoration:none;padding:11px 12px;border-radius:12px;font-size:14.5px;font-weight:700;color:#4a6585;">⚙️ لوحة الأدمن</a>
+    <a id="adminLinkBtn" href="/admin/" style="display:none;text-decoration:none;padding:11px 12px;border-radius:12px;font-size:14.5px;font-weight:700;color:#4a6585;">⚙️ لوحة الأدمن</a>
     <div class="divider"></div>
     <button onclick="logoutUser()" style="color:#c0392b">🚪 تسجيل الخروج</button>
   </div>
@@ -221,7 +221,7 @@
 
     <div class="section" id="sec-summaries">
       <h2 class="section-title">📝 ملخصاتي</h2>
-      <p style="font-size:12.5px;color:#7a93ad;margin-bottom:10px;">هنا الملخصات اللي انت رفعتها بس. الملخص هيظهر لباقي أعضاء قسمك في صفحة <a href="summaries.html" style="color:var(--blue-main);font-weight:700;text-decoration:none;">📚 الملخصات</a>.</p>
+      <p style="font-size:12.5px;color:#7a93ad;margin-bottom:10px;">هنا الملخصات اللي انت رفعتها بس. الملخص هيظهر لباقي أعضاء قسمك في صفحة <a href="/summaries/" style="color:var(--blue-main);font-weight:700;text-decoration:none;">📚 الملخصات</a>.</p>
       <div class="search-bar"><input type="text" id="summarySearch" placeholder="ابحث في ملخصاتك..." oninput="renderSummaries()"></div>
       <div class="card-box upload-box">
         <input type="text" id="summaryTitle" placeholder="عنوان الملخص">
@@ -317,14 +317,14 @@
   }
   function requireLogin(){
     const u = getCurrentUser();
-    if(!u){ window.location.href='login.html'; return null; }
+    if(!u){ window.location.href='/login/'; return null; }
     return u;
   }
   async function logoutUser(){
     const u = getCurrentUser();
     if(u && db){ try{ await db.collection('users').doc(u.phone).update({activeSession:false}); }catch(e){} }
     localStorage.removeItem('currentUser');
-    window.location.href='login.html';
+    window.location.href='/login/';
   }
 
   const user = requireLogin();

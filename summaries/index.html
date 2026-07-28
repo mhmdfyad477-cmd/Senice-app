@@ -77,11 +77,11 @@
 
 <div class="topbar">
   <div class="brand">📚 الملخصات</div>
-  <a href="home.html">🏠 الرجوع للرئيسية</a>
+  <a href="/home/">🏠 الرجوع للرئيسية</a>
 </div>
 
 <div class="wrap">
-  <p style="font-size:12.5px;color:#7a93ad;margin-bottom:10px;">كل الملخصات اللي رفعها أعضاء قسمك. عايز ترفع ملخص جديد؟ من صفحة <a href="home.html" style="color:var(--blue-main);font-weight:700;text-decoration:none;">📝 ملخصاتي</a> في الرئيسية.</p>
+  <p style="font-size:12.5px;color:#7a93ad;margin-bottom:10px;">كل الملخصات اللي رفعها أعضاء قسمك. عايز ترفع ملخص جديد؟ من صفحة <a href="/home/" style="color:var(--blue-main);font-weight:700;text-decoration:none;">📝 ملخصاتي</a> في الرئيسية.</p>
   <div class="search-bar"><input type="text" id="summarySearch" placeholder="ابحث عن ملخص..." oninput="renderSummaries()"></div>
   <div id="summariesList"><p style="font-size:13px;color:#7a93ad;">جاري التحميل...</p></div>
 </div>
@@ -125,7 +125,7 @@
     return raw ? JSON.parse(raw) : null;
   }
   const user = getCurrentUser();
-  if (!user) window.location.href = 'login.html';
+  if (!user) window.location.href = '/login/';
 
   async function renderSummaries() {
     const q = (document.getElementById('summarySearch').value || '').trim();
