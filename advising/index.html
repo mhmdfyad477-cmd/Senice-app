@@ -83,7 +83,7 @@
 
 <div class="topbar">
   <div style="font-weight:800;font-size:16px;">🎓 الإرشاد الأكاديمي</div>
-  <a href="/home/">🏠 الرجوع للرئيسية</a>
+  <a href="home.html">🏠 الرجوع للرئيسية</a>
 </div>
 
 <div class="wrap">
@@ -96,6 +96,28 @@
       <div class="stat-chip"><div class="num" id="statFailedCount">0</div><div class="label">المواد الراسبة</div></div>
     </div>
     <p style="font-size:12px;color:#7a93ad;margin-top:6px;">تنبيه: لو الـ GPA أقل من 1.4 هيتضاف لك إنذار تلقائي. لو رفعت نتيجة تانية بـ GPA أعلى من 1.4، هيتم حذف كل الإنذارات السابقة.</p>
+  </div>
+
+  <div class="card-box" id="regCard" style="display:none;border-right:4px solid var(--gold);">
+    <h2 class="section-title">📝 تسجيل إرشاد الترم</h2>
+    <p id="regIntro" style="font-size:12.5px;color:#7a93ad;margin-bottom:10px;"></p>
+    <div id="regAlreadySubmitted" style="display:none;background:#e3f7e8;border-radius:10px;padding:10px;margin-bottom:12px;font-size:13px;color:#147a35;"></div>
+    <div id="regCoursesPreview" style="margin-bottom:12px;"></div>
+    <div id="regDynamicFields"></div>
+    <button class="btn btn-approve" id="regSubmitBtn" onclick="submitRegistrationForm()">📤 تسليم الاستمارة</button>
+    <div class="msg" id="regFormMsg"></div>
+    <div id="regResultLink" style="margin-top:10px;"></div>
+  </div>
+
+  <div class="card-box" id="summerCard" style="display:none;border-right:4px solid #f5a623;">
+    <h2 class="section-title">☀️ التسجيل الصيفي</h2>
+    <p id="summerIntro" style="font-size:12.5px;color:#7a93ad;margin-bottom:10px;"></p>
+    <div id="summerAlreadySubmitted" style="display:none;background:#e3f7e8;border-radius:10px;padding:10px;margin-bottom:12px;font-size:13px;color:#147a35;"></div>
+    <div id="summerCoursesPicker" style="margin-bottom:12px;"></div>
+    <div id="summerDynamicFields"></div>
+    <button class="btn btn-approve" id="summerSubmitBtn" onclick="submitSummerForm()">📤 تسليم الاستمارة</button>
+    <div class="msg" id="summerFormMsg"></div>
+    <div id="summerResultLink" style="margin-top:10px;"></div>
   </div>
 
   <div class="card-box">
@@ -148,6 +170,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
 
 <script>
   const firebaseConfig = {
@@ -186,7 +209,7 @@
   }
   function requireLogin(){
     const u = getCurrentUser();
-    if(!u){ window.location.href='/login/'; return null; }
+    if(!u){ window.location.href='login.html'; return null; }
     return u;
   }
   const user = requireLogin();
@@ -229,20 +252,35 @@
     if(scoreInput.value !== '' && +scoreInput.value > mx){ scoreInput.value = mx; }
   }
 
-  async function loadCurriculumForSelectedTerm(){
-    if(!db) return;
-    const term = document.getElementById('termSelect').value;
+  // بيرجع مواد ترم معيّن لفرقة/شعبة/قسم الطالب الحالي، ولو مفيش منهج مخصص بيرجع للمنهج العام القديم (توافق مع البيانات القديمة)
+  function curriculumScopeKey(year, division, department){
+    return (year||'any') + '__' + (division||'any') + '__' + (department||'any');
+  }
+  async function getCurriculumSubjects(term){
+    if(!db) return [];
+    try{
+      const scopedKey = curriculumScopeKey(user.year, user.division, user.department);
+      const scopedSnap = await db.collection('curriculum').doc(scopedKey).get();
+      if(scopedSnap.exists){
+        const subjects = (scopedSnap.data()||{})['term'+term] || [];
+        if(subjects.length) return subjects;
+      }
+    }catch(e){ console.warn('تعذر تحميل المنهج المخصص', e); }
     try{
       const snap = await db.collection('settings').doc('curriculum').get();
       const data = snap.exists ? (snap.data()||{}) : {};
-      const subjects = data['term'+term] || [];
-      document.getElementById('subjectsBody').innerHTML = '';
-      if(subjects.length){
-        subjects.forEach(s=> addSubjectRow(s.subject, s.hours, '', ''));
-      } else {
-        addSubjectRow();
-      }
-    }catch(e){ console.warn('تعذر تحميل مواد الترم', e); }
+      return data['term'+term] || [];
+    }catch(e){ console.warn('تعذر تحميل المنهج العام', e); return []; }
+  }
+  async function loadCurriculumForSelectedTerm(){
+    const term = document.getElementById('termSelect').value;
+    const subjects = await getCurriculumSubjects(term);
+    document.getElementById('subjectsBody').innerHTML = '';
+    if(subjects.length){
+      subjects.forEach(s=> addSubjectRow(s.subject, s.hours, '', ''));
+    } else {
+      addSubjectRow();
+    }
   }
   loadCurriculumForSelectedTerm();
 
@@ -381,7 +419,272 @@
     XLSX.writeFile(wb, 'سجلي_الأكاديمي.xlsx');
   }
 
-  loadUserAdvisingData();
+  // ==================== تسجيل إرشاد الترم (استمارة تسجيل المواد) ====================
+  // محرك ملء الاستمارة: نفس منطق لوحة الأدمن بالظبط، بيحوّل النص لصورة عشان العربي يظهر متصل وسليم داخل الـ PDF
+  const REG_RASTER_FONT_PX = 60;
+  function regRenderTextToPng(text, bold){
+    const fontSpec = (bold?'bold ':'') + REG_RASTER_FONT_PX + 'px Tahoma, Arial, sans-serif';
+    const probe = document.createElement('canvas').getContext('2d');
+    probe.font = fontSpec;
+    const width = Math.max(4, Math.ceil(probe.measureText(text).width));
+    const padX = 10;
+    const height = Math.ceil(REG_RASTER_FONT_PX * 1.5);
+    const canvas = document.createElement('canvas');
+    canvas.width = width + padX*2; canvas.height = height;
+    const ctx = canvas.getContext('2d');
+    ctx.font = fontSpec;
+    ctx.direction = 'rtl';
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'alphabetic';
+    ctx.fillStyle = '#0a1a2e';
+    ctx.fillText(text, width + padX, height*0.7);
+    return { dataUrl: canvas.toDataURL('image/png'), w: canvas.width, h: canvas.height };
+  }
+  async function regDrawField(pdfDoc, pages, field, text){
+    if(text === null || text === undefined || text === '') return;
+    const { dataUrl, w, h } = regRenderTextToPng(String(text), !!field.bold);
+    const pngBytes = await (await fetch(dataUrl)).arrayBuffer();
+    const pngImage = await pdfDoc.embedPng(pngBytes);
+    const desiredHeightPt = (field.fontSize || 11) * 1.5;
+    const ratio = desiredHeightPt / h;
+    const desiredWidthPt = w * ratio;
+    const page = pages[field.page-1] || pages[0];
+    let x = field.x;
+    if(field.align === 'right') x = field.x - desiredWidthPt;
+    else if(field.align === 'center') x = field.x - (desiredWidthPt/2);
+    const y = field.y - desiredHeightPt*0.30;
+    page.drawImage(pngImage, { x, y, width: desiredWidthPt, height: desiredHeightPt });
+  }
+  async function regFillPdf(templateBytes, fields, dataContext, courseNames){
+    const pdfDoc = await PDFLib.PDFDocument.load(templateBytes);
+    const pages = pdfDoc.getPages();
+    for(const field of fields){
+      let text = '';
+      if(field.source === 'course_slot'){
+        text = (courseNames||[])[(field.slot||1)-1] || '';
+      } else if(field.source === 'student_text'){
+        text = (dataContext.studentInputs && dataContext.studentInputs[field.id]) || '';
+      } else {
+        text = dataContext[field.source] || '';
+      }
+      await regDrawField(pdfDoc, pages, field, text);
+    }
+    return await pdfDoc.save();
+  }
+
+  const REG_TERM_WORDS = {'1':'الأول','2':'الثاني','3':'الثالث','4':'الرابع','5':'الخامس','6':'السادس'};
+
+  async function initTermRegistration(){
+    const card = document.getElementById('regCard');
+    if(!db) return;
+    try{
+      const snap = await db.collection('settings').doc('advisingRegistration').get();
+      const data = snap.exists ? (snap.data()||{}) : {};
+      const r = data.regular;
+      if(!r || !r.active || !r.templateUrl || !(r.fields||[]).length){ card.style.display='none'; return; }
+      window._regConfig = r;
+      document.getElementById('regIntro').textContent = 'استمارة تسجيل مواد الترم ' + (REG_TERM_WORDS[r.term]||r.term) + ' متاحة دلوقتي. راجع بياناتك وسلّم الاستمارة.';
+
+      // قائمة المواد اللي هتتسجل تلقائيًا من منهج فرقتك/شعبتك/قسمك للترم ده
+      const subjects = await getCurriculumSubjects(r.term);
+      window._regCourseNames = subjects.map(s=>s.subject);
+      const previewBox = document.getElementById('regCoursesPreview');
+      previewBox.innerHTML = window._regCourseNames.length
+        ? '<b style="font-size:13px;">📚 المواد اللي هتتسجل:</b><div style="margin-top:6px;">' +
+          window._regCourseNames.map(c=>`<span style="display:inline-block;background:var(--ice);border-radius:8px;padding:5px 10px;margin:3px;font-size:12.5px;">${c}</span>`).join('') + '</div>'
+        : '<p style="font-size:12.5px;color:#b00020;">⚠️ لسه مفيش منهج متسجل لفرقتك/شعبتك/قسمك للترم ده، تواصل مع الإدارة قبل التسليم.</p>';
+
+      // الحقول اللي الطالب لازم يملاها بنفسه
+      const studentFields = (r.fields||[]).filter(f=>f.source==='student_text');
+      document.getElementById('regDynamicFields').innerHTML = studentFields.map(f=>`
+        <div class="field">
+          <label>${f.customLabel}</label>
+          <input type="text" id="regInput_${f.id}">
+        </div>`).join('');
+
+      // هل سلّم قبل كده لنفس الترم؟
+      const subId = user.phone + '_regular_' + r.term;
+      const subSnap = await db.collection('advisingSubmissions').doc(subId).get();
+      if(subSnap.exists){
+        const sd = subSnap.data();
+        const banner = document.getElementById('regAlreadySubmitted');
+        banner.style.display='block';
+        banner.textContent = '✅ أنت سلّمت الاستمارة دي قبل كده. لو عدّلت وسلّمت تاني هيتم استبدال النسخة القديمة.';
+        studentFields.forEach(f=>{
+          const el = document.getElementById('regInput_'+f.id);
+          if(el && sd.studentInputs && sd.studentInputs[f.id]!=null) el.value = sd.studentInputs[f.id];
+        });
+        document.getElementById('regResultLink').innerHTML = `<a href="${sd.filledPdfUrl}" target="_blank" class="btn btn-blue btn-sm">⬇️ تحميل نسختك المسلَّمة</a>`;
+      }
+      card.style.display = 'block';
+    }catch(e){ console.warn('تعذر تحميل بيانات تسجيل إرشاد الترم', e); card.style.display='none'; }
+  }
+
+  async function submitRegistrationForm(){
+    const r = window._regConfig;
+    const msg = document.getElementById('regFormMsg');
+    if(!r) return;
+    const studentFields = (r.fields||[]).filter(f=>f.source==='student_text');
+    const studentInputs = {};
+    for(const f of studentFields){
+      const el = document.getElementById('regInput_'+f.id);
+      const val = el ? el.value.trim() : '';
+      if(!val){ msg.className='msg error'; msg.textContent = 'من فضلك املى: ' + f.customLabel; if(el) el.focus(); return; }
+      studentInputs[f.id] = val;
+    }
+    if(!window._regCourseNames || !window._regCourseNames.length){
+      msg.className='msg error'; msg.textContent = 'مفيش مواد متسجلة لفرقتك/شعبتك/قسمك، تواصل مع الإدارة قبل التسليم.'; return;
+    }
+    const btn = document.getElementById('regSubmitBtn');
+    btn.disabled = true; const oldText = btn.textContent; btn.textContent = '⏳ جاري التسليم...';
+    msg.className=''; msg.textContent='';
+    try{
+      if(typeof PDFLib === 'undefined') throw new Error('تعذر تحميل مكتبة الـ PDF، تأكد من الإنترنت وحاول تاني');
+      const resp = await fetch(r.templateUrl);
+      const templateBytes = await resp.arrayBuffer();
+      const dataContext = {
+        auto_name: user.name || '', auto_phone: user.phone || '',
+        auto_department: user.department || '', auto_division: user.division || '',
+        auto_year: user.year || '', auto_status: user.status || '',
+        auto_term: 'الترم ' + (REG_TERM_WORDS[r.term]||r.term),
+        auto_date: new Date().toLocaleDateString('ar-EG'),
+        auto_gpa: (userData && userData.lastGpa!=null) ? String(userData.lastGpa) : '',
+        studentInputs
+      };
+      const filledBytes = await regFillPdf(templateBytes, r.fields, dataContext, window._regCourseNames);
+      const blob = new Blob([filledBytes], {type:'application/pdf'});
+      const formData = new FormData();
+      formData.append('file', blob, `تسجيل_${user.phone}_ترم${r.term}.pdf`);
+      formData.append('upload_preset', UPLOAD_PRESET);
+      const uploadResp = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/upload`, {method:'POST', body: formData});
+      const uploadData = await uploadResp.json();
+      if(!uploadData.secure_url) throw new Error('فشل رفع الاستمارة');
+      const subId = user.phone + '_regular_' + r.term;
+      await db.collection('advisingSubmissions').doc(subId).set({
+        phone: user.phone, name: user.name||'', department: user.department||'', division: user.division||'', year: user.year||'', status: user.status||'',
+        type: 'regular', term: r.term,
+        courses: window._regCourseNames, studentInputs,
+        filledPdfUrl: uploadData.secure_url, submittedAt: Date.now()
+      });
+      msg.className='msg success'; msg.textContent='✅ تم التسليم بنجاح!';
+      document.getElementById('regResultLink').innerHTML = `<a href="${uploadData.secure_url}" target="_blank" class="btn btn-blue btn-sm">⬇️ تحميل نسختك المسلَّمة</a>`;
+      const banner = document.getElementById('regAlreadySubmitted');
+      banner.style.display='block';
+      banner.textContent = '✅ أنت سلّمت الاستمارة دي. لو عدّلت وسلّمت تاني هيتم استبدال النسخة دي.';
+      if(typeof fireOneSignalEvent === 'function') fireOneSignalEvent('advising_registration_submitted', {term: r.term});
+    }catch(e){
+      msg.className='msg error'; msg.textContent = '❌ حصل خطأ: ' + e.message;
+    }
+    btn.disabled = false; btn.textContent = oldText;
+  }
+
+  // ==================== التسجيل الصيفي (اختيار من مواد مفتوحة بس) ====================
+  async function initSummerRegistration(){
+    const card = document.getElementById('summerCard');
+    if(!db) return;
+    try{
+      const snap = await db.collection('settings').doc('advisingRegistration').get();
+      const data = snap.exists ? (snap.data()||{}) : {};
+      const s = data.summer;
+      if(!s || !s.active || !s.templateUrl || !(s.fields||[]).length){ card.style.display='none'; return; }
+      const scopeKey = curriculumScopeKey(user.year, user.division, user.department);
+      const openCourses = ((s.openCoursesByScope||{})[scopeKey]) || [];
+      if(!openCourses.length){ card.style.display='none'; return; }
+      window._summerConfig = s;
+      document.getElementById('summerIntro').textContent = (s.label || 'التسجيل الصيفي') + ' متاح دلوقتي. اختار المواد اللي عايز تسجلها من المواد المتاحة ليك تحت.';
+
+      const studentFields = (s.fields||[]).filter(f=>f.source==='student_text');
+      document.getElementById('summerDynamicFields').innerHTML = studentFields.map(f=>`
+        <div class="field">
+          <label>${f.customLabel}</label>
+          <input type="text" id="summerInput_${f.id}">
+        </div>`).join('');
+
+      const subId = user.phone + '_summer';
+      const subSnap = await db.collection('advisingSubmissions').doc(subId).get();
+      let previouslyChecked = [];
+      if(subSnap.exists){
+        const sd = subSnap.data();
+        previouslyChecked = sd.courses || [];
+        const banner = document.getElementById('summerAlreadySubmitted');
+        banner.style.display='block';
+        banner.textContent = '✅ أنت سلّمت الاستمارة دي قبل كده. لو عدّلت وسلّمت تاني هيتم استبدال النسخة القديمة.';
+        studentFields.forEach(f=>{
+          const el = document.getElementById('summerInput_'+f.id);
+          if(el && sd.studentInputs && sd.studentInputs[f.id]!=null) el.value = sd.studentInputs[f.id];
+        });
+        document.getElementById('summerResultLink').innerHTML = `<a href="${sd.filledPdfUrl}" target="_blank" class="btn btn-blue btn-sm">⬇️ تحميل نسختك المسلَّمة</a>`;
+      }
+
+      document.getElementById('summerCoursesPicker').innerHTML = '<b style="font-size:13px;display:block;margin-bottom:6px;">📚 اختار المواد اللي هتسجلها:</b>' +
+        openCourses.map(c=>`
+          <label style="display:flex;align-items:center;gap:8px;padding:8px;border:1px solid #e3edf7;border-radius:8px;margin-bottom:6px;cursor:pointer;">
+            <input type="checkbox" class="summer-course-check" value="${c.replace(/"/g,'&quot;')}" ${previouslyChecked.includes(c)?'checked':''}>
+            <span>${c}</span>
+          </label>`).join('');
+
+      card.style.display = 'block';
+    }catch(e){ console.warn('تعذر تحميل بيانات التسجيل الصيفي', e); card.style.display='none'; }
+  }
+
+  async function submitSummerForm(){
+    const s = window._summerConfig;
+    const msg = document.getElementById('summerFormMsg');
+    if(!s) return;
+    const selectedCourses = Array.from(document.querySelectorAll('.summer-course-check:checked')).map(c=>c.value);
+    if(!selectedCourses.length){ msg.className='msg error'; msg.textContent='اختار مادة واحدة على الأقل'; return; }
+    const studentFields = (s.fields||[]).filter(f=>f.source==='student_text');
+    const studentInputs = {};
+    for(const f of studentFields){
+      const el = document.getElementById('summerInput_'+f.id);
+      const val = el ? el.value.trim() : '';
+      if(!val){ msg.className='msg error'; msg.textContent = 'من فضلك املى: ' + f.customLabel; if(el) el.focus(); return; }
+      studentInputs[f.id] = val;
+    }
+    const btn = document.getElementById('summerSubmitBtn');
+    btn.disabled = true; const oldText = btn.textContent; btn.textContent = '⏳ جاري التسليم...';
+    msg.className=''; msg.textContent='';
+    try{
+      if(typeof PDFLib === 'undefined') throw new Error('تعذر تحميل مكتبة الـ PDF، تأكد من الإنترنت وحاول تاني');
+      const resp = await fetch(s.templateUrl);
+      const templateBytes = await resp.arrayBuffer();
+      const dataContext = {
+        auto_name: user.name || '', auto_phone: user.phone || '',
+        auto_department: user.department || '', auto_division: user.division || '',
+        auto_year: user.year || '', auto_status: user.status || '',
+        auto_term: s.label || 'التسجيل الصيفي',
+        auto_date: new Date().toLocaleDateString('ar-EG'),
+        auto_gpa: (userData && userData.lastGpa!=null) ? String(userData.lastGpa) : '',
+        studentInputs
+      };
+      const filledBytes = await regFillPdf(templateBytes, s.fields, dataContext, selectedCourses);
+      const blob = new Blob([filledBytes], {type:'application/pdf'});
+      const formData = new FormData();
+      formData.append('file', blob, `تسجيل_صيفي_${user.phone}.pdf`);
+      formData.append('upload_preset', UPLOAD_PRESET);
+      const uploadResp = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/upload`, {method:'POST', body: formData});
+      const uploadData = await uploadResp.json();
+      if(!uploadData.secure_url) throw new Error('فشل رفع الاستمارة');
+      const subId = user.phone + '_summer';
+      await db.collection('advisingSubmissions').doc(subId).set({
+        phone: user.phone, name: user.name||'', department: user.department||'', division: user.division||'', year: user.year||'', status: user.status||'',
+        type: 'summer', term: s.label || '',
+        courses: selectedCourses, studentInputs,
+        filledPdfUrl: uploadData.secure_url, submittedAt: Date.now()
+      });
+      msg.className='msg success'; msg.textContent='✅ تم التسليم بنجاح!';
+      document.getElementById('summerResultLink').innerHTML = `<a href="${uploadData.secure_url}" target="_blank" class="btn btn-blue btn-sm">⬇️ تحميل نسختك المسلَّمة</a>`;
+      const banner = document.getElementById('summerAlreadySubmitted');
+      banner.style.display='block';
+      banner.textContent = '✅ أنت سلّمت الاستمارة دي. لو عدّلت وسلّمت تاني هيتم استبدال النسخة دي.';
+      if(typeof fireOneSignalEvent === 'function') fireOneSignalEvent('summer_registration_submitted', {});
+    }catch(e){
+      msg.className='msg error'; msg.textContent = '❌ حصل خطأ: ' + e.message;
+    }
+    btn.disabled = false; btn.textContent = oldText;
+  }
+
+  loadUserAdvisingData().then(function(){ initTermRegistration(); initSummerRegistration(); });
 </script>
 </body>
 </html>
