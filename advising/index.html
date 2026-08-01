@@ -83,7 +83,7 @@
 
 <div class="topbar">
   <div style="font-weight:800;font-size:16px;">🎓 الإرشاد الأكاديمي</div>
-  <a href="home.html">🏠 الرجوع للرئيسية</a>
+  <a href="/home/">🏠 الرجوع للرئيسية</a>
 </div>
 
 <div class="wrap">
@@ -209,7 +209,7 @@
   }
   function requireLogin(){
     const u = getCurrentUser();
-    if(!u){ window.location.href='login.html'; return null; }
+    if(!u){ window.location.href='/login/'; return null; }
     return u;
   }
   const user = requireLogin();
