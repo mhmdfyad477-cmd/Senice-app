@@ -365,7 +365,7 @@
       const { data } = await Tesseract.recognize(file, 'ara', {
         logger: m => { if(m.status==='recognizing text') status.textContent = `⏳ جاري القراءة... ${Math.round((m.progress||0)*100)}%`; }
       });
-      const lines = (data.text || '').split(\n'\n').map(l=>l.trim()).filter(l=>l.length>1);
+      const lines = (data.text || '').split('\n').map(l=>l.trim()).filter(l=>l.length>1);
       if(!lines.length){ status.textContent = '❌ مقدرش أقرا أي أسماء واضحة من الصورة'; return; }
 
       const checks = document.querySelectorAll('.present-check');
