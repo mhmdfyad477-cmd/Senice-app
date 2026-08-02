@@ -165,9 +165,47 @@
         catch(e){ console.warn('OneSignal trackEvent failed:', e); }
       });
     }
+
+    // ==================== بانر تفعيل الإشعارات (لطلب الإذن صراحة، مهم للحسابات القديمة قبل ما نضيف OneSignal) ====================
+    function shouldShowNotifyBanner(){
+      if(!('Notification' in window)) return false; // المتصفح مش بيدعم إشعارات ويب أصلاً
+      if(Notification.permission !== 'default') return false; // اتوافق أو اترفض قبل كده، مفيش داعي نزعجه تاني
+      const dismissedAt = localStorage.getItem('notifyBannerDismissedAt');
+      if(dismissedAt && (Date.now() - Number(dismissedAt)) < 7*24*60*60*1000) return false; // قفلها قبل كده خلال آخر أسبوع
+      return true;
+    }
+    function dismissNotifyBanner(){
+      const b = document.getElementById('notifyBanner');
+      if(b) b.style.display = 'none';
+      localStorage.setItem('notifyBannerDismissedAt', String(Date.now()));
+    }
+    async function enableSiteNotifications(){
+      window.OneSignalDeferred = window.OneSignalDeferred || [];
+      OneSignalDeferred.push(async function(OneSignal){
+        try{ await OneSignal.Notifications.requestPermission(); }
+        catch(e){ console.warn('تعذر طلب إذن الإشعارات:', e); }
+        const b = document.getElementById('notifyBanner');
+        if(b) b.style.display = 'none';
+        localStorage.setItem('notifyBannerDismissedAt', String(Date.now()));
+      });
+    }
+    document.addEventListener('DOMContentLoaded', function(){
+      if(shouldShowNotifyBanner()){
+        const b = document.getElementById('notifyBanner');
+        if(b) b.style.display = 'flex';
+      }
+    });
   </script>
 </head>
 <body>
+
+<div id="notifyBanner" style="display:none;position:sticky;top:0;z-index:999;background:linear-gradient(135deg,#1565d8,#2f9bf0);color:#fff;padding:10px 14px;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;box-shadow:0 2px 8px rgba(0,0,0,0.15);">
+  <span style="font-size:13px;flex:1;min-width:200px;">🔔 فعّل الإشعارات عشان توصلك آخر تحديثات الإرشاد والمواعيد المهمة أول بأول</span>
+  <div style="display:flex;gap:8px;flex-shrink:0;">
+    <button onclick="enableSiteNotifications()" style="background:#fff;color:#1565d8;border:none;border-radius:8px;padding:7px 14px;font-weight:800;font-size:12.5px;cursor:pointer;">تفعيل</button>
+    <button onclick="dismissNotifyBanner()" style="background:transparent;color:#fff;border:1px solid rgba(255,255,255,0.6);border-radius:8px;padding:7px 12px;font-size:12.5px;cursor:pointer;">لأ شكرًا</button>
+  </div>
+</div>
 
 <div class="topbar">
   <button class="menu-btn" onclick="toggleSidebar()">☰</button>
