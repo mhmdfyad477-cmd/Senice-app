@@ -609,7 +609,21 @@
       <!-- ===== تسجيل إرشاد الترم (استمارة تسجيل المواد) ===== -->
       <div class="card-box" style="border-right:4px solid #1565d8;">
         <b style="display:block;margin-bottom:8px;">📝 تسجيل إرشاد الترم — استمارة تسجيل المواد</b>
-        <p style="font-size:12px;color:#7a93ad;margin-bottom:10px;">ارفع قالب استمارة تسجيل المواد (PDF)، حدد أماكن البيانات عليها مرة واحدة بالنقر عليها، وبعدها هيتملى نسخة لكل طالب أوتوماتيك لما يسلّم من صفحة الإرشاد الأكاديمي — من غير ما نستدعي أي AI فعلي مع كل طالب.</p>
+        <p style="font-size:12px;color:#7a93ad;margin-bottom:10px;">كل فرقة+شعبة+قسم ليهم استمارة منفصلة لوحدها (قالب وحقول مختلفين). اختار التحديد تحت الأول، وبعدين اضبط استمارته.</p>
+
+        <div class="form-line">
+          <select id="regScopeYear">
+            <option value="">كل الفرق (عام احتياطي)</option>
+            <option value="الأولى">الفرقة الأولى</option>
+            <option value="الثانية">الفرقة الثانية</option>
+            <option value="الثالثة">الفرقة الثالثة</option>
+            <option value="الرابعة">الفرقة الرابعة</option>
+          </select>
+          <select id="regScopeDivision"><option value="">كل الشعب (عام)</option></select>
+          <select id="regScopeDepartment"><option value="">كل الأقسام (عام)</option></select>
+          <button class="btn btn-blue" onclick="loadRegSettingsUI()">📂 تحميل استمارة هذا التحديد</button>
+        </div>
+        <div id="regConfiguredScopesList" style="font-size:11.5px;color:#7a93ad;margin-bottom:10px;"></div>
 
         <div class="form-line">
           <select id="regActive">
@@ -624,13 +638,13 @@
             <option value="5">الترم الخامس</option>
             <option value="6">الترم السادس</option>
           </select>
-          <button class="btn btn-approve" onclick="saveRegSettings()">💾 حفظ التفعيل والترم</button>
+          <button class="btn btn-approve" onclick="saveRegSettings()">💾 حفظ التفعيل والترم لهذا التحديد</button>
         </div>
         <p id="regSettingsMsg" style="font-size:12px;color:#7a93ad;"></p>
 
         <div style="background:#f8faff;border:1.5px dashed #b8d4f5;border-radius:10px;padding:10px;margin:12px 0;">
-          <b style="font-size:13px;display:block;margin-bottom:6px;">📄 قالب الاستمارة (PDF)</b>
-          <p id="regTemplateInfo" style="font-size:12px;color:#3c5675;margin-bottom:6px;">لا يوجد قالب مرفوع بعد</p>
+          <b style="font-size:13px;display:block;margin-bottom:6px;">📄 قالب الاستمارة لهذا التحديد (PDF)</b>
+          <p id="regTemplateInfo" style="font-size:12px;color:#3c5675;margin-bottom:6px;">لا يوجد قالب مرفوع بعد لهذا التحديد</p>
           <input type="file" id="regTemplateFile" accept="application/pdf">
           <button class="btn btn-blue btn-sm" onclick="uploadRegTemplate()">📤 رفع القالب</button>
           <p id="regUploadStatus" style="font-size:11.5px;color:#7a93ad;margin-top:6px;"></p>
@@ -643,7 +657,7 @@
 
         <div id="regCalibrationBox" style="display:none;margin-top:14px;">
           <div style="background:#fffaf0;border:1.5px solid #f5d78a;border-radius:10px;padding:10px;margin-bottom:10px;font-size:12.5px;color:#7a5a00;">
-            💡 دوس على أي مكان في صورة الاستمارة تحت عشان تضيف "حقل" جديد بالظبط في المكان ده، وبعدين اضبط بيانات كل حقل من القايمة اللي هتظهر تحت الصورة. متنساش تدوس "حفظ كل الحقول" في الآخر.
+            💡 دوس على أي مكان في صورة الاستمارة تحت عشان تضيف "حقل" جديد بالظبط في المكان ده، وبعدين اضبط بيانات كل حقل من القايمة اللي هتظهر تحت الصورة. لو الحقل نوعه "مادة مسجلة" هتلاقي زرار "تكرار" يضيفلك باقي خانات المواد تلقائي تحته. متنساش تدوس "حفظ كل الحقول" في الآخر.
           </div>
           <div id="calibPagesContainer" style="text-align:center;"></div>
           <div id="calibFieldsList" style="margin-top:10px;"></div>
@@ -688,20 +702,24 @@
       <!-- ===== التسجيل الصيفي (استمارة تسجيل المواد) ===== -->
       <div class="card-box" style="border-right:4px solid #f5a623;">
         <b style="display:block;margin-bottom:8px;">☀️ التسجيل الصيفي — استمارة تسجيل المواد</b>
-        <p style="font-size:12px;color:#7a93ad;margin-bottom:10px;">نفس فكرة تسجيل الترم العادي، لكن هنا الطالب هيختار بس من المواد اللي انت فتحتها له في قسم "إحصائية المواد الراسبة" اللي فوق (حسب فرقته/شعبته/قسمه).</p>
+        <p style="font-size:12px;color:#7a93ad;margin-bottom:10px;">كل فرقة+شعبة+قسم ليهم استمارة صيفي منفصلة. التحديد بياخده من سلكتات "إحصائية المواد الراسبة" اللي فوق — اختار هناك وادوس الزرار تحت.</p>
+        <div class="form-line">
+          <button class="btn btn-blue" onclick="loadSummerSettingsUI()">📂 تحميل استمارة صيفي هذا التحديد</button>
+        </div>
+        <div id="summerConfiguredScopesList" style="font-size:11.5px;color:#7a93ad;margin-bottom:10px;"></div>
         <div class="form-line">
           <select id="summerActive">
             <option value="0">🔴 غير مفعّل (مخفي عن الطلاب)</option>
             <option value="1">🟢 مفعّل (ظاهر للطلاب)</option>
           </select>
           <input type="text" id="summerLabel" placeholder="تسمية (مثلاً: صيفي 2026)">
-          <button class="btn btn-approve" onclick="saveSummerSettings()">💾 حفظ التفعيل</button>
+          <button class="btn btn-approve" onclick="saveSummerSettings()">💾 حفظ التفعيل لهذا التحديد</button>
         </div>
         <p id="summerSettingsMsg" style="font-size:12px;color:#7a93ad;"></p>
 
         <div style="background:#f8faff;border:1.5px dashed #b8d4f5;border-radius:10px;padding:10px;margin:12px 0;">
-          <b style="font-size:13px;display:block;margin-bottom:6px;">📄 قالب الاستمارة (PDF)</b>
-          <p id="summerTemplateInfo" style="font-size:12px;color:#3c5675;margin-bottom:6px;">لا يوجد قالب مرفوع بعد</p>
+          <b style="font-size:13px;display:block;margin-bottom:6px;">📄 قالب الاستمارة لهذا التحديد (PDF)</b>
+          <p id="summerTemplateInfo" style="font-size:12px;color:#3c5675;margin-bottom:6px;">لا يوجد قالب مرفوع بعد لهذا التحديد</p>
           <input type="file" id="summerTemplateFile" accept="application/pdf">
           <button class="btn btn-blue btn-sm" onclick="uploadSummerTemplate()">📤 رفع القالب</button>
           <p id="summerUploadStatus" style="font-size:11.5px;color:#7a93ad;margin-top:6px;"></p>
@@ -2785,6 +2803,7 @@
     fillSelect('bookDivision', scope.divisions, '<option value="">الشعبة (اختياري)</option>');
     fillSelect('currDivision', scope.divisions, '<option value="">كل الشعب (عام)</option>');
     fillSelect('failStatsDivision', scope.divisions, '<option value="">الشعبة (اختياري)</option>');
+    fillSelect('regScopeDivision', scope.divisions, '<option value="">كل الشعب (عام)</option>');
     wireDivisionDeptPair('schedScopeDivision','schedScopeDepartment', scope, '<option value="">القسم</option>');
     wireDivisionDeptPair('leaderDivisionInput','leaderDepartmentInput', scope, '<option value="">اختر القسم</option>');
     wireDivisionDeptPair('doctorDivisionInput','doctorDepartmentInput', scope, '<option value="">القسم (اختياري)</option>');
@@ -2794,6 +2813,7 @@
     wireDivisionDeptPair('bookDivision','bookDepartment', scope, '<option value="">القسم (اختياري)</option>');
     wireDivisionDeptPair('currDivision','currDepartment', scope, '<option value="">كل الأقسام (عام)</option>');
     wireDivisionDeptPair('failStatsDivision','failStatsDepartment', scope, '<option value="">اختر القسم</option>');
+    wireDivisionDeptPair('regScopeDivision','regScopeDepartment', scope, '<option value="">كل الأقسام (عام)</option>');
     // في وضع الليدر: قفل فلتر القسم (والشعبة لو محددة) على قسمه هو بس (ما ينفعش يشتغل أو حتى يشوف قسم تاني، حتى في صفحة الجداول)
     if(ADMIN_MODE === 'leader' && LEADER_DEPT){
       const schedDepSel = document.getElementById('schedScopeDepartment');
@@ -2823,6 +2843,12 @@
       if(LEADER_DIVISION){
         const fsDivSel = document.getElementById('failStatsDivision');
         if(fsDivSel){ fsDivSel.innerHTML = `<option value="${LEADER_DIVISION}">${LEADER_DIVISION}</option>`; fsDivSel.value = LEADER_DIVISION; fsDivSel.disabled = true; }
+      }
+      const regScopeDepSel = document.getElementById('regScopeDepartment');
+      if(regScopeDepSel){ regScopeDepSel.innerHTML = `<option value="${LEADER_DEPT}">${LEADER_DEPT}</option>`; regScopeDepSel.value = LEADER_DEPT; regScopeDepSel.disabled = true; }
+      if(LEADER_DIVISION){
+        const regScopeDivSel = document.getElementById('regScopeDivision');
+        if(regScopeDivSel){ regScopeDivSel.innerHTML = `<option value="${LEADER_DIVISION}">${LEADER_DIVISION}</option>`; regScopeDivSel.value = LEADER_DIVISION; regScopeDivSel.disabled = true; }
       }
     } else {
       applyDefaultBookSettings();
@@ -3561,9 +3587,15 @@
     }
   }
 
-  // ==================== تسجيل إرشاد الترم (استمارة تسجيل المواد) ====================
+  // ==================== تسجيل إرشاد الترم (استمارة تسجيل المواد) — استمارة منفصلة لكل فرقة/شعبة/قسم ====================
   function regDocRef(){ return db.collection('settings').doc('advisingRegistration'); }
-  let regSettingsData = { regular: { active:false, term:'1', fields:[], templateUrl:null, templateName:null } };
+  function regScopeKey(){
+    const year = document.getElementById('regScopeYear').value;
+    const division = document.getElementById('regScopeDivision').value;
+    const department = document.getElementById('regScopeDepartment').value;
+    return curriculumScopeKey(year, division, department) || 'any__any__any';
+  }
+  let regSettingsData = { regularByScope: {} };
   let calibFields = [];
   let calibTemplateBytes = null; // ArrayBuffer للقالب الحالي وقت الضبط
   let calibCanvases = {}; // رقم الصفحة -> {overlay, scale, pdfW, pdfH}
@@ -3581,32 +3613,66 @@
     {value:'course_slot', label:'📚 خانة مادة مسجلة رقم...'}
   ];
 
+  function scopeKeyToLabel(key){
+    if(key === 'any__any__any') return 'عام (كل الطلاب، احتياطي)';
+    const [y,d,p] = key.split('__');
+    const parts = [];
+    if(y && y!=='any') parts.push(y);
+    if(d && d!=='any') parts.push(d);
+    if(p && p!=='any') parts.push(p);
+    return parts.join(' • ') || 'عام';
+  }
+
+  function renderConfiguredScopesList(byScope, listElId, currentKey){
+    const el = document.getElementById(listElId);
+    if(!el) return;
+    const keys = Object.keys(byScope||{});
+    if(!keys.length){ el.textContent = 'لسه مفيش أي استمارة مضبوطة لأي تحديد.'; return; }
+    el.innerHTML = 'الاستمارات المضبوطة حاليًا: ' + keys.map(k=>{
+      const cfg = byScope[k] || {};
+      const badge = cfg.active ? '🟢' : '🔴';
+      const mark = k === currentKey ? '<b>' : '';
+      const markEnd = k === currentKey ? '</b>' : '';
+      return `${mark}${badge} ${scopeKeyToLabel(k)} (${(cfg.fields||[]).length} حقل)${markEnd}`;
+    }).join('، ');
+  }
+
   async function loadRegSettingsUI(){
     try{
       const snap = await regDocRef().get();
       regSettingsData = snap.exists ? (snap.data()||{}) : {};
-      regSettingsData.regular = regSettingsData.regular || {active:false, term:'1', fields:[], templateUrl:null, templateName:null};
-      const r = regSettingsData.regular;
+      regSettingsData.regularByScope = regSettingsData.regularByScope || {};
+      const key = regScopeKey();
+      const r = regSettingsData.regularByScope[key] || {active:false, term:'1', fields:[], templateUrl:null, templateName:null};
+      regSettingsData.regularByScope[key] = r;
       document.getElementById('regActive').value = r.active ? '1' : '0';
       document.getElementById('regTerm').value = r.term || '1';
-      document.getElementById('regTemplateInfo').textContent = r.templateUrl ? ('📎 القالب الحالي: ' + (r.templateName||'ملف PDF') + ' — ' + (r.fields||[]).length + ' حقل مضبوط') : 'لا يوجد قالب مرفوع بعد';
+      document.getElementById('regTemplateInfo').textContent = r.templateUrl ? ('📎 القالب الحالي (' + scopeKeyToLabel(key) + '): ' + (r.templateName||'ملف PDF') + ' — ' + (r.fields||[]).length + ' حقل مضبوط') : ('لا يوجد قالب مرفوع بعد لتحديد: ' + scopeKeyToLabel(key));
+      calibTemplateBytes = null; // القالب اتغير النطاق، نمسح أي بايتس متخزنة من نطاق تاني
+      renderConfiguredScopesList(regSettingsData.regularByScope, 'regConfiguredScopesList', key);
     }catch(e){ console.warn('تعذر تحميل إعدادات تسجيل الإرشاد', e); }
   }
 
   async function saveRegSettings(){
     const msg = document.getElementById('regSettingsMsg');
+    const key = regScopeKey();
     const active = document.getElementById('regActive').value === '1';
     const term = document.getElementById('regTerm').value;
     try{
-      await regDocRef().set({ regular: { active, term } }, {merge:true});
-      msg.textContent = '✅ اتحفظ. الميزة دلوقتي ' + (active ? 'ظاهرة للطلاب في صفحة الإرشاد.' : 'مخفية عن الطلاب.');
-      regSettingsData.regular = Object.assign({}, regSettingsData.regular, {active, term});
+      regSettingsData.regularByScope = regSettingsData.regularByScope || {};
+      const existing = regSettingsData.regularByScope[key] || {};
+      const updated = Object.assign({}, existing, {active, term});
+      await regDocRef().set({ regularByScope: { [key]: updated } }, {merge:true});
+      regSettingsData.regularByScope[key] = updated;
+      msg.textContent = '✅ اتحفظ لتحديد (' + scopeKeyToLabel(key) + '). الاستمارة دلوقتي ' + (active ? 'ظاهرة لطلاب هذا التحديد.' : 'مخفية.');
+      renderConfiguredScopesList(regSettingsData.regularByScope, 'regConfiguredScopesList', key);
     }catch(e){ msg.textContent = '❌ حصل خطأ: ' + e.message; }
   }
 
   async function uploadRegTemplate(){
     const fileInput = document.getElementById('regTemplateFile');
     const status = document.getElementById('regUploadStatus');
+    const key = regScopeKey();
     const file = fileInput.files[0];
     if(!file){ status.textContent = 'اختار ملف PDF الأول'; return; }
     if(file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')){ status.textContent = 'الملف لازم يكون PDF'; return; }
@@ -3619,10 +3685,14 @@
       const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/upload`, { method:'POST', body: formData });
       const data = await response.json();
       if(!data.secure_url) throw new Error('فشل الرفع على السحابة');
-      await regDocRef().set({ regular: { templateUrl: data.secure_url, templateName: file.name } }, {merge:true});
-      regSettingsData.regular = Object.assign({}, regSettingsData.regular, {templateUrl: data.secure_url, templateName: file.name});
-      status.textContent = '✅ اتملى القالب. دلوقتي دوس "ضبط أماكن البيانات" عشان تحدد الحقول.';
-      document.getElementById('regTemplateInfo').textContent = '📎 القالب الحالي: ' + file.name + ' — ' + ((regSettingsData.regular.fields||[]).length) + ' حقل مضبوط';
+      regSettingsData.regularByScope = regSettingsData.regularByScope || {};
+      const existing = regSettingsData.regularByScope[key] || {};
+      const updated = Object.assign({}, existing, {templateUrl: data.secure_url, templateName: file.name});
+      await regDocRef().set({ regularByScope: { [key]: { templateUrl: data.secure_url, templateName: file.name } } }, {merge:true});
+      regSettingsData.regularByScope[key] = updated;
+      status.textContent = '✅ اتملى القالب لتحديد (' + scopeKeyToLabel(key) + '). دلوقتي دوس "ضبط أماكن البيانات" عشان تحدد الحقول.';
+      document.getElementById('regTemplateInfo').textContent = '📎 القالب الحالي: ' + file.name + ' — ' + ((updated.fields||[]).length) + ' حقل مضبوط';
+      renderConfiguredScopesList(regSettingsData.regularByScope, 'regConfiguredScopesList', key);
     }catch(e){
       status.textContent = '❌ حصل خطأ أثناء الرفع: ' + e.message;
     }
@@ -3630,7 +3700,8 @@
 
   async function getTemplateBytesForCalibration(){
     if(calibTemplateBytes) return calibTemplateBytes;
-    const url = (regSettingsData.regular||{}).templateUrl;
+    const key = regScopeKey();
+    const url = ((regSettingsData.regularByScope||{})[key]||{}).templateUrl;
     if(!url) return null;
     const resp = await fetch(url);
     calibTemplateBytes = await resp.arrayBuffer();
@@ -3647,7 +3718,8 @@
     if(!bytes){ alert('ارفع قالب PDF الأول'); return; }
     box.style.display = 'block';
     pagesContainer.innerHTML = '⏳ جاري تحميل الاستمارة...';
-    calibFields = ((regSettingsData.regular||{}).fields || []).map(f=>Object.assign({}, f));
+    const calibKey = regScopeKey();
+    calibFields = (((regSettingsData.regularByScope||{})[calibKey]||{}).fields || []).map(f=>Object.assign({}, f));
     calibCanvases = {};
     try{
       const pdf = await pdfjsLib.getDocument({data: bytes.slice(0)}).promise;
@@ -3760,6 +3832,13 @@
         ${f.source==='course_slot' ? `
         <div class="form-line">
           <input type="number" min="1" placeholder="ترتيب المادة في الاستمارة (1، 2، 3...)" value="${f.slot||1}" onchange="updateCalibField('${f.id}','slot',this.value)">
+        </div>
+        <div class="form-line" style="background:#f8faff;border-radius:8px;padding:6px;">
+          <span style="font-size:11.5px;color:#3c5675;white-space:nowrap;">🔁 كرر تحته</span>
+          <input type="number" min="1" max="30" value="6" id="repeatCount_${f.id}" style="max-width:60px;">
+          <span style="font-size:11.5px;color:#3c5675;white-space:nowrap;">مرة، بمسافة</span>
+          <input type="number" value="${Math.round((f.fontSize||11)*1.8)}" id="repeatGap_${f.id}" style="max-width:65px;">
+          <button class="btn btn-blue btn-sm" onclick="repeatCourseField('${f.id}')">تكرار</button>
         </div>` : ''}
         <div class="form-line">
           <select onchange="updateCalibField('${f.id}','align',this.value)">
@@ -3769,15 +3848,42 @@
           </select>
           <input type="number" min="6" max="30" value="${f.fontSize||11}" placeholder="حجم الخط" onchange="updateCalibField('${f.id}','fontSize',this.value)" style="max-width:90px;">
         </div>
+        <div class="form-line">
+          <span style="font-size:11.5px;color:#9bb3cb;white-space:nowrap;">ضبط دقيق: س</span>
+          <input type="number" value="${f.x}" onchange="updateCalibField('${f.id}','x',this.value)" style="max-width:75px;">
+          <span style="font-size:11.5px;color:#9bb3cb;white-space:nowrap;">ص</span>
+          <input type="number" value="${f.y}" onchange="updateCalibField('${f.id}','y',this.value)" style="max-width:75px;">
+        </div>
       </div>`).join('');
   }
 
   function updateCalibField(id, key, value){
     const f = calibFields.find(x=>x.id===id);
     if(!f) return;
-    if(key==='fontSize' || key==='slot') value = +value || 1;
+    if(key==='fontSize' || key==='slot' || key==='x' || key==='y') value = +value || 0;
     f[key] = value;
     if(key==='source') renderCalibFieldsList(); // عشان يظهر/يختفي الحقل الإضافي (نص الطالب / ترتيب المادة)
+    if(key==='x' || key==='y') redrawAllCalibMarkers();
+  }
+
+  function repeatCourseField(id){
+    const f = calibFields.find(x=>x.id===id);
+    if(!f) return;
+    const countInput = document.getElementById('repeatCount_'+id);
+    const gapInput = document.getElementById('repeatGap_'+id);
+    const count = Math.max(1, +((countInput && countInput.value) || 6));
+    const gap = +((gapInput && gapInput.value) || Math.round((f.fontSize||11)*1.8));
+    for(let i=1;i<=count;i++){
+      calibFields.push({
+        id: 'f_' + Date.now().toString(36) + Math.random().toString(36).slice(2,7) + i,
+        page: f.page, x: f.x, y: f.y - (gap*i),
+        label: 'مادة ' + ((f.slot||1)+i),
+        source: 'course_slot', customLabel: '', slot: (f.slot||1)+i,
+        align: f.align, fontSize: f.fontSize, bold: f.bold
+      });
+    }
+    redrawAllCalibMarkers();
+    renderCalibFieldsList();
   }
 
   function removeCalibField(id){
@@ -3788,13 +3894,18 @@
 
   async function saveCalibFields(){
     const msg = document.getElementById('calibSaveMsg');
+    const key = regScopeKey();
     const invalid = calibFields.find(f=> !f.source || (f.source==='student_text' && !f.customLabel) );
     if(invalid){ msg.className='msg error'; msg.textContent='فيه حقل ناقص بيانات (لازم تختار مصدر البيانات لكل حقل، ولو "نص من الطالب" لازم تكتب السؤال)'; return; }
     try{
-      await regDocRef().set({ regular: { fields: calibFields } }, {merge:true});
-      regSettingsData.regular = Object.assign({}, regSettingsData.regular, {fields: calibFields});
-      msg.className='msg success'; msg.textContent = '✅ اتحفظت الحقول (' + calibFields.length + ' حقل)';
-      document.getElementById('regTemplateInfo').textContent = '📎 القالب الحالي: ' + (regSettingsData.regular.templateName||'ملف PDF') + ' — ' + calibFields.length + ' حقل مضبوط';
+      regSettingsData.regularByScope = regSettingsData.regularByScope || {};
+      const existing = regSettingsData.regularByScope[key] || {};
+      const updated = Object.assign({}, existing, {fields: calibFields});
+      await regDocRef().set({ regularByScope: { [key]: { fields: calibFields } } }, {merge:true});
+      regSettingsData.regularByScope[key] = updated;
+      msg.className='msg success'; msg.textContent = '✅ اتحفظت الحقول (' + calibFields.length + ' حقل) لتحديد (' + scopeKeyToLabel(key) + ')';
+      document.getElementById('regTemplateInfo').textContent = '📎 القالب الحالي: ' + (updated.templateName||'ملف PDF') + ' — ' + calibFields.length + ' حقل مضبوط';
+      renderConfiguredScopesList(regSettingsData.regularByScope, 'regConfiguredScopesList', key);
     }catch(e){ msg.className='msg error'; msg.textContent = '❌ حصل خطأ: ' + e.message; }
   }
 
@@ -3851,17 +3962,21 @@
   }
 
   async function testFillRegTemplate(){
-    const r = regSettingsData.regular || {};
-    if(!r.templateUrl){ alert('لسه مفيش قالب مرفوع'); return; }
+    const key = regScopeKey();
+    const r = (regSettingsData.regularByScope||{})[key] || {};
+    if(!r.templateUrl){ alert('لسه مفيش قالب مرفوع لتحديد (' + scopeKeyToLabel(key) + ')'); return; }
     if(!(r.fields||[]).length){ alert('لسه مفيش حقول متضافة، ادخل على "ضبط أماكن البيانات" الأول'); return; }
     try{
       const bytes = await getTemplateBytesForCalibration();
       const termWords = {1:'الأول',2:'الثاني',3:'الثالث',4:'الرابع',5:'الخامس',6:'السادس'};
+      const scopeYear = document.getElementById('regScopeYear').value;
+      const scopeDivision = document.getElementById('regScopeDivision').value;
+      const scopeDepartment = document.getElementById('regScopeDepartment').value;
       const dataContext = {
         auto_name: 'طالب تجريبي (معاينة)', auto_phone: '01000000000',
-        auto_department: document.getElementById('currDepartment').value || 'قسم تجريبي',
-        auto_division: document.getElementById('currDivision').value || 'شعبة تجريبية',
-        auto_year: document.getElementById('currYear').value || 'الفرقة الأولى',
+        auto_department: scopeDepartment || 'قسم تجريبي',
+        auto_division: scopeDivision || 'شعبة تجريبية',
+        auto_year: scopeYear || 'الفرقة الأولى',
         auto_status: 'مستجد', auto_term: 'الترم ' + (termWords[r.term]||r.term),
         auto_date: new Date().toLocaleDateString('ar-EG'), auto_gpa: '3.20',
         studentInputs: {}
@@ -3869,9 +3984,14 @@
       (r.fields||[]).filter(f=>f.source==='student_text').forEach(f=> dataContext.studentInputs[f.id] = '(مثال) ' + (f.customLabel||''));
       let courseNames = [];
       try{
-        const cSnap = await curriculumDocRef().get();
+        const cSnap = await db.collection('curriculum').doc(key).get();
         const cData = cSnap.exists ? (cSnap.data()||{}) : {};
         courseNames = (cData['term'+r.term]||[]).map(s=>s.subject);
+        if(!courseNames.length){
+          const gSnap = await db.collection('settings').doc('curriculum').get();
+          const gData = gSnap.exists ? (gSnap.data()||{}) : {};
+          courseNames = (gData['term'+r.term]||[]).map(s=>s.subject);
+        }
       }catch(e){}
       if(!courseNames.length) courseNames = ['مادة تجريبية 1','مادة تجريبية 2','مادة تجريبية 3'];
       const filledBytes = await regFillPdf(bytes, r.fields, dataContext, courseNames);
@@ -3964,10 +4084,10 @@
           bySubject[name].push(d.name || doc.id);
         });
       });
-      const scopeKey = curriculumScopeKey(year, division, department);
+      const scopeKey = curriculumScopeKey(year, division, department) || 'any__any__any';
       const sSnap = await regDocRef().get();
       const sData = sSnap.exists ? (sSnap.data()||{}) : {};
-      const openList = ((sData.summer||{}).openCoursesByScope||{})[scopeKey] || [];
+      const openList = ((sData.summerByScope||{})[scopeKey]||{}).openCourses || [];
       window._failStatsScopeKey = scopeKey;
       const subjNames = Object.keys(bySubject).sort((a,b)=> bySubject[b].length - bySubject[a].length);
       if(!subjNames.length){ box.innerHTML = '<p style="font-size:13px;color:#7a93ad;">لا يوجد طلبة راسبين مسجلين لهذا التحديد</p>'; return; }
@@ -3993,42 +4113,59 @@
     try{
       const sSnap = await regDocRef().get();
       const sData = sSnap.exists ? (sSnap.data()||{}) : {};
-      const openCoursesByScope = ((sData.summer||{}).openCoursesByScope) || {};
-      openCoursesByScope[scopeKey] = checked;
-      await regDocRef().set({ summer: { openCoursesByScope } }, {merge:true});
+      const existing = ((sData.summerByScope||{})[scopeKey]) || {};
+      await regDocRef().set({ summerByScope: { [scopeKey]: { openCourses: checked } } }, {merge:true});
+      regSettingsData.summerByScope = regSettingsData.summerByScope || {};
+      regSettingsData.summerByScope[scopeKey] = Object.assign({}, existing, {openCourses: checked});
       msg.className='msg success'; msg.textContent = '✅ اتحفظت (' + checked.length + ' مادة مفتوحة) لهذا التحديد';
     }catch(e){ msg.className='msg error'; msg.textContent='❌ خطأ: ' + e.message; }
   }
 
-  // ==================== التسجيل الصيفي (نفس فكرة الترم العادي، والطالب هنا بيختار من مواد مفتوحة بس) ====================
+  // ==================== التسجيل الصيفي (نفس فكرة الترم العادي، استمارة منفصلة لكل نطاق، والطالب بيختار من مواد مفتوحة بس) ====================
   let summerCalibFields = [];
   let summerTemplateBytes = null;
   let summerCalibCanvases = {};
+  function summerScopeKey(){
+    const year = document.getElementById('failStatsYear').value;
+    const division = document.getElementById('failStatsDivision').value;
+    const department = document.getElementById('failStatsDepartment').value;
+    return curriculumScopeKey(year, division, department) || 'any__any__any';
+  }
 
   async function loadSummerSettingsUI(){
     try{
       const snap = await regDocRef().get();
       const data = snap.exists ? (snap.data()||{}) : {};
-      regSettingsData.summer = data.summer || {active:false, label:'', fields:[], templateUrl:null, templateName:null, openCoursesByScope:{}};
-      const s = regSettingsData.summer;
+      regSettingsData.summerByScope = data.summerByScope || {};
+      const key = summerScopeKey();
+      const s = regSettingsData.summerByScope[key] || {active:false, label:'', fields:[], templateUrl:null, templateName:null, openCourses:[]};
+      regSettingsData.summerByScope[key] = s;
       document.getElementById('summerActive').value = s.active ? '1' : '0';
       document.getElementById('summerLabel').value = s.label || '';
-      document.getElementById('summerTemplateInfo').textContent = s.templateUrl ? ('📎 القالب الحالي: ' + (s.templateName||'ملف PDF') + ' — ' + (s.fields||[]).length + ' حقل مضبوط') : 'لا يوجد قالب مرفوع بعد';
+      document.getElementById('summerTemplateInfo').textContent = s.templateUrl ? ('📎 القالب الحالي (' + scopeKeyToLabel(key) + '): ' + (s.templateName||'ملف PDF') + ' — ' + (s.fields||[]).length + ' حقل مضبوط') : ('لا يوجد قالب مرفوع بعد لتحديد: ' + scopeKeyToLabel(key));
+      summerTemplateBytes = null;
+      renderConfiguredScopesList(regSettingsData.summerByScope, 'summerConfiguredScopesList', key);
     }catch(e){ console.warn('تعذر تحميل إعدادات التسجيل الصيفي', e); }
   }
   async function saveSummerSettings(){
     const msg = document.getElementById('summerSettingsMsg');
+    const key = summerScopeKey();
     const active = document.getElementById('summerActive').value === '1';
     const label = document.getElementById('summerLabel').value.trim();
     try{
-      await regDocRef().set({ summer: { active, label } }, {merge:true});
-      msg.textContent = '✅ اتحفظ. الميزة دلوقتي ' + (active ? 'ظاهرة للطلاب.' : 'مخفية عن الطلاب.');
-      regSettingsData.summer = Object.assign({}, regSettingsData.summer, {active, label});
+      regSettingsData.summerByScope = regSettingsData.summerByScope || {};
+      const existing = regSettingsData.summerByScope[key] || {};
+      const updated = Object.assign({}, existing, {active, label});
+      await regDocRef().set({ summerByScope: { [key]: {active, label} } }, {merge:true});
+      regSettingsData.summerByScope[key] = updated;
+      msg.textContent = '✅ اتحفظ لتحديد (' + scopeKeyToLabel(key) + '). الاستمارة دلوقتي ' + (active ? 'ظاهرة لطلاب هذا التحديد.' : 'مخفية.');
+      renderConfiguredScopesList(regSettingsData.summerByScope, 'summerConfiguredScopesList', key);
     }catch(e){ msg.textContent = '❌ حصل خطأ: ' + e.message; }
   }
   async function uploadSummerTemplate(){
     const fileInput = document.getElementById('summerTemplateFile');
     const status = document.getElementById('summerUploadStatus');
+    const key = summerScopeKey();
     const file = fileInput.files[0];
     if(!file){ status.textContent = 'اختار ملف PDF الأول'; return; }
     if(file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')){ status.textContent = 'الملف لازم يكون PDF'; return; }
@@ -4041,15 +4178,20 @@
       const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/upload`, { method:'POST', body: formData });
       const data = await response.json();
       if(!data.secure_url) throw new Error('فشل الرفع على السحابة');
-      await regDocRef().set({ summer: { templateUrl: data.secure_url, templateName: file.name } }, {merge:true});
-      regSettingsData.summer = Object.assign({}, regSettingsData.summer, {templateUrl: data.secure_url, templateName: file.name});
-      status.textContent = '✅ اتملى القالب. دلوقتي دوس "ضبط أماكن البيانات".';
-      document.getElementById('summerTemplateInfo').textContent = '📎 القالب الحالي: ' + file.name + ' — ' + ((regSettingsData.summer.fields||[]).length) + ' حقل مضبوط';
+      regSettingsData.summerByScope = regSettingsData.summerByScope || {};
+      const existing = regSettingsData.summerByScope[key] || {};
+      const updated = Object.assign({}, existing, {templateUrl: data.secure_url, templateName: file.name});
+      await regDocRef().set({ summerByScope: { [key]: { templateUrl: data.secure_url, templateName: file.name } } }, {merge:true});
+      regSettingsData.summerByScope[key] = updated;
+      status.textContent = '✅ اتملى القالب لتحديد (' + scopeKeyToLabel(key) + '). دلوقتي دوس "ضبط أماكن البيانات".';
+      document.getElementById('summerTemplateInfo').textContent = '📎 القالب الحالي: ' + file.name + ' — ' + ((updated.fields||[]).length) + ' حقل مضبوط';
+      renderConfiguredScopesList(regSettingsData.summerByScope, 'summerConfiguredScopesList', key);
     }catch(e){ status.textContent = '❌ حصل خطأ أثناء الرفع: ' + e.message; }
   }
   async function getSummerTemplateBytesForCalibration(){
     if(summerTemplateBytes) return summerTemplateBytes;
-    const url = (regSettingsData.summer||{}).templateUrl;
+    const key = summerScopeKey();
+    const url = ((regSettingsData.summerByScope||{})[key]||{}).templateUrl;
     if(!url) return null;
     const resp = await fetch(url);
     summerTemplateBytes = await resp.arrayBuffer();
@@ -4065,7 +4207,8 @@
     if(!bytes){ alert('ارفع قالب PDF الأول'); return; }
     box.style.display = 'block';
     pagesContainer.innerHTML = '⏳ جاري تحميل الاستمارة...';
-    summerCalibFields = ((regSettingsData.summer||{}).fields || []).map(f=>Object.assign({}, f));
+    const summerCalibKey = summerScopeKey();
+    summerCalibFields = (((regSettingsData.summerByScope||{})[summerCalibKey]||{}).fields || []).map(f=>Object.assign({}, f));
     summerCalibCanvases = {};
     try{
       const pdf = await pdfjsLib.getDocument({data: bytes.slice(0)}).promise;
@@ -4173,6 +4316,13 @@
         ${f.source==='course_slot' ? `
         <div class="form-line">
           <input type="number" min="1" placeholder="ترتيب المادة في الاستمارة (1، 2، 3...)" value="${f.slot||1}" onchange="updateSummerCalibField('${f.id}','slot',this.value)">
+        </div>
+        <div class="form-line" style="background:#fffaf0;border-radius:8px;padding:6px;">
+          <span style="font-size:11.5px;color:#7a5a00;white-space:nowrap;">🔁 كرر تحته</span>
+          <input type="number" min="1" max="30" value="6" id="summerRepeatCount_${f.id}" style="max-width:60px;">
+          <span style="font-size:11.5px;color:#7a5a00;white-space:nowrap;">مرة، بمسافة</span>
+          <input type="number" value="${Math.round((f.fontSize||11)*1.8)}" id="summerRepeatGap_${f.id}" style="max-width:65px;">
+          <button class="btn btn-blue btn-sm" onclick="repeatSummerCourseField('${f.id}')">تكرار</button>
         </div>` : ''}
         <div class="form-line">
           <select onchange="updateSummerCalibField('${f.id}','align',this.value)">
@@ -4182,14 +4332,40 @@
           </select>
           <input type="number" min="6" max="30" value="${f.fontSize||11}" placeholder="حجم الخط" onchange="updateSummerCalibField('${f.id}','fontSize',this.value)" style="max-width:90px;">
         </div>
+        <div class="form-line">
+          <span style="font-size:11.5px;color:#9bb3cb;white-space:nowrap;">ضبط دقيق: س</span>
+          <input type="number" value="${f.x}" onchange="updateSummerCalibField('${f.id}','x',this.value)" style="max-width:75px;">
+          <span style="font-size:11.5px;color:#9bb3cb;white-space:nowrap;">ص</span>
+          <input type="number" value="${f.y}" onchange="updateSummerCalibField('${f.id}','y',this.value)" style="max-width:75px;">
+        </div>
       </div>`).join('');
   }
   function updateSummerCalibField(id, key, value){
     const f = summerCalibFields.find(x=>x.id===id);
     if(!f) return;
-    if(key==='fontSize' || key==='slot') value = +value || 1;
+    if(key==='fontSize' || key==='slot' || key==='x' || key==='y') value = +value || 0;
     f[key] = value;
     if(key==='source') renderSummerCalibFieldsList();
+    if(key==='x' || key==='y') redrawAllSummerCalibMarkers();
+  }
+  function repeatSummerCourseField(id){
+    const f = summerCalibFields.find(x=>x.id===id);
+    if(!f) return;
+    const countInput = document.getElementById('summerRepeatCount_'+id);
+    const gapInput = document.getElementById('summerRepeatGap_'+id);
+    const count = Math.max(1, +((countInput && countInput.value) || 6));
+    const gap = +((gapInput && gapInput.value) || Math.round((f.fontSize||11)*1.8));
+    for(let i=1;i<=count;i++){
+      summerCalibFields.push({
+        id: 'f_' + Date.now().toString(36) + Math.random().toString(36).slice(2,7) + i,
+        page: f.page, x: f.x, y: f.y - (gap*i),
+        label: 'مادة ' + ((f.slot||1)+i),
+        source: 'course_slot', customLabel: '', slot: (f.slot||1)+i,
+        align: f.align, fontSize: f.fontSize, bold: f.bold
+      });
+    }
+    redrawAllSummerCalibMarkers();
+    renderSummerCalibFieldsList();
   }
   function removeSummerCalibField(id){
     summerCalibFields = summerCalibFields.filter(f=>f.id!==id);
@@ -4198,18 +4374,24 @@
   }
   async function saveSummerCalibFields(){
     const msg = document.getElementById('summerCalibSaveMsg');
+    const key = summerScopeKey();
     const invalid = summerCalibFields.find(f=> !f.source || (f.source==='student_text' && !f.customLabel) );
     if(invalid){ msg.className='msg error'; msg.textContent='فيه حقل ناقص بيانات (لازم تختار مصدر البيانات لكل حقل)'; return; }
     try{
-      await regDocRef().set({ summer: { fields: summerCalibFields } }, {merge:true});
-      regSettingsData.summer = Object.assign({}, regSettingsData.summer, {fields: summerCalibFields});
-      msg.className='msg success'; msg.textContent = '✅ اتحفظت الحقول (' + summerCalibFields.length + ' حقل)';
-      document.getElementById('summerTemplateInfo').textContent = '📎 القالب الحالي: ' + (regSettingsData.summer.templateName||'ملف PDF') + ' — ' + summerCalibFields.length + ' حقل مضبوط';
+      regSettingsData.summerByScope = regSettingsData.summerByScope || {};
+      const existing = regSettingsData.summerByScope[key] || {};
+      const updated = Object.assign({}, existing, {fields: summerCalibFields});
+      await regDocRef().set({ summerByScope: { [key]: { fields: summerCalibFields } } }, {merge:true});
+      regSettingsData.summerByScope[key] = updated;
+      msg.className='msg success'; msg.textContent = '✅ اتحفظت الحقول (' + summerCalibFields.length + ' حقل) لتحديد (' + scopeKeyToLabel(key) + ')';
+      document.getElementById('summerTemplateInfo').textContent = '📎 القالب الحالي: ' + (updated.templateName||'ملف PDF') + ' — ' + summerCalibFields.length + ' حقل مضبوط';
+      renderConfiguredScopesList(regSettingsData.summerByScope, 'summerConfiguredScopesList', key);
     }catch(e){ msg.className='msg error'; msg.textContent = '❌ حصل خطأ: ' + e.message; }
   }
   async function testFillSummerTemplate(){
-    const s = regSettingsData.summer || {};
-    if(!s.templateUrl){ alert('لسه مفيش قالب مرفوع'); return; }
+    const key = summerScopeKey();
+    const s = (regSettingsData.summerByScope||{})[key] || {};
+    if(!s.templateUrl){ alert('لسه مفيش قالب مرفوع لتحديد (' + scopeKeyToLabel(key) + ')'); return; }
     if(!(s.fields||[]).length){ alert('لسه مفيش حقول متضافة، ادخل على "ضبط أماكن البيانات" الأول'); return; }
     try{
       const bytes = await getSummerTemplateBytesForCalibration();
@@ -4224,8 +4406,7 @@
         studentInputs: {}
       };
       (s.fields||[]).filter(f=>f.source==='student_text').forEach(f=> dataContext.studentInputs[f.id] = '(مثال) ' + (f.customLabel||''));
-      const scopeKey = window._failStatsScopeKey || curriculumScopeKey(fsYear, fsDivision, fsDepartment);
-      let courseNames = ((s.openCoursesByScope||{})[scopeKey]) || [];
+      let courseNames = s.openCourses || [];
       if(!courseNames.length) courseNames = ['مادة صيفي تجريبية 1','مادة صيفي تجريبية 2'];
       const filledBytes = await regFillPdf(bytes, s.fields, dataContext, courseNames);
       const blob = new Blob([filledBytes], {type:'application/pdf'});
