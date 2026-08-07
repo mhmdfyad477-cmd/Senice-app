@@ -480,7 +480,9 @@
     try{
       const snap = await db.collection('settings').doc('advisingRegistration').get();
       const data = snap.exists ? (snap.data()||{}) : {};
-      const r = data.regular;
+      const byScope = data.regularByScope || {};
+      const scopeKey = curriculumScopeKey(user.year, user.division, user.department);
+      const r = byScope[scopeKey] || byScope['any__any__any'];
       if(!r || !r.active || !r.templateUrl || !(r.fields||[]).length){ card.style.display='none'; return; }
       window._regConfig = r;
       document.getElementById('regIntro').textContent = 'استمارة تسجيل مواد الترم ' + (REG_TERM_WORDS[r.term]||r.term) + ' متاحة دلوقتي. راجع بياناتك وسلّم الاستمارة.';
@@ -585,10 +587,11 @@
     try{
       const snap = await db.collection('settings').doc('advisingRegistration').get();
       const data = snap.exists ? (snap.data()||{}) : {};
-      const s = data.summer;
-      if(!s || !s.active || !s.templateUrl || !(s.fields||[]).length){ card.style.display='none'; return; }
+      const byScope = data.summerByScope || {};
       const scopeKey = curriculumScopeKey(user.year, user.division, user.department);
-      const openCourses = ((s.openCoursesByScope||{})[scopeKey]) || [];
+      const s = byScope[scopeKey] || byScope['any__any__any'];
+      if(!s || !s.active || !s.templateUrl || !(s.fields||[]).length){ card.style.display='none'; return; }
+      const openCourses = s.openCourses || [];
       if(!openCourses.length){ card.style.display='none'; return; }
       window._summerConfig = s;
       document.getElementById('summerIntro').textContent = (s.label || 'التسجيل الصيفي') + ' متاح دلوقتي. اختار المواد اللي عايز تسجلها من المواد المتاحة ليك تحت.';
