@@ -593,7 +593,7 @@
           <button class="btn btn-blue" onclick="loadCurriculumTerm()">📥 تحميل مواد الترم ده</button>
         </div>
         <div style="background:#f8faff;border:1.5px dashed #b8d4f5;border-radius:10px;padding:10px;margin:10px 0;">
-          <b style="font-size:13px;display:block;margin-bottom:6px;">📷 رفع صورة بأسماء المواد وعدد الساعات (استخراج تلقائي)</b>
+          <b style="font-size:13px;display:block;margin-bottom:6px;">📷 رفع صورة بأسماء المواد وعدد الساعات (استخراج بالذكاء الاصطناعي)</b>
           <input type="file" id="currImageInput" accept="image/*">
           <button class="btn btn-blue btn-sm" onclick="extractCurriculumFromImage()">🔎 استخراج من الصورة</button>
           <p id="currOcrStatus" style="font-size:11.5px;color:#7a93ad;margin-top:6px;"></p>
@@ -942,6 +942,9 @@
 
   const CLOUD_NAME = 'dgbuovcf';
   const UPLOAD_PRESET = 'Science_app';
+  // بعد ما تنشر الـ Cloud Function (شوف دليل النشر)، حط الرابط والسر هنا بدل القيمتين دول
+  const GEMINI_FUNCTION_URL = 'PASTE_YOUR_FUNCTION_URL_HERE';
+  const GEMINI_APP_SECRET = 'PASTE_YOUR_APP_SECRET_HERE';
   const ADMIN_PHONE = "01229914072";
   const ADMIN_PASS  = "197197";
 
@@ -3552,19 +3555,33 @@
     await ref.set(data);
     loadCurriculumTerm();
   }
+  function fileToBase64(file){
+    return new Promise((resolve, reject)=>{
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result).split(',')[1]); // إزالة data:...;base64, من الأول
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
   async function extractCurriculumFromImage(){
     const fileInput = document.getElementById('currImageInput');
     const status = document.getElementById('currOcrStatus');
     const file = fileInput.files[0];
     if(!file){ status.textContent = 'اختر صورة الأول'; return; }
-    if(typeof Tesseract === 'undefined'){ status.textContent = '⚠️ تعذر تحميل مكتبة قراءة الصور'; return; }
-    status.textContent = '⏳ جاري قراءة الصورة...';
+    if(GEMINI_FUNCTION_URL.includes('PASTE_')){ status.textContent = '⚠️ لسه محتاجين تظبطوا رابط خدمة الذكاء الاصطناعي (شوف دليل النشر)'; return; }
+    status.textContent = '⏳ جاري تحليل الصورة بالذكاء الاصطناعي...';
     try{
-      const { data } = await Tesseract.recognize(file, 'ara+eng', {
-        logger: m => { if(m.status==='recognizing text') status.textContent = `⏳ جاري القراءة... ${Math.round((m.progress||0)*100)}%`; }
+      const imageBase64 = await fileToBase64(file);
+      const resp = await fetch(GEMINI_FUNCTION_URL, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ appSecret: GEMINI_APP_SECRET, task: 'curriculum', imageBase64, mimeType: file.type || 'image/jpeg' })
       });
-      const lines = (data.text || '').split('\n').map(l=>l.trim()).filter(l=>l.length>1);
-      if(!lines.length){ status.textContent = '❌ مقدرش أقرا حاجة واضحة'; return; }
+      const result = await resp.json();
+      if(!result.success) throw new Error(result.error || 'فشل التحليل');
+      const items = Array.isArray(result.data) ? result.data : [];
+      if(!items.length){ status.textContent = '❌ مقدرش ألاقي مواد واضحة في الصورة'; return; }
       const term = document.getElementById('currTerm').value;
       const ref = curriculumDocRef();
       const snap = await ref.get();
@@ -3572,18 +3589,16 @@
       const key = 'term'+term;
       cdata[key] = cdata[key] || [];
       let added = 0;
-      lines.forEach(line=>{
-        // بندور على رقم ساعات في السطر (1 أو 2)، والباقي اسم المادة
-        const hoursMatch = line.match(/\b([12])\b/);
-        const hours = hoursMatch ? hoursMatch[1] : '2';
-        const subject = line.replace(/\b([12])\b/, '').replace(/[\-–:،,]+$/,'').trim();
+      items.forEach(it=>{
+        const subject = String(it.subject||'').trim();
+        const hours = String(it.hours || 2);
         if(subject.length > 1){ cdata[key].push({subject, hours}); added++; }
       });
       await ref.set(cdata);
-      status.textContent = `✅ اتضافت ${added} مادة تلقائيًا — راجعهم تحت وامسح أي حاجة غلط`;
+      status.textContent = `✅ اتضافت ${added} مادة — راجعهم تحت وامسح أي حاجة غلط`;
       loadCurriculumTerm();
     }catch(e){
-      status.textContent = '❌ حدث خطأ أثناء قراءة الصورة: ' + e.message;
+      status.textContent = '❌ حدث خطأ: ' + e.message;
     }
   }
 
